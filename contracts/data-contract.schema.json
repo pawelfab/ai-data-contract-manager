@@ -8,7 +8,8 @@
   "required": [
     "metadata",
     "source",
-    "targets"
+    "targets",
+    "orchestration"
   ],
   "properties": {
     "metadata": {
@@ -51,11 +52,7 @@
     },
     "orchestration": {
       "$ref": "#/$defs/Orchestration",
-      "description": "Opcjonalne uruchamianie pipeline przez orkiestrator.",
-      "x-acdm-optional-decision": {
-        "label": "Orkiestracja",
-        "question": "Czy chcesz skonfigurować harmonogram i identyfikator orkiestracji?"
-      }
+      "description": "Obowiązkowa konfiguracja uruchamiania pipeline przez orkiestrator."
     }
   },
   "$defs": {
@@ -65,7 +62,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "id"
+        "id",
+        "version",
+        "owner"
       ],
       "properties": {
         "id": {
@@ -1535,11 +1534,12 @@
     },
     "Orchestration": {
       "title": "Orchestration",
-      "description": "Opcjonalna konfiguracja uruchamiania pipeline.",
+      "description": "Obowiązkowa konfiguracja uruchamiania pipeline.",
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "dagId"
+        "dagId",
+        "schedule"
       ],
       "properties": {
         "dagId": {
@@ -1590,7 +1590,8 @@
     {
       "metadata": {
         "id": "customer_accounts_daily",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "owner": "data-platform@example.com"
       },
       "source": {
         "sourceType": "csv",
@@ -1628,6 +1629,10 @@
             }
           ]
         }
+      },
+      "orchestration": {
+        "dagId": "customer_accounts_daily",
+        "schedule": "0 6 * * *"
       }
     }
   ]

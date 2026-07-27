@@ -120,7 +120,7 @@ class ContractSchemaService:
         self._collect_fields(
             self.schema["properties"]["orchestration"],
             "orchestration",
-            parent_required=False,
+            parent_required=True,
             fields=fields,
             decisions=decisions,
         )

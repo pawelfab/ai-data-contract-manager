@@ -27,6 +27,8 @@ Plik `contracts/data-contract.schema.json`:
 - ma zamknięte obiekty (`additionalProperties: false`);
 - definiuje source: CSV, fixed-width, JSON, TXT i JDBC;
 - definiuje targety BigQuery: Bronze, Silver i Gold;
+- wymaga `metadata.id`, `metadata.version`, `metadata.owner` oraz
+  `orchestration.dagId` i pięciopolowego `orchestration.schedule`;
 - wymusza Bronze oraz zależność Gold → Silver;
 - zawiera semantyczne `description`, przykłady, wartości domyślne i enumy;
 - oznacza sekcje wymagające osobnej decyzji opcjonalnej przez

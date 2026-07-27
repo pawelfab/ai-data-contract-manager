@@ -53,5 +53,9 @@
         "writeDisposition": "WRITE_APPEND"
       }
     }
+  },
+  "orchestration": {
+    "dagId": "customer_accounts_daily",
+    "schedule": "0 6 * * *"
   }
 }

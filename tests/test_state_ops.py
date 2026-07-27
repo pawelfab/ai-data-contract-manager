@@ -66,15 +66,13 @@ def test_skipped_optional_decision_is_remembered() -> None:
     )
 
 
-def test_selected_optional_section_activates_conditional_requirements() -> None:
+def test_orchestration_requirements_are_always_active() -> None:
     state = ContractState(conversation_id="conversation-1")
     activate_scope(state, requirements("csv", ["bronze"]))
 
-    state.optional_decision_choices["orchestration"] = True
-
     missing = missing_required_paths(state)
     assert "orchestration.dagId" in missing
-    assert "orchestration.startDate" not in missing
+    assert "orchestration.schedule" in missing
 
 
 def test_object_update_is_expanded_to_allowed_terminal_paths() -> None:

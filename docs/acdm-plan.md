@@ -38,8 +38,8 @@ flowchart LR
 - MCP jest wywoływany deterministycznie przez adapter, a nie wystawiany LLM
   jako swobodny katalog narzędzi.
 - Odczyt wymagań source/targetów nie zatrzymuje rozmowy na deferred approval.
-- Końcowy YAML wymaga potwierdzenia wbudowanego w Pydantic AI
-  (`requires_approval=True`).
+- Końcowy YAML jest zatwierdzany pojedynczo na czacie: agent pokazuje preview,
+  pyta użytkownika i dopiero po jawnej zgodzie utrwala YAML.
 
 ## Etap 1 — szkielet webowy
 
@@ -153,9 +153,11 @@ Przebieg:
 1. `prepare_yaml_preview` działa wyłącznie po udanej walidacji bieżącej rewizji.
 2. YAML jest generowany przez MCP, nigdy przez LLM.
 3. Agent pokazuje pełny preview na czacie.
-4. `approve_final_yaml` wymaga zatwierdzenia w Web Chat UI.
-5. Odrzucenie wraca do rozmowy i pozwala opisać poprawki.
-6. Zmiana po zatwierdzeniu uruchamia ponownie patch → validation → preview.
+4. Agent kończy turę pytaniem o zatwierdzenie YAML.
+5. Jawna zgoda w następnej wiadomości uruchamia `approve_final_yaml` bez
+   drugiego, technicznego deferred approval.
+6. Odrzucenie wraca do rozmowy i pozwala opisać poprawki.
+7. Zmiana po zatwierdzeniu uruchamia ponownie patch → validation → preview.
 
 Kryterium ukończenia:
 

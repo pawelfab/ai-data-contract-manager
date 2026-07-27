@@ -43,12 +43,20 @@ def test_csv_catalogue_contains_only_active_source(
 
     assert "source.uri" in catalogue.required_paths
     assert "source.columns" in catalogue.required_paths
+    assert "metadata.version" in catalogue.required_paths
+    assert "metadata.owner" in catalogue.required_paths
+    assert "orchestration.dagId" in catalogue.required_paths
+    assert "orchestration.schedule" in catalogue.required_paths
     assert "source.options.delimiter" in paths
     assert "targets.bronze.table.project" in catalogue.required_paths
     assert not any("recordLength" in path for path in paths)
     assert not any(path.startswith("targets.silver") for path in paths)
     assert any(
         decision.path == "source.options"
+        for decision in catalogue.optional_decisions
+    )
+    assert not any(
+        decision.path == "orchestration"
         for decision in catalogue.optional_decisions
     )
 

@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from pydantic_ai import (
     Agent,
-    DeferredToolRequests,
     ModelMessagesTypeAdapter,
     ModelRetry,
     RunContext,
@@ -74,6 +73,9 @@ Kolejność każdej rozmowy:
    narzędzie bezpiecznie rozwinie obiekt do allowed_paths. Nie używaj null do
    usuwania sekcji opcjonalnej; użyj set_optional_decisions z include=false.
 5. Wywołaj get_contract_status. Najpierw poproś o brakujące pola wymagane.
+   Każde pytanie musi zawierać: ścieżkę pola, description oraz przykład, jeżeli
+   MCP go podał. Description przedstaw po polsku; jeżeli MCP zwróci opis po
+   angielsku, przetłumacz jego sens na polski bez zmiany nazw technicznych.
    Pokaż także opcjonalne sekcje wraz z opisami i przykładami oraz zapytaj,
    czy użytkownik chce je uzupełnić. Odpowiedź zapisz przez
    set_optional_decisions, żeby nie pytać ponownie. Opcjonalnych pól nie
@@ -85,9 +87,10 @@ Kolejność każdej rozmowy:
    musi realnie zmienić draft. Nie przekraczaj limitu z sesji. Gdy nie masz
    podstawy do poprawy albo limit został osiągnięty, poproś użytkownika.
 8. Po sukcesie walidacji wywołaj prepare_yaml_preview. Pokaż użytkownikowi cały
-   YAML i krótko poproś o zatwierdzenie, następnie wywołaj approve_final_yaml.
-   To narzędzie wymaga wbudowanego potwierdzenia w UI. Jeżeli użytkownik odrzuci
-   zatwierdzenie, zapytaj co poprawić.
+   YAML, zapytaj czy go zatwierdza i zakończ turę. Nie wywołuj
+   approve_final_yaml w tej samej turze. Wywołaj je dopiero w kolejnej turze,
+   gdy użytkownik jawnie zatwierdzi YAML. Jeżeli odrzuci YAML albo poda poprawki,
+   zastosuj poprawki zamiast zatwierdzenia.
 
 Użytkownik może zmienić dowolne uzgodnienie w każdej turze. Zastosuj zmianę,
 ponownie waliduj i wygeneruj nowy preview. Nigdy nie zwracaj samodzielnie
@@ -95,9 +98,9 @@ napisanego YAML i nigdy nie ponawiaj identycznej walidacji bez zmiany draftu.
 """
 
 
-def create_agent(settings: AppSettings | None = None) -> tuple[
-    Agent[AppDeps, str | DeferredToolRequests], AppDeps
-]:
+def create_agent(
+    settings: AppSettings | None = None,
+) -> tuple[Agent[AppDeps, str], AppDeps]:
     settings = settings or AppSettings.from_env()
     port: ContractPort
     if settings.contract_transport == "inprocess":
@@ -111,11 +114,11 @@ def create_agent(settings: AppSettings | None = None) -> tuple[
         contract_port=port,
         settings=settings,
     )
-    agent: Agent[AppDeps, str | DeferredToolRequests] = Agent(
+    agent: Agent[AppDeps, str] = Agent(
         settings.model,
         name="turn_orchestrator",
         deps_type=AppDeps,
-        output_type=[str, DeferredToolRequests],
+        output_type=str,
         instructions=BASE_INSTRUCTIONS,
         defer_model_check=True,
         retries={"tools": 2, "output": 1},
@@ -125,7 +128,7 @@ def create_agent(settings: AppSettings | None = None) -> tuple[
 
 
 def register_agent_behavior(
-    agent: Agent[AppDeps, str | DeferredToolRequests],
+    agent: Agent[AppDeps, str],
 ) -> None:
     @agent.instructions
     def add_session_context(ctx: RunContext[AppDeps]) -> str:
@@ -480,12 +483,12 @@ def register_agent_behavior(
             ),
         }
 
-    @agent.tool(requires_approval=True)
+    @agent.tool
     async def approve_final_yaml(
         ctx: RunContext[AppDeps],
         contract_fingerprint: str,
     ) -> dict[str, Any]:
-        """Najważniejszy krok: użytkownik zatwierdza końcowy YAML w web UI."""
+        """Utrwal YAML po jawnym zatwierdzeniu użytkownika na czacie."""
         state = ctx.deps.store.get(_conversation_id(ctx))
         if not state.pending_yaml or not state.pending_yaml_fingerprint:
             return {
