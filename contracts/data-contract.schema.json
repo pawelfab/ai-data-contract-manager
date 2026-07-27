@@ -1,0 +1,1634 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acdm.local/schemas/data-contract.schema.json",
+  "title": "ACDM Medallion Data Contract",
+  "description": "Kontrakt ładowania danych ze źródła raw do co najmniej warstwy Bronze oraz opcjonalnie dalej do Silver i Gold. ACDM nie wczytuje całego schematu do promptu; mcp-contract-forge wybiera aktywny wariant source i aktywne warstwy target.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "metadata",
+    "source",
+    "targets"
+  ],
+  "properties": {
+    "metadata": {
+      "$ref": "#/$defs/Metadata",
+      "description": "Identyfikacja i opis kontraktu."
+    },
+    "source": {
+      "description": "Dokładnie jeden wariant źródła danych.",
+      "discriminator": {
+        "propertyName": "sourceType",
+        "mapping": {
+          "csv": "#/$defs/CsvSource",
+          "fixed_width": "#/$defs/FixedWidthSource",
+          "json": "#/$defs/JsonSource",
+          "txt": "#/$defs/TextSource",
+          "jdbc": "#/$defs/JdbcSource"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CsvSource"
+        },
+        {
+          "$ref": "#/$defs/FixedWidthSource"
+        },
+        {
+          "$ref": "#/$defs/JsonSource"
+        },
+        {
+          "$ref": "#/$defs/TextSource"
+        },
+        {
+          "$ref": "#/$defs/JdbcSource"
+        }
+      ]
+    },
+    "targets": {
+      "$ref": "#/$defs/Targets",
+      "description": "Kolejne warstwy medallion. Bronze jest obowiązkowa; Silver wymaga Bronze, a Gold wymaga Bronze i Silver."
+    },
+    "orchestration": {
+      "$ref": "#/$defs/Orchestration",
+      "description": "Opcjonalne uruchamianie pipeline przez orkiestrator.",
+      "x-acdm-optional-decision": {
+        "label": "Orkiestracja",
+        "question": "Czy chcesz skonfigurować harmonogram i identyfikator orkiestracji?"
+      }
+    }
+  },
+  "$defs": {
+    "Metadata": {
+      "title": "Metadata",
+      "description": "Metadane identyfikujące kontrakt.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 3,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "Stabilny identyfikator pipeline w formacie lower_snake_case lub kebab-case.",
+          "examples": [
+            "customer_accounts_daily"
+          ],
+          "x-acdm-question": "Jak ma się nazywać pipeline?"
+        },
+        "version": {
+          "type": "string",
+          "default": "1.0.0",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Wersja kontraktu zgodna z Semantic Versioning.",
+          "examples": [
+            "1.0.0"
+          ]
+        },
+        "owner": {
+          "type": "string",
+          "description": "Zespół lub adres kontaktowy odpowiedzialny za pipeline.",
+          "examples": [
+            "data-platform@example.com"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Krótki biznesowy opis celu pipeline.",
+          "examples": [
+            "Dzienne ładowanie rachunków klientów."
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Opcjonalne etykiety ułatwiające wyszukiwanie kontraktu.",
+          "examples": [
+            [
+              "customers",
+              "daily"
+            ]
+          ]
+        }
+      }
+    },
+    "SourceColumn": {
+      "title": "SourceColumn",
+      "description": "Kolumna odczytywana ze źródła.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dataType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nazwa kolumny w źródle.",
+          "examples": [
+            "account_id"
+          ]
+        },
+        "dataType": {
+          "type": "string",
+          "enum": [
+            "STRING",
+            "INT64",
+            "FLOAT64",
+            "NUMERIC",
+            "BOOLEAN",
+            "DATE",
+            "DATETIME",
+            "TIMESTAMP",
+            "BYTES"
+          ],
+          "description": "Logiczny typ danych używany przy odczycie i mapowaniu.",
+          "examples": [
+            "STRING"
+          ]
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy źródłowa wartość może być pusta.",
+          "examples": [
+            true
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Znaczenie biznesowe kolumny.",
+          "examples": [
+            "Identyfikator rachunku."
+          ]
+        },
+        "format": {
+          "type": "string",
+          "description": "Format tekstowy wymagany przy parsowaniu wartości, np. format daty.",
+          "examples": [
+            "yyyy-MM-dd"
+          ]
+        }
+      }
+    },
+    "FixedWidthColumn": {
+      "title": "FixedWidthColumn",
+      "description": "Kolumna pliku stałopozycyjnego. Zakres jest półotwarty: start należy do kolumny, end jest pierwszą pozycją po kolumnie.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "start",
+        "end",
+        "dataType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nazwa kolumny.",
+          "examples": [
+            "account_id"
+          ]
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Indeks pierwszego znaku, liczony od zera.",
+          "examples": [
+            0
+          ]
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Pierwszy indeks poza kolumną; musi być większy od start.",
+          "examples": [
+            8
+          ]
+        },
+        "dataType": {
+          "type": "string",
+          "enum": [
+            "STRING",
+            "INT64",
+            "FLOAT64",
+            "NUMERIC",
+            "BOOLEAN",
+            "DATE",
+            "DATETIME",
+            "TIMESTAMP",
+            "BYTES"
+          ],
+          "description": "Logiczny typ danych kolumny.",
+          "examples": [
+            "STRING"
+          ]
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy kolumna może zawierać pustą wartość.",
+          "examples": [
+            false
+          ]
+        },
+        "trim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy usunąć spacje z początku i końca pola.",
+          "examples": [
+            true
+          ]
+        },
+        "format": {
+          "type": "string",
+          "description": "Opcjonalny format parsowania, np. yyyyMMdd.",
+          "examples": [
+            "yyyyMMdd"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Znaczenie biznesowe kolumny.",
+          "examples": [
+            "Identyfikator rachunku."
+          ]
+        }
+      }
+    },
+    "FileOptions": {
+      "title": "FileOptions",
+      "description": "Wspólne opcje techniczne pliku.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "encoding": {
+          "type": "string",
+          "default": "utf-8",
+          "description": "Kodowanie znaków pliku.",
+          "examples": [
+            "utf-8",
+            "windows-1250"
+          ]
+        },
+        "compression": {
+          "type": "string",
+          "enum": [
+            "none",
+            "gzip",
+            "bzip2",
+            "zip"
+          ],
+          "default": "none",
+          "description": "Kompresja pliku źródłowego.",
+          "examples": [
+            "gzip"
+          ]
+        },
+        "filePattern": {
+          "type": "string",
+          "description": "Wzorzec nazwy plików wybieranych ze wskazanej lokalizacji.",
+          "examples": [
+            "accounts_*.csv"
+          ]
+        }
+      }
+    },
+    "CsvOptions": {
+      "title": "CsvOptions",
+      "description": "Opcjonalne ustawienia parsera CSV.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "delimiter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "default": ",",
+          "description": "Jednoznakowy separator pól.",
+          "examples": [
+            ",",
+            ";"
+          ]
+        },
+        "header": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy pierwszy wiersz zawiera nazwy kolumn.",
+          "examples": [
+            true
+          ]
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "default": "\"",
+          "description": "Znak obejmujący wartości tekstowe.",
+          "examples": [
+            "\""
+          ]
+        },
+        "escape": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "default": "\\",
+          "description": "Znak ucieczki.",
+          "examples": [
+            "\\"
+          ]
+        },
+        "nullValue": {
+          "type": "string",
+          "default": "",
+          "description": "Tekst reprezentujący wartość NULL.",
+          "examples": [
+            "",
+            "NULL"
+          ]
+        },
+        "multiline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Czy pole tekstowe może zawierać znak nowej linii.",
+          "examples": [
+            false
+          ]
+        },
+        "file": {
+          "$ref": "#/$defs/FileOptions",
+          "description": "Kodowanie, kompresja i wzorzec pliku."
+        }
+      }
+    },
+    "CsvSource": {
+      "title": "CsvSource",
+      "description": "Źródło w postaci plików CSV.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "uri",
+        "columns"
+      ],
+      "properties": {
+        "sourceType": {
+          "const": "csv",
+          "description": "Aktywny wariant źródła.",
+          "examples": [
+            "csv"
+          ]
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(gs|s3|https?|file)://.+",
+          "description": "Lokalizacja pliku lub katalogu CSV.",
+          "examples": [
+            "gs://raw-zone/accounts/accounts_2026-07-27.csv"
+          ],
+          "x-acdm-question": "Gdzie znajduje się plik CSV?"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SourceColumn"
+          },
+          "description": "Pełna lista kolumn CSV w kolejności odczytu.",
+          "examples": [
+            [
+              {
+                "name": "account_id",
+                "dataType": "STRING",
+                "nullable": false
+              },
+              {
+                "name": "balance",
+                "dataType": "NUMERIC"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie kolumny i typy danych zawiera CSV?"
+        },
+        "options": {
+          "$ref": "#/$defs/CsvOptions",
+          "description": "Opcjonalne ustawienia parsera CSV.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje CSV",
+            "question": "Czy chcesz ustawić separator, nagłówek, kodowanie, kompresję lub inne opcje CSV?"
+          }
+        }
+      }
+    },
+    "FixedWidthOptions": {
+      "title": "FixedWidthOptions",
+      "description": "Opcjonalne ustawienia pliku stałopozycyjnego.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recordLength": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Oczekiwana liczba znaków w rekordzie.",
+          "examples": [
+            48
+          ]
+        },
+        "allowShortRecords": {
+          "type": "boolean",
+          "default": false,
+          "description": "Czy rekord krótszy od recordLength może zostać zaakceptowany.",
+          "examples": [
+            false
+          ]
+        },
+        "file": {
+          "$ref": "#/$defs/FileOptions",
+          "description": "Kodowanie, kompresja i wzorzec pliku."
+        }
+      }
+    },
+    "FixedWidthSource": {
+      "title": "FixedWidthSource",
+      "description": "Plik stałopozycyjny, w którym każda kolumna ma jawny zakres znaków.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "uri",
+        "columns"
+      ],
+      "properties": {
+        "sourceType": {
+          "const": "fixed_width",
+          "description": "Aktywny wariant źródła.",
+          "examples": [
+            "fixed_width"
+          ]
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(gs|s3|https?|file)://.+",
+          "description": "Lokalizacja pliku stałopozycyjnego.",
+          "examples": [
+            "gs://raw-zone/accounts/accounts_20260727.dat"
+          ],
+          "x-acdm-question": "Gdzie znajduje się plik stałopozycyjny?"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/FixedWidthColumn"
+          },
+          "description": "Kolumny wraz z półotwartymi zakresami start/end.",
+          "examples": [
+            [
+              {
+                "name": "account_id",
+                "start": 0,
+                "end": 8,
+                "dataType": "STRING",
+                "nullable": false
+              },
+              {
+                "name": "balance",
+                "start": 8,
+                "end": 20,
+                "dataType": "NUMERIC"
+              }
+            ]
+          ],
+          "x-acdm-question": "Podaj nazwy, typy i zakresy start/end kolumn fixed-width."
+        },
+        "options": {
+          "$ref": "#/$defs/FixedWidthOptions",
+          "description": "Opcjonalna długość rekordu oraz ustawienia pliku.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje fixed-width",
+            "question": "Czy chcesz określić długość rekordu, kodowanie, kompresję lub obsługę krótkich rekordów?"
+          }
+        }
+      }
+    },
+    "JsonOptions": {
+      "title": "JsonOptions",
+      "description": "Opcjonalne ustawienia parsera JSON.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "multiline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Czy pojedynczy obiekt JSON może zajmować wiele linii.",
+          "examples": [
+            false
+          ]
+        },
+        "rootPath": {
+          "type": "string",
+          "description": "Opcjonalna ścieżka do tablicy rekordów wewnątrz dokumentu JSON.",
+          "examples": [
+            "$.records"
+          ]
+        },
+        "file": {
+          "$ref": "#/$defs/FileOptions",
+          "description": "Kodowanie, kompresja i wzorzec pliku."
+        }
+      }
+    },
+    "JsonSource": {
+      "title": "JsonSource",
+      "description": "Źródło w formacie JSON lub JSON Lines.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "uri",
+        "columns"
+      ],
+      "properties": {
+        "sourceType": {
+          "const": "json",
+          "description": "Aktywny wariant źródła.",
+          "examples": [
+            "json"
+          ]
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(gs|s3|https?|file)://.+",
+          "description": "Lokalizacja dokumentów JSON.",
+          "examples": [
+            "gs://raw-zone/events/events_2026-07-27.jsonl"
+          ],
+          "x-acdm-question": "Gdzie znajdują się dane JSON?"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SourceColumn"
+          },
+          "description": "Oczekiwane pola rekordu JSON i ich typy.",
+          "examples": [
+            [
+              {
+                "name": "event_id",
+                "dataType": "STRING"
+              },
+              {
+                "name": "event_ts",
+                "dataType": "TIMESTAMP"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie pola i typy zawiera rekord JSON?"
+        },
+        "options": {
+          "$ref": "#/$defs/JsonOptions",
+          "description": "Opcjonalne ustawienia parsera JSON.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje JSON",
+            "question": "Czy chcesz ustawić multiline, rootPath, kodowanie lub kompresję?"
+          }
+        }
+      }
+    },
+    "TextOptions": {
+      "title": "TextOptions",
+      "description": "Opcjonalne ustawienia odczytu pliku tekstowego.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lineSeparator": {
+          "type": "string",
+          "default": "\\n",
+          "description": "Separator rekordów.",
+          "examples": [
+            "\\n"
+          ]
+        },
+        "skipEmptyLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy pomijać puste rekordy.",
+          "examples": [
+            true
+          ]
+        },
+        "file": {
+          "$ref": "#/$defs/FileOptions",
+          "description": "Kodowanie, kompresja i wzorzec pliku."
+        }
+      }
+    },
+    "TextSource": {
+      "title": "TextSource",
+      "description": "Plik tekstowy, w którym jeden wiersz staje się jednym rekordem.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "uri",
+        "column"
+      ],
+      "properties": {
+        "sourceType": {
+          "const": "txt",
+          "description": "Aktywny wariant źródła.",
+          "examples": [
+            "txt"
+          ]
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(gs|s3|https?|file)://.+",
+          "description": "Lokalizacja pliku tekstowego.",
+          "examples": [
+            "gs://raw-zone/logs/application.log"
+          ],
+          "x-acdm-question": "Gdzie znajduje się plik tekstowy?"
+        },
+        "column": {
+          "$ref": "#/$defs/SourceColumn",
+          "description": "Kolumna przechowująca cały wiersz.",
+          "examples": [
+            {
+              "name": "raw_line",
+              "dataType": "STRING",
+              "nullable": false
+            }
+          ],
+          "x-acdm-question": "Jak ma się nazywać kolumna zawierająca cały wiersz?"
+        },
+        "options": {
+          "$ref": "#/$defs/TextOptions",
+          "description": "Opcjonalne ustawienia odczytu tekstu.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje TXT",
+            "question": "Czy chcesz ustawić separator linii, pomijanie pustych rekordów, kodowanie lub kompresję?"
+          }
+        }
+      }
+    },
+    "JdbcPartitioning": {
+      "title": "JdbcPartitioning",
+      "description": "Równoległy odczyt zakresów tabeli JDBC.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "column",
+        "lowerBound",
+        "upperBound",
+        "partitions"
+      ],
+      "properties": {
+        "column": {
+          "type": "string",
+          "description": "Numeryczna kolumna podziału.",
+          "examples": [
+            "account_id"
+          ]
+        },
+        "lowerBound": {
+          "type": "integer",
+          "description": "Dolna granica planowania partycji.",
+          "examples": [
+            1
+          ]
+        },
+        "upperBound": {
+          "type": "integer",
+          "description": "Górna granica planowania partycji.",
+          "examples": [
+            1000000
+          ]
+        },
+        "partitions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Liczba równoległych partycji.",
+          "examples": [
+            8
+          ]
+        }
+      }
+    },
+    "JdbcOptions": {
+      "title": "JdbcOptions",
+      "description": "Opcjonalne ustawienia techniczne JDBC.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fetchSize": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10000,
+          "description": "Liczba wierszy pobieranych przez sterownik w jednej porcji.",
+          "examples": [
+            10000
+          ]
+        },
+        "partitioning": {
+          "$ref": "#/$defs/JdbcPartitioning",
+          "description": "Opcjonalny równoległy odczyt tabeli.",
+          "x-acdm-optional-decision": {
+            "label": "Partycjonowanie JDBC",
+            "question": "Czy odczyt JDBC ma być równoległy według zakresu kolumny?"
+          }
+        }
+      }
+    },
+    "JdbcSource": {
+      "title": "JdbcSource",
+      "description": "Tabela lub zapytanie w relacyjnej bazie danych dostępnej przez JDBC.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "connectionRef",
+        "columns"
+      ],
+      "properties": {
+        "sourceType": {
+          "const": "jdbc",
+          "description": "Aktywny wariant źródła.",
+          "examples": [
+            "jdbc"
+          ]
+        },
+        "connectionRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nazwa bezpiecznie skonfigurowanego połączenia; kontrakt nie przechowuje hasła.",
+          "examples": [
+            "finance-postgres-prod"
+          ],
+          "x-acdm-question": "Jak nazywa się skonfigurowane połączenie JDBC?"
+        },
+        "table": {
+          "type": "string",
+          "description": "Pełna nazwa tabeli źródłowej. Użyj table albo query, nigdy obu.",
+          "examples": [
+            "public.accounts"
+          ]
+        },
+        "query": {
+          "type": "string",
+          "description": "Zapytanie SELECT. Użyj query albo table, nigdy obu.",
+          "examples": [
+            "SELECT account_id, balance FROM public.accounts WHERE active = true"
+          ]
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SourceColumn"
+          },
+          "description": "Kolumny zwracane przez tabelę lub zapytanie.",
+          "examples": [
+            [
+              {
+                "name": "account_id",
+                "dataType": "INT64",
+                "nullable": false
+              },
+              {
+                "name": "balance",
+                "dataType": "NUMERIC"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie kolumny i typy zwraca źródło JDBC?"
+        },
+        "options": {
+          "$ref": "#/$defs/JdbcOptions",
+          "description": "Opcjonalne ustawienia wydajności JDBC.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje JDBC",
+            "question": "Czy chcesz ustawić fetchSize lub równoległy odczyt JDBC?"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "table"
+          ],
+          "not": {
+            "required": [
+              "query"
+            ]
+          }
+        },
+        {
+          "required": [
+            "query"
+          ],
+          "not": {
+            "required": [
+              "table"
+            ]
+          }
+        }
+      ]
+    },
+    "BigQueryTable": {
+      "title": "BigQueryTable",
+      "description": "Pełna nazwa tabeli BigQuery.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "dataset",
+        "table"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{4,28}[a-z0-9]$",
+          "description": "Identyfikator projektu GCP.",
+          "examples": [
+            "acme-data-prod"
+          ]
+        },
+        "dataset": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Nazwa datasetu BigQuery.",
+          "examples": [
+            "bronze_finance"
+          ]
+        },
+        "table": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Nazwa tabeli BigQuery.",
+          "examples": [
+            "customer_accounts"
+          ]
+        }
+      }
+    },
+    "TargetColumn": {
+      "title": "TargetColumn",
+      "description": "Kolumna tabeli BigQuery.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "dataType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Nazwa kolumny docelowej.",
+          "examples": [
+            "account_id"
+          ]
+        },
+        "dataType": {
+          "type": "string",
+          "enum": [
+            "STRING",
+            "INT64",
+            "FLOAT64",
+            "NUMERIC",
+            "BIGNUMERIC",
+            "BOOLEAN",
+            "DATE",
+            "DATETIME",
+            "TIME",
+            "TIMESTAMP",
+            "BYTES",
+            "JSON",
+            "GEOGRAPHY"
+          ],
+          "description": "Typ kolumny BigQuery.",
+          "examples": [
+            "STRING"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "NULLABLE",
+            "REQUIRED",
+            "REPEATED"
+          ],
+          "default": "NULLABLE",
+          "description": "Tryb kolumny BigQuery.",
+          "examples": [
+            "REQUIRED"
+          ]
+        },
+        "sourcePath": {
+          "type": "string",
+          "description": "Ścieżka kolumny wejściowej kopiowanej do targetu.",
+          "examples": [
+            "source.columns.account_id",
+            "targets.bronze.columns.account_id"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "description": "Wyrażenie transformacji SQL używane zamiast prostego kopiowania.",
+          "examples": [
+            "UPPER(account_name)"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Opis biznesowy kolumny.",
+          "examples": [
+            "Identyfikator rachunku klienta."
+          ]
+        },
+        "policyTags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Tagi polityk BigQuery dla danych wrażliwych.",
+          "examples": [
+            [
+              "projects/acme/locations/eu/taxonomies/pii/policyTags/customer_id"
+            ]
+          ]
+        }
+      },
+      "not": {
+        "required": [
+          "sourcePath",
+          "expression"
+        ]
+      }
+    },
+    "BigQueryPartitioning": {
+      "title": "BigQueryPartitioning",
+      "description": "Partycjonowanie tabeli BigQuery.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field",
+        "type"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Kolumna DATE, DATETIME lub TIMESTAMP używana do partycjonowania.",
+          "examples": [
+            "ingestion_date"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DAY",
+            "HOUR",
+            "MONTH",
+            "YEAR"
+          ],
+          "description": "Granularność partycji.",
+          "examples": [
+            "DAY"
+          ]
+        },
+        "expirationDays": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Opcjonalny czas retencji partycji w dniach.",
+          "examples": [
+            730
+          ]
+        }
+      }
+    },
+    "BigQueryWriteOptions": {
+      "title": "BigQueryWriteOptions",
+      "description": "Opcje zapisu do BigQuery.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "writeDisposition": {
+          "type": "string",
+          "enum": [
+            "WRITE_APPEND",
+            "WRITE_TRUNCATE",
+            "WRITE_EMPTY"
+          ],
+          "default": "WRITE_APPEND",
+          "description": "Zachowanie, gdy tabela już zawiera dane.",
+          "examples": [
+            "WRITE_APPEND"
+          ]
+        },
+        "partitioning": {
+          "$ref": "#/$defs/BigQueryPartitioning",
+          "description": "Opcjonalne partycjonowanie tabeli.",
+          "x-acdm-optional-decision": {
+            "label": "Partycjonowanie BigQuery",
+            "question": "Czy tabela ma być partycjonowana?"
+          }
+        },
+        "clustering": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Maksymalnie cztery kolumny klastrowania.",
+          "examples": [
+            [
+              "customer_id",
+              "account_type"
+            ]
+          ]
+        }
+      }
+    },
+    "QualityCheck": {
+      "title": "QualityCheck",
+      "description": "Prosta reguła jakości wykonywana dla targetu.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "expression"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Czytelna nazwa reguły.",
+          "examples": [
+            "account_id_not_null"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "description": "Warunek SQL, który powinien być prawdziwy.",
+          "examples": [
+            "account_id IS NOT NULL"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "warning",
+            "error"
+          ],
+          "default": "error",
+          "description": "Wpływ naruszenia reguły.",
+          "examples": [
+            "error"
+          ]
+        }
+      }
+    },
+    "BronzeTarget": {
+      "title": "BronzeTarget",
+      "description": "Obowiązkowa pierwsza tabela BigQuery przechowująca dane z raw source z minimalnymi zmianami.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "table",
+        "columns"
+      ],
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Tabela docelowa Bronze.",
+          "x-acdm-question": "Podaj projekt, dataset i tabelę BigQuery dla Bronze."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/TargetColumn"
+          },
+          "description": "Kolumny tabeli Bronze. Mogą kopiować nazwy i typy source.",
+          "examples": [
+            [
+              {
+                "name": "account_id",
+                "dataType": "STRING",
+                "mode": "REQUIRED",
+                "sourcePath": "source.columns.account_id"
+              },
+              {
+                "name": "balance",
+                "dataType": "NUMERIC",
+                "sourcePath": "source.columns.balance"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie kolumny ma mieć tabela Bronze?"
+        },
+        "options": {
+          "$ref": "#/$defs/BigQueryWriteOptions",
+          "description": "Opcjonalne zachowanie zapisu, partycjonowanie i klastrowanie Bronze.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje Bronze",
+            "question": "Czy chcesz ustawić sposób zapisu, partycjonowanie lub klastrowanie Bronze?"
+          }
+        },
+        "qualityChecks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/QualityCheck"
+          },
+          "description": "Opcjonalne kontrole jakości Bronze.",
+          "examples": [
+            [
+              {
+                "name": "account_id_not_null",
+                "expression": "account_id IS NOT NULL",
+                "severity": "error"
+              }
+            ]
+          ],
+          "x-acdm-optional-decision": {
+            "label": "Jakość Bronze",
+            "question": "Czy chcesz dodać reguły jakości dla Bronze?"
+          }
+        }
+      }
+    },
+    "BusinessKey": {
+      "title": "BusinessKey",
+      "description": "Klucz biznesowy Silver używany do deduplikacji i śledzenia zmian.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "columns"
+      ],
+      "properties": {
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Uporządkowane kolumny tworzące klucz biznesowy.",
+          "examples": [
+            [
+              "account_id"
+            ]
+          ]
+        },
+        "hashColumn": {
+          "type": "string",
+          "default": "business_key_hash",
+          "description": "Opcjonalna nazwa kolumny skrótu klucza.",
+          "examples": [
+            "account_key"
+          ]
+        }
+      }
+    },
+    "Transformation": {
+      "title": "Transformation",
+      "description": "Nazwana transformacja wykonywana między warstwami.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sql"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nazwa transformacji.",
+          "examples": [
+            "normalize_account_name"
+          ]
+        },
+        "sql": {
+          "type": "string",
+          "description": "Wyrażenie lub fragment SQL transformacji.",
+          "examples": [
+            "UPPER(TRIM(account_name))"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Uzasadnienie biznesowe transformacji.",
+          "examples": [
+            "Ujednolicenie nazwy rachunku."
+          ]
+        }
+      }
+    },
+    "SilverTarget": {
+      "title": "SilverTarget",
+      "description": "Opcjonalna tabela BigQuery z oczyszczonymi i ujednoliconymi danymi Bronze.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "table",
+        "columns"
+      ],
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Tabela docelowa Silver.",
+          "x-acdm-question": "Podaj projekt, dataset i tabelę BigQuery dla Silver."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/TargetColumn"
+          },
+          "description": "Kolumny Silver kopiowane lub wyliczane z Bronze.",
+          "examples": [
+            [
+              {
+                "name": "account_id",
+                "dataType": "STRING",
+                "mode": "REQUIRED",
+                "sourcePath": "targets.bronze.columns.account_id"
+              },
+              {
+                "name": "account_name",
+                "dataType": "STRING",
+                "expression": "UPPER(TRIM(account_name))"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie kolumny i transformacje ma mieć Silver?"
+        },
+        "businessKey": {
+          "$ref": "#/$defs/BusinessKey",
+          "description": "Opcjonalny klucz biznesowy.",
+          "x-acdm-optional-decision": {
+            "label": "Klucz biznesowy Silver",
+            "question": "Czy Silver ma mieć klucz biznesowy lub jego hash?"
+          }
+        },
+        "transformations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Transformation"
+          },
+          "description": "Opcjonalne nazwane transformacje Silver.",
+          "examples": [
+            [
+              {
+                "name": "normalize_account_name",
+                "sql": "UPPER(TRIM(account_name))"
+              }
+            ]
+          ],
+          "x-acdm-optional-decision": {
+            "label": "Transformacje Silver",
+            "question": "Czy Silver wymaga dodatkowych transformacji?"
+          }
+        },
+        "options": {
+          "$ref": "#/$defs/BigQueryWriteOptions",
+          "description": "Opcjonalne zachowanie zapisu, partycjonowanie i klastrowanie Silver.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje Silver",
+            "question": "Czy chcesz ustawić sposób zapisu, partycjonowanie lub klastrowanie Silver?"
+          }
+        },
+        "qualityChecks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/QualityCheck"
+          },
+          "description": "Opcjonalne kontrole jakości Silver.",
+          "examples": [
+            [
+              {
+                "name": "balance_non_negative",
+                "expression": "balance >= 0",
+                "severity": "warning"
+              }
+            ]
+          ],
+          "x-acdm-optional-decision": {
+            "label": "Jakość Silver",
+            "question": "Czy chcesz dodać reguły jakości dla Silver?"
+          }
+        }
+      }
+    },
+    "Metric": {
+      "title": "Metric",
+      "description": "Miara biznesowa w warstwie Gold.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "expression",
+        "dataType"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nazwa miary.",
+          "examples": [
+            "total_balance"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "description": "Agregujące wyrażenie SQL.",
+          "examples": [
+            "SUM(balance)"
+          ]
+        },
+        "dataType": {
+          "type": "string",
+          "enum": [
+            "INT64",
+            "FLOAT64",
+            "NUMERIC",
+            "BIGNUMERIC"
+          ],
+          "description": "Typ wyniku miary.",
+          "examples": [
+            "NUMERIC"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Definicja biznesowa miary.",
+          "examples": [
+            "Łączne saldo aktywnych rachunków."
+          ]
+        }
+      }
+    },
+    "GoldTarget": {
+      "title": "GoldTarget",
+      "description": "Opcjonalna tabela BigQuery z modelem biznesowym lub agregacją opartą na Silver.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "table",
+        "columns",
+        "grain"
+      ],
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Tabela docelowa Gold.",
+          "x-acdm-question": "Podaj projekt, dataset i tabelę BigQuery dla Gold."
+        },
+        "grain": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Kolumny określające jeden rekord tabeli Gold.",
+          "examples": [
+            [
+              "snapshot_date",
+              "customer_id"
+            ]
+          ],
+          "x-acdm-question": "Jaki jest poziom szczegółowości (grain) tabeli Gold?"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/TargetColumn"
+          },
+          "description": "Wymiary i pozostałe kolumny tabeli Gold.",
+          "examples": [
+            [
+              {
+                "name": "snapshot_date",
+                "dataType": "DATE",
+                "mode": "REQUIRED",
+                "sourcePath": "targets.silver.columns.snapshot_date"
+              },
+              {
+                "name": "customer_id",
+                "dataType": "STRING",
+                "mode": "REQUIRED",
+                "sourcePath": "targets.silver.columns.customer_id"
+              }
+            ]
+          ],
+          "x-acdm-question": "Jakie kolumny wymiarowe ma mieć Gold?"
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Metric"
+          },
+          "description": "Opcjonalne miary agregowane.",
+          "examples": [
+            [
+              {
+                "name": "total_balance",
+                "expression": "SUM(balance)",
+                "dataType": "NUMERIC"
+              }
+            ]
+          ],
+          "x-acdm-optional-decision": {
+            "label": "Miary Gold",
+            "question": "Czy Gold ma zawierać agregowane miary biznesowe?"
+          }
+        },
+        "options": {
+          "$ref": "#/$defs/BigQueryWriteOptions",
+          "description": "Opcjonalne zachowanie zapisu, partycjonowanie i klastrowanie Gold.",
+          "x-acdm-optional-decision": {
+            "label": "Opcje Gold",
+            "question": "Czy chcesz ustawić sposób zapisu, partycjonowanie lub klastrowanie Gold?"
+          }
+        },
+        "qualityChecks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/QualityCheck"
+          },
+          "description": "Opcjonalne kontrole jakości Gold.",
+          "examples": [
+            [
+              {
+                "name": "total_balance_non_negative",
+                "expression": "total_balance >= 0",
+                "severity": "warning"
+              }
+            ]
+          ],
+          "x-acdm-optional-decision": {
+            "label": "Jakość Gold",
+            "question": "Czy chcesz dodać reguły jakości dla Gold?"
+          }
+        }
+      }
+    },
+    "Targets": {
+      "title": "Targets",
+      "description": "Aktywne warstwy medallion w wymaganej kolejności.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bronze"
+      ],
+      "properties": {
+        "bronze": {
+          "$ref": "#/$defs/BronzeTarget",
+          "description": "Obowiązkowa pierwsza warstwa."
+        },
+        "silver": {
+          "$ref": "#/$defs/SilverTarget",
+          "description": "Opcjonalna warstwa oczyszczona."
+        },
+        "gold": {
+          "$ref": "#/$defs/GoldTarget",
+          "description": "Opcjonalna warstwa biznesowa."
+        }
+      },
+      "dependentRequired": {
+        "gold": [
+          "silver"
+        ]
+      },
+      "x-contract-rules": [
+        {
+          "id": "targets.bronze.required",
+          "kind": "required",
+          "path": "targets.bronze",
+          "message": "Źródło raw zawsze musi zostać zapisane co najmniej do Bronze."
+        },
+        {
+          "id": "targets.gold.requires_silver",
+          "kind": "dependency",
+          "path": "targets.gold",
+          "message": "Gold wymaga wcześniejszej warstwy Silver."
+        }
+      ]
+    },
+    "Orchestration": {
+      "title": "Orchestration",
+      "description": "Opcjonalna konfiguracja uruchamiania pipeline.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dagId"
+      ],
+      "properties": {
+        "dagId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "Identyfikator DAG lub workflow.",
+          "examples": [
+            "customer_accounts_daily"
+          ]
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Pierwsza data planowanego uruchomienia.",
+          "examples": [
+            "2026-08-01"
+          ]
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Wyrażenie cron albo nazwana częstotliwość.",
+          "examples": [
+            "0 3 * * *",
+            "@daily"
+          ]
+        },
+        "timezone": {
+          "type": "string",
+          "default": "Europe/Warsaw",
+          "description": "Strefa czasowa harmonogramu.",
+          "examples": [
+            "Europe/Warsaw"
+          ]
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 2,
+          "description": "Liczba ponowień nieudanego zadania.",
+          "examples": [
+            2
+          ]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "metadata": {
+        "id": "customer_accounts_daily",
+        "version": "1.0.0"
+      },
+      "source": {
+        "sourceType": "csv",
+        "uri": "gs://raw-zone/accounts/accounts_2026-07-27.csv",
+        "columns": [
+          {
+            "name": "account_id",
+            "dataType": "STRING",
+            "nullable": false
+          },
+          {
+            "name": "balance",
+            "dataType": "NUMERIC"
+          }
+        ]
+      },
+      "targets": {
+        "bronze": {
+          "table": {
+            "project": "acme-data-prod",
+            "dataset": "bronze_finance",
+            "table": "customer_accounts"
+          },
+          "columns": [
+            {
+              "name": "account_id",
+              "dataType": "STRING",
+              "mode": "REQUIRED",
+              "sourcePath": "source.columns.account_id"
+            },
+            {
+              "name": "balance",
+              "dataType": "NUMERIC",
+              "sourcePath": "source.columns.balance"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "customer_accounts_daily",
+    "version": "1.0.0",
+    "owner": "data-platform@example.com",
+    "description": "Dzienne ładowanie rachunków klientów."
+  },
+  "source": {
+    "sourceType": "csv",
+    "uri": "gs://raw-zone/accounts/accounts_2026-07-27.csv",
+    "columns": [
+      {
+        "name": "account_id",
+        "dataType": "STRING",
+        "nullable": false
+      },
+      {
+        "name": "balance",
+        "dataType": "NUMERIC"
+      }
+    ],
+    "options": {
+      "delimiter": ";",
+      "header": true,
+      "file": {
+        "encoding": "utf-8",
+        "compression": "none",
+        "filePattern": "accounts_*.csv"
+      }
+    }
+  },
+  "targets": {
+    "bronze": {
+      "table": {
+        "project": "acme-data-prod",
+        "dataset": "bronze_finance",
+        "table": "customer_accounts"
+      },
+      "columns": [
+        {
+          "name": "account_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "source.columns.account_id"
+        },
+        {
+          "name": "balance",
+          "dataType": "NUMERIC",
+          "sourcePath": "source.columns.balance"
+        }
+      ],
+      "options": {
+        "writeDisposition": "WRITE_APPEND"
+      }
+    }
+  }
+}

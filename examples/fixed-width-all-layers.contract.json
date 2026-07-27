@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "id": "account_snapshot_daily",
+    "version": "1.0.0",
+    "owner": "finance-data@example.com"
+  },
+  "source": {
+    "sourceType": "fixed_width",
+    "uri": "gs://raw-zone/accounts/accounts_20260727.dat",
+    "columns": [
+      {
+        "name": "account_id",
+        "start": 0,
+        "end": 8,
+        "dataType": "STRING",
+        "nullable": false
+      },
+      {
+        "name": "customer_id",
+        "start": 8,
+        "end": 20,
+        "dataType": "STRING",
+        "nullable": false
+      },
+      {
+        "name": "balance",
+        "start": 20,
+        "end": 32,
+        "dataType": "NUMERIC"
+      },
+      {
+        "name": "snapshot_date",
+        "start": 32,
+        "end": 40,
+        "dataType": "DATE",
+        "format": "yyyyMMdd"
+      }
+    ],
+    "options": {
+      "recordLength": 40,
+      "allowShortRecords": false,
+      "file": {
+        "encoding": "windows-1250",
+        "compression": "none"
+      }
+    }
+  },
+  "targets": {
+    "bronze": {
+      "table": {
+        "project": "acme-data-prod",
+        "dataset": "bronze_finance",
+        "table": "account_snapshot"
+      },
+      "columns": [
+        {
+          "name": "account_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "source.columns.account_id"
+        },
+        {
+          "name": "customer_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "source.columns.customer_id"
+        },
+        {
+          "name": "balance",
+          "dataType": "NUMERIC",
+          "sourcePath": "source.columns.balance"
+        },
+        {
+          "name": "snapshot_date",
+          "dataType": "DATE",
+          "sourcePath": "source.columns.snapshot_date"
+        }
+      ]
+    },
+    "silver": {
+      "table": {
+        "project": "acme-data-prod",
+        "dataset": "silver_finance",
+        "table": "account_snapshot"
+      },
+      "columns": [
+        {
+          "name": "account_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "targets.bronze.columns.account_id"
+        },
+        {
+          "name": "customer_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "targets.bronze.columns.customer_id"
+        },
+        {
+          "name": "balance",
+          "dataType": "NUMERIC",
+          "sourcePath": "targets.bronze.columns.balance"
+        },
+        {
+          "name": "snapshot_date",
+          "dataType": "DATE",
+          "sourcePath": "targets.bronze.columns.snapshot_date"
+        }
+      ],
+      "businessKey": {
+        "columns": [
+          "account_id",
+          "snapshot_date"
+        ],
+        "hashColumn": "account_snapshot_key"
+      }
+    },
+    "gold": {
+      "table": {
+        "project": "acme-data-prod",
+        "dataset": "gold_finance",
+        "table": "customer_balance_daily"
+      },
+      "grain": [
+        "snapshot_date",
+        "customer_id"
+      ],
+      "columns": [
+        {
+          "name": "snapshot_date",
+          "dataType": "DATE",
+          "mode": "REQUIRED",
+          "sourcePath": "targets.silver.columns.snapshot_date"
+        },
+        {
+          "name": "customer_id",
+          "dataType": "STRING",
+          "mode": "REQUIRED",
+          "sourcePath": "targets.silver.columns.customer_id"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "total_balance",
+          "expression": "SUM(balance)",
+          "dataType": "NUMERIC",
+          "description": "Łączne saldo klienta na dzień."
+        }
+      ]
+    }
+  },
+  "orchestration": {
+    "dagId": "account_snapshot_daily",
+    "startDate": "2026-08-01",
+    "schedule": "0 3 * * *",
+    "timezone": "Europe/Warsaw",
+    "retries": 2
+  }
+}

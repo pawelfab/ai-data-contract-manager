@@ -1,0 +1,350 @@
+{
+  "$defs": {
+    "BigQueryTable": {
+      "additionalProperties": false,
+      "description": "Shared BigQuery table model, reused across bronze/silver/gold.",
+      "properties": {
+        "dataset": {
+          "description": "BigQuery dataset name",
+          "title": "Dataset",
+          "type": "string"
+        },
+        "project": {
+          "description": "GCP project ID",
+          "title": "Project",
+          "type": "string"
+        },
+        "table": {
+          "description": "BigQuery table name",
+          "title": "Table",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project",
+        "dataset",
+        "table"
+      ],
+      "title": "BigQueryTable",
+      "type": "object"
+    },
+    "BronzeTableConfig": {
+      "additionalProperties": false,
+      "description": "Bronze layer table \u2014 destination for data loaded from raw files.",
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Destination BigQuery table for bronze-layer data.",
+          "title": "Table"
+        }
+      },
+      "required": [
+        "table"
+      ],
+      "type": "object"
+    },
+    "BusinessKeyHashConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for generating a hash over a compound business key.",
+      "properties": {
+        "algorithm": {
+          "const": "fingerprint",
+          "default": "fingerprint",
+          "description": "Hash algorithm implemented with native BigQuery functions",
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "columns": {
+          "description": "Ordered list of silver output columns forming the compound business key",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "name": {
+          "default": "business_key_hash",
+          "description": "Generated hash column name added to the silver model",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "BusinessKeyHashConfig",
+      "type": "object"
+    },
+    "ChecksumConfig": {
+      "additionalProperties": false,
+      "description": "Checksum verification configuration.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "description": "Enable this checksum verification step. When false, the checksum section is skipped during generation.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "files": {
+          "description": "File pairs to verify",
+          "items": {
+            "$ref": "#/$defs/ChecksumFilePair"
+          },
+          "title": "Files",
+          "type": "array"
+        }
+      },
+      "title": "ChecksumConfig",
+      "type": "object"
+    },
+    "ChecksumFilePair": {
+      "additionalProperties": false,
+      "description": "Pair of data file and its MD5 checksum file.",
+      "properties": {
+        "dataUri": {
+          "description": "GCS path to the data file",
+          "title": "Data URI",
+          "type": "string"
+        },
+        "md5Uri": {
+          "description": "GCS path to the MD5 checksum file",
+          "title": "Md 5 URI",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataUri",
+        "md5Uri"
+      ],
+      "title": "ChecksumFilePair",
+      "type": "object"
+    },
+    "Column": {
+      "additionalProperties": false,
+      "description": "Base column definition, reused across bronze/silver/gold layers.",
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column documentation",
+          "title": "Description"
+        },
+        "name": {
+          "description": "Column name in target table",
+          "title": "Name",
+          "type": "string"
+        },
+        "nullable": {
+          "default": true,
+          "description": "Whether column can be null",
+          "title": "Nullable",
+          "type": "boolean"
+        },
+        "type": {
+          "description": "BigQuery data type (STRING, INT64, BOOLEAN, etc.)",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "Column"
+    },
+    "ConverterConfig": {
+      "additionalProperties": false,
+      "description": "Converter component \u2014 normalize source data to parquet via Spark.",
+      "properties": {
+        "destPartition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DestPartitionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Partitioned converter destination config",
+          "title": "Dest Partition"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Enable this pipeline component. When false, the entire section is skipped during generation, for",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConverterOutput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Primary converter output format written by the Spark job.",
+          "title": "Output"
+        },
+        "source": {
+          "description": "Source config \u2014 exactly one variant based on source_type",
+          "discriminator": {
+            "mapping": {
+              "csv": "#/$defs/CsvSourceConfig",
+              "fixed_width": "#/$defs/FixedWidthSourceConfig",
+              "jdbc": "#/$defs/JdbcSourceConfig",
+              "json": "#/$defs/JsonSourceConfig",
+              "txt": "#/$defs/TxtSourceConfig"
+            },
+            "propertyName": "sourceType"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CsvSourceConfig"
+            },
+            {
+              "$ref": "#/$defs/TxtSourceConfig"
+            },
+            {
+              "$ref": "#/$defs/JsonSourceConfig"
+            },
+            {
+              "$ref": "#/$defs/JdbcSourceConfig"
+            },
+            {
+              "$ref": "#/$defs/FixedWidthSourceConfig"
+            }
+          ],
+          "title": "Source"
+        },
+        "techColumns": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TechColumnsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Technical output columns config",
+          "title": "Tech Columns"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "ConverterConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "anyOf": [
+              {
+                "notEquals": null,
+                "path": "output"
+              },
+              {
+                "notEquals": null,
+                "path": "dest_partition"
+              }
+            ]
+          },
+          "id": "converter.output_target_required",
+          "kind": "at_least_one",
+          "message": "At least one output target must be defined: output or destPartition.",
+          "path": "output",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "ConverterConfig.validate_fixed_width_config"
+          }
+        },
+        {
+          "assertion": {
+            "exists": false,
+            "path": "source.fixed_width"
+          },
+          "condition": {
+            "notEquals": "fixed_width",
+            "path": "source.source_type"
+          },
+          "id": "converter.fixed_width.only_for_fixed_width_source",
+          "kind": "conditional_forbidden",
+          "message": "fixed_width section is only allowed when source_type is fixed_width.",
+          "path": "source.fixed_width",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "ConverterConfig.validate_fixed_width_config"
+          }
+        },
+        {
+          "assertion": {
+            "exists": true,
+            "path": "source.fixed_width"
+          },
+          "condition": {
+            "equals": "fixed_width",
+            "path": "source.source_type"
+          },
+          "id": "converter.fixed_width.required_for_fixed_width_source",
+          "kind": "conditional_required",
+          "message": "fixed_width section is required when source_type is fixed_width.",
+          "path": "source.fixed_width",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "ConverterConfig.validate_fixed_width_config"
+          }
+        }
+      ]
+    },
+    "ConverterOutput": {
+      "additionalProperties": false,
+      "description": "Output configuration for the converter.",
+      "properties": {
+        "format": {
+          "default": "parquet",
+          "description": "Output file format",
+          "enum": [
+            "parquet",
+            "orc",
+            "avro"
+          ],
+          "title": "Format",
+          "type": "string"
+        }
+      },
+      "title": "ConverterOutput",
+      "type": "object"
+    },
+    "CsvSourceConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for reading CSV files (maps to Spark CSV reader options).",
+      "properties": {
+        "charToEscapeQuoteEscaping": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Character used to escape the escape character inside quoted fields",
+          "title": "Char To Escape Quote Escaping"
+        },
+        "comment": {
+          "anyOf": [
+
+....
+}
