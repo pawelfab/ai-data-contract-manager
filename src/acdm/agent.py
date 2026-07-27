@@ -32,6 +32,7 @@ from .state_ops import (
     activate_scope,
     document_fingerprint,
     delete_path,
+    expand_allowed_update,
     get_path,
     missing_required_paths,
     set_path,
@@ -59,14 +60,19 @@ Granice odpowiedzialności:
   lub błędu MCP. Nie zgaduj wartości biznesowych.
 
 Kolejność każdej rozmowy:
-1. Ustal co najmniej typ source. Jeżeli nie jesteś pewien, zapytaj użytkownika.
-2. Ustal targety. Gdy użytkownik nie poda targetu, przyjmij tylko Bronze.
+1. Ustal co najmniej typ source. Gdy użytkownik podał go jawnie, uznaj to za
+   wystarczające i nie pytaj o potwierdzenie. Pytaj tylko, gdy typu brakuje,
+   jest sprzeczny albo rzeczywiście niejednoznaczny.
+2. Ustal targety. Jawnie podane warstwy przyjmij bez ponownego potwierdzania.
+   Gdy użytkownik nie poda targetu, przyjmij tylko Bronze.
    Dozwolony porządek to Bronze -> Silver -> Gold bez pomijania warstw.
 3. Wywołaj configure_contract_scope. To odczyt wymagań i nie wymaga osobnego
    zatwierdzenia w UI. Otrzymasz wyłącznie aktywny katalog MCP.
 4. Semantycznie dopasuj informacje już obecne w całej historii rozmowy.
    Zapisz je przez apply_contract_patch. Literówki poprawiaj tylko przy wysokiej
-   pewności i wyłącznie do ścieżki znajdującej się w allowed_paths.
+   pewności. Możesz przekazać dozwolone ścieżki liści albo ich wspólny kontener;
+   narzędzie bezpiecznie rozwinie obiekt do allowed_paths. Nie używaj null do
+   usuwania sekcji opcjonalnej; użyj set_optional_decisions z include=false.
 5. Wywołaj get_contract_status. Najpierw poproś o brakujące pola wymagane.
    Pokaż także opcjonalne sekcje wraz z opisami i przykładami oraz zapytaj,
    czy użytkownik chce je uzupełnić. Odpowiedź zapisz przez
@@ -271,7 +277,7 @@ def register_agent_behavior(
             "user", "document", "validation_repair"
         ] = "user",
     ) -> dict[str, Any]:
-        """Zapisz MCP-authorized patch wraz z evidence; odrzuć obce ścieżki."""
+        """Zapisz patch; obiekty rozwiń do liści dozwolonych przez MCP."""
         state = ctx.deps.store.get(_conversation_id(ctx))
         if not state.requirements:
             raise ModelRetry(
@@ -294,14 +300,24 @@ def register_agent_behavior(
             }
 
         allowed = set(state.requirements.allowed_paths)
+        expanded_updates: list[PatchOperation] = []
+        for update in updates:
+            try:
+                leaves = expand_allowed_update(
+                    update.path, update.value, allowed
+                )
+            except ValueError as exc:
+                raise ModelRetry(str(exc)) from exc
+            expanded_updates.extend(
+                update.model_copy(
+                    update={"path": path, "value": value}
+                )
+                for path, value in leaves
+            )
+
         before = document_fingerprint(state.draft)
         changed_paths: list[str] = []
-        for update in updates:
-            if update.path not in allowed:
-                raise ModelRetry(
-                    f"Ścieżka {update.path!r} nie jest dozwolona przez aktywny "
-                    "katalog MCP."
-                )
+        for update in expanded_updates:
             if update.path == "source.sourceType":
                 raise ModelRetry(
                     "Typ source zmieniaj przez configure_contract_scope."

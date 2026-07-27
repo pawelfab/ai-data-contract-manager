@@ -43,6 +43,40 @@ def set_path(document: dict[str, Any], path: str, value: Any) -> None:
     current[parts[-1]] = value
 
 
+def expand_allowed_update(
+    path: str,
+    value: Any,
+    allowed_paths: set[str],
+) -> list[tuple[str, Any]]:
+    """Expand any object patch into terminal paths authorized by MCP."""
+    if path in allowed_paths:
+        return [(path, value)]
+    if isinstance(value, dict) and value:
+        expanded: list[tuple[str, Any]] = []
+        for key, child_value in value.items():
+            expanded.extend(
+                expand_allowed_update(
+                    f"{path}.{key}", child_value, allowed_paths
+                )
+            )
+        return expanded
+
+    descendants = sorted(
+        candidate
+        for candidate in allowed_paths
+        if candidate.startswith(f"{path}.")
+    )
+    hint = (
+        f" Dozwolone pola potomne: {', '.join(descendants)}."
+        if descendants
+        else ""
+    )
+    raise ValueError(
+        f"Ścieżka {path!r} nie jest dozwolona przez aktywny katalog MCP."
+        + hint
+    )
+
+
 def delete_path(document: dict[str, Any], path: str) -> None:
     parts = path.split(".")
     current: Any = document

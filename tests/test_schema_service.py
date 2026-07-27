@@ -148,3 +148,27 @@ def test_yaml_is_generated_only_for_valid_contract(
     del invalid["metadata"]["id"]
     with pytest.raises(ValueError):
         service.generate_contract_yaml(invalid)
+
+
+def test_schedule_requires_five_field_linux_cron(
+    service: ContractSchemaService,
+) -> None:
+    contract = load_example("csv-bronze.contract.json")
+    contract["orchestration"] = {
+        "dagId": "customers_pipeline",
+        "schedule": "0 6 * *",
+    }
+
+    result = service.validate_contract(contract)
+
+    issue = next(
+        item
+        for item in result.issues
+        if item.path == "orchestration.schedule"
+    )
+    assert issue.code == "pattern"
+    assert "Linux cron" in issue.description
+    assert "pięcioma polami" in issue.description
+
+    contract["orchestration"]["schedule"] = "0 6 * * *"
+    assert service.validate_contract(contract).valid

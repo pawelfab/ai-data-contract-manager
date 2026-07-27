@@ -87,7 +87,10 @@ class YamlResult(StrictModel):
 
 class PatchOperation(StrictModel):
     path: str = Field(
-        description="Dokładna ścieżka otrzymana w allowed_paths z MCP."
+        description=(
+            "Ścieżka z allowed_paths MCP albo nadrzędny kontener obiektu; "
+            "kontener zostanie rozwinięty wyłącznie do dozwolonych liści."
+        )
     )
     value: Any = Field(description="Wartość wynikająca z rozmowy lub evidence.")
     confidence: float = Field(default=1.0, ge=0, le=1)

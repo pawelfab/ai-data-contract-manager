@@ -108,7 +108,8 @@ Przebieg:
 1. Agent czyta całą historię przekazaną przez Web Chat UI.
 2. Dopasowuje wartości użytkownika do `field_catalog`.
 3. `apply_contract_patch` przyjmuje listę typowanych zmian.
-4. Adapter odrzuca ścieżki nieobecne w aktywnym katalogu.
+4. Adapter rozwija dowolny patch obiektowy do liści i odrzuca go, jeśli choć
+   jeden liść nie występuje w aktywnym katalogu.
 5. Każda wartość otrzymuje provenance, confidence i `evidence_text`.
 6. `get_contract_status` zwraca brakujące pola wymagane oraz nierozstrzygnięte
    sekcje opcjonalne z opisami i przykładami.

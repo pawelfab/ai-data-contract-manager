@@ -71,6 +71,8 @@ Walidacja obejmuje:
 - zgodność `recordLength` z końcem ostatniej kolumny;
 - poprawność `sourcePath` względem source lub bezpośrednio poprzedniej warstwy;
 - zależności warstw medallion.
+- format harmonogramu jako pięciopolowy Linux cron, opisany semantycznie
+  w JSON Schema.
 
 Każdy błąd ma:
 

@@ -4,6 +4,7 @@ from acdm.models import ContractState, RequirementsCatalogue
 from acdm.state_ops import (
     activate_scope,
     document_fingerprint,
+    expand_allowed_update,
     missing_required_paths,
     set_path,
     unresolved_optional_decisions,
@@ -74,3 +75,27 @@ def test_selected_optional_section_activates_conditional_requirements() -> None:
     missing = missing_required_paths(state)
     assert "orchestration.dagId" in missing
     assert "orchestration.startDate" not in missing
+
+
+def test_object_update_is_expanded_to_allowed_terminal_paths() -> None:
+    expanded = expand_allowed_update(
+        "source.options",
+        {
+            "delimiter": ";",
+            "header": False,
+            "file": {"encoding": "utf-8", "compression": "none"},
+        },
+        {
+            "source.options.delimiter",
+            "source.options.header",
+            "source.options.file.encoding",
+            "source.options.file.compression",
+        },
+    )
+
+    assert dict(expanded) == {
+        "source.options.delimiter": ";",
+        "source.options.header": False,
+        "source.options.file.encoding": "utf-8",
+        "source.options.file.compression": "none",
+    }
