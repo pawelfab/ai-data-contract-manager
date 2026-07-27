@@ -58,3 +58,15 @@ to zmian w agencie, hooks ani dekoratorze `ContractPort`.
 
 Log audytowy nie jest repozytorium aktywnego `ContractState` i nie służy
 obecnie do automatycznego odtwarzania draftu po restarcie serwera.
+
+## Podział modułów
+
+- `capability.py` — hooki cyklu życia Pydantic AI;
+- `decision_trace.py` — jawne podsumowania obserwowalnych decyzji;
+- `serialization.py` — bezpieczna serializacja wiadomości i błędów;
+- `contract_adapter.py` — audyt requestów i odpowiedzi Contract Forge;
+- `service.py` — redakcja i budowanie zdarzeń;
+- `jsonl_adapter.py`, `memory_adapter.py`, `port.py` — zapis i port.
+
+Ten podział pozwala zmienić adapter zapisu bez modyfikowania hooków i logiki
+agenta.

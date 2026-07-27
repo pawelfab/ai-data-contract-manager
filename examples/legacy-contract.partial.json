@@ -1,4 +1,5 @@
 {
+  "$comment": "Legacy, incomplete reference only. Not used by the application.",
   "$defs": {
     "BigQueryTable": {
       "additionalProperties": false,

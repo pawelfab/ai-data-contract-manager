@@ -4,10 +4,11 @@ import uvicorn
 
 from .agent import create_agent
 from .settings import AppSettings
+from .web_app import create_web_app
 
 settings = AppSettings.from_env()
 agent, deps = create_agent(settings)
-app = agent.to_web(deps=deps)
+app = create_web_app(agent, deps)
 
 
 def run() -> None:

@@ -1,26 +1,102 @@
-Po wdrożeniu tego todo aplikacja nie będzie próbowała rozumieć odpowiedzi użytkownika przez key: value, aliasy i słowa kluczowe. Każda tura będzie przechodziła przez jeden semantyczny punkt decyzyjny LLM, a MCP pozostanie wykonawcą kontraktu.Przykład: użytkownik załącza plik i pisze „przeanalizuj plik i stwórz konfigurację YAML”POST /api/artifacts zapisuje plik w artifact store oraz zapisuje jego URI, hash, metadane i ograniczony excerpt w trwałym stanie sesji.To pozostaje techniczne i deterministyczne: limit bajtów, encoding, URI, dostęp do pliku, metadane.POST /api/chat ładuje pełny ContractState dla sesji:historię rozmowy,aktualny draft i ewentualny poprzedni YAML,durable evidence z wcześniejszych tur,załączniki i wyniki wcześniejszej analizy,poprzednie fakty MCP, walidacje i nierozwiązane pytania.Nowy serwis kontekstu przygotowuje wejście dla turn_orchestrator:ostatnie istotne wiadomości użytkownika i asystenta,podsumowanie starszych tur,aktualny draft,evidence z provenance, np. „wartość podał użytkownik” albo „wykryto w dokumencie”,fakty MCP, lecz nie ich surowe, wielkie payloady.Pełna historia pozostaje w ContractState.chat_history, ale model dostaje ograniczony kontekst. ProcessHistory albo hook before_model_request pilnuje limitu promptu. Ten element zostanie dodany, bo obecna aplikacja goAgent turn_orchestrator zwraca typowany TurnDecision, np.:Agent nie generuje YAML i nie decyduje sam, że bronzeTable.table.project ma konkretną wartość. Może rozpoznać znaczenie dokumentu i wypowiedzi, ale placement wartości musi mieć podstawę w faktach MCP.Deterministyczny executor widzi action-prepare_attachment i uruchamia usługę przygotowania załącznika:ładuje pełny plik, jeśli mieści się w skonfigurowanym budżecie;albo dzieli go na stabilne fragmenty z referencjami do zakresów;przekazuje treść jako dane źródłowe, nie instrukcje;pobiera z mcp-contract-forge fakty potrzebne do interpretacji, np. inspect_or_prepare_input i get_onboarding_requirements.attachment_preparation zwraca trwały, typowany wynik:format: fixed_width_layout_csv;kolumny, typy, pozycje i evidence refs;sygnały komponentów, np. Bronze/Converter/Preparator;wartości jawnie zapisane w dokumentacji;wartości wywnioskowane z dokumentu, oznaczone niższą pewnością;wartości nieznane;hash dokumentu oraz fingerprint kontraktu MCP.Wynik jest cache’owany według file_hash + contract_fingerprint, więc następna tura nie analizuje pliku ponownie bez powodu.Executor przekazuje wynik przygotowania oraz aktualne wymagania MCP ponownie do turn_orchestrator. Dopiero teraz agent ma komplet faktów i zwraca decyzję, np.:Jeśli converter jest opcjonalny, nie zostanie automatycznie włączony. Zamiast tego będzie osobna decyzja biznesowa dla użytkownika, np. „Dokument wskazuje plik stałopozycyjny; czy użyć konwertera do Parquet?”.ConversationResponse buduje komunikat po polsku wyłącznie z follow_up_needs. Nie interpretuje już całego draftu ani surowych błędów walidacji. Nie może dopisać nowych wymagań ani zapytać o pola poza listą dopuszczoną przezNastępna wiadomość użytkownikaZałóżmy, że użytkownik odpowie naturalnie:W obecnym rozwiązaniu taka wiadomość częściowo trafia do regexów z followup_capture.py, a częściowo do ekstraktora. To powodowało błędne root fields i pytania powtórzone w następnejPo wdrożeniu:wiadomość jest zapisana w chat_history;orchestrator dostaje ją razem z pełnym durable evidence oraz wymaganiami MCP;rozpoznaje semantycznie:pipeline > kandydat dla metadata.id i zwykle orchestration.dagId,„projekt Bronze” > bronzeTable.table.project,„dataset” > bronzeTable.table.dataset,„tabela” > bronzeTable.table.table,„data startu orkiestracji” > orchestration.startDate;zapisuje każde ustalenie jako EvidenceItem(source=user, confidence=...);tworzy ContractPatchCandidate tylko dla ścieżek potwierdzonych przez MCP requirements lub wcześniejszy wynik MCP normalizacji;executor scala patch i zachowuje provenance;MCP otrzymuje aktualny obiekt kontraktu do normalizacji i walidacji.Jeżeli użytkownik wpisze awData.gcsBucketPath, orchestrator powinien rozpoznać, że to prawdopodobna literówka rawData.gcsBucketPath, ale nie wpisze awData do draftu. Zależnie od pewnoścprzy wysokiej pewności i dostępnej ścieżce MCP: utworzy patch do rawData.gcsBucketPath;przy niejednoznaczności: zada jedno pytanie o mapowanie;nigdy nie poprosi ponownie ogólnie o ścieżkę GCS, jeśli wartość już jest w rozmowie.Walidacja i generowaniePo scaleniu:deterministyczny executor wywołuje MCP validate_and_preview_doc;jeśli MCP zwróci brakujące pola, wynik staje się faktami wejściowymi kolejnej decyzji orchestratora;orchestrator porównuje je z durable evidence:jeżeli wartość jest już znana, nie pyta użytkownika drugi raz;jeśli MCP nie potrafi jej umieścić, zwraca mapping_clarification;jeśli pole rzeczywiście nie istnieje w rozmowie ani w dokumencie, tworzy jedno konkretne missing_required;dopiero gdy MCP zwróci poprawną walidację, executor wywołuje generate_layer_yaml;wynik YAML jest zapisywany jako rendered_yaml.Czyli kolejność będzie nadal deterministyczna:Zmiana już wygenerowanego YAMLJeżeli YAML został już wygenerowany, a użytkownik napisze:orchestrator widzi:istniejący rendered YAML/draft;historię wskazującą, że użytkownik chce zmianę, nie analizę dokumentu;załączony layout jako evidence pomocnicze.Zwraca action-repair, a techniczny guardrail tylko potwierdza, że draft/YAML istnieje. Nie uruchamia terminalnego AttachmentAnalysisNode dlatego, że brakuje słowa popraw.Następnie:executor seeduje repair z obecnego draftu;orchestrator tworzy patch dla kolumn fixed width;MCP waliduje zaktualizowany kontrakt;MCP generuje nowy YAML.W tym scenariuszu plik jest używany jako źródło dowodów lub ponownie przygotowywany tylko wtedy, gdy konieczne jest ustalenie, które kolumny należy przesunąć. Nie resetuje rozmowy i nie pyta ponownie o bucket, dataset, tabelę czy datę startu.Reasumując jak to rozumiem: model llm uzgodnił/wykrył że dostał od usera załącznik lub na czacie fixed-with i to jest na początek najważniejsze czyli z jakim typem źródła mamy do czynienia. chce aby to było punktem wejścia, jeśli tego model nie wykrył i nie jest pewien to ma zapytać usera bo od tego zależy co się dzieje dalej. następnie model znając typ odpytuje mcp podając że źródło i typ fixed-with (w tym przypadku testowym), mcp odpowiada jakie są wymogi dla takiego źródła i podaje wszystkie dozwolone możliwości i opcjonalne z opisami. adcm pobiera wszystko to co zwrócił MCP i to jest bardzo ważne. pytanie z mojej strony do ciebie czy po odbiorze od mcp tych informacji można zapisać to w formacie pydantic przez subagenta odbierającego te informacje aby główny model orkiestrator nie musiał wczytywać payloadu do kontekstu tylko opierał się na modelu deterministycznym pydantic?w dalszej kolejności agent llm mając dokładny model do wypełnienia – uzgadnia go z tym co ma w kontekście(w pliku lub na czacie od usera), dopasowuje dane do modelu pydantic, jeśli coś jest niepewne to ma dopytać usera.zawsze jeśli tworzony jest yaml to jest źródło danych oraz target. powyżej omawialiśmy źródło ale w kontrakcie zawsze wypełniamy tez target. targetem są warstwy bronze, silver, gold zgodnie z opisanym modelem w contract.json (adcm tam nie zagląda tylko poprzez mcp odpytuje). adcm musi odpytać o targety co jest wymagane a co opcjonalne, jakie pola jakie typy itp – tak samo jak dla źródła. adcm może to zrobić w pierwszym kroku, czyli w momencie gdy odpytuje o źródło to od razu pyta najlepiej o wszystkie warstwy target o wymagania i również zapisuje (najlepiej do modelu pydantic a jeśli nie to do kontekstu). uzgadniając źródło, po potwierdzeniu od usera, dalszym krokiem jest pytanie jaki target, czy tylko kolejna pierwsza warstwa czy również następne. user odpowiada i dalej odpowiednio model wypełnia wymagane pola kontraktu zgodnie z tym co otrzymał od mcp. tak jak dla źródła ato dla targetów taki sam mechanizm, jeśli agentowi llm czegoś brakuje to dopytuje usera. jeśli ma już wszystko to wysyła do walidacji przez mcp. jeśli mcp poda błąd to jest pętla model jeśli potrafi sam dostarczyć, poprawić brakującą informację to to robi, jeśli nie to pyta usera(tutaj możemy parametrem ustawić ile razy model llm może sam próbować bez ingerencji usera, po czym wraca do niego z informacją). jeśli są uzgodnione wszystkie pola i mcp zwrócił sukces to tworzony jest yaml i prezentowany userowi. Usr na tym etapie może zapisać yaml ale może też zechcieć coś poprawić, np pomimo prawidłowej walidacji będzie chciał zmienić nazwę pipelinu lub orkiestracji lub cokolwiek innego.Co powinno być deterministycznePo rozpoznaniu typu, np. fixed_width, orchestrator nie powinien sam wymyślać struktury kontraktu. Powinien przekazać do ContractPort informację:source_type="fixed_width"MCP zwraca wtedy katalog aktywnego wariantu, a ADCM adapter deterministycznie parsuje go do Pydantic, np. konceptualnie:Pythonclass Requirements(BaseModel):
-    fingerprint: str
-    source_types: list[str]
-    required_paths: list[str]
-    allowed_paths: list[str]
-    questions: list[RequirementQuestion]
-    field_catalog: list[FieldGuidance]
-    optional_decisions: list[OptionalDecision]
-To już częściowo istnieje, ale obecnie adapter zbyt agresywnie redukuje informacje dla złożonych pól. W szczególności powinien zachować strukturę wartości pola, np. dla:converter.source.fixedWidth.columnsMCP powinien przekazać ograniczony, typowany opis:JSON{
-  "path": "converter.source.fixedWidth.columns",
-  "kind": "array",
-  "item_required": ["name", "start", "end"],
-  "item_properties": {
-    "name": {"type": "string"},
-    "start": {"type": "integer", "minimum": 0},
-    "end": {"type": "integer", "minimum": 0}
-  },
-  "example": [
-    {"name": "account_id", "start": 0, "end": 7}
-  ]
-}
-ADCM zapisuje ten katalog jako model Pydantic w stanie/kontekście sesji. Orchestrator dostaje wtedy zwięzły render tego modelu, a nie surowy pełny payload MCP ani cały contract.json.To odpowiada na pytanie: nie potrzebujemy subagenta odbierającego MCP. Adapter McpContractPort już jest właściwym, deterministycznym miejscem do:odebrania odpowiedzi MCP,walidacji przez Pydantic,ograniczenia danych do aktywnego source/target,zapisania fingerprintu,dostarczenia orchestratorowi krótkiego katalogu.LLM nadal jest potrzebny tylko do semantyki:rozpoznania typu źródła,ekstrakcji faktów z rozmowy i dokumentu,oceny niejednoznaczności,sformułowania pytania po polsku,rozpoznania odpowiedzi „tak”, „nie”, „jednak zmień”.Źródło jako punkt wejściaTwoja kolejność jest dobra:Użytkownik daje dokument albo informacje na czacie.LLM próbuje rozpoznać typ źródła.Jeśli pewność jest niewystarczająca: pyta użytkownika o typ.Dopiero po wyborze typu ADCM pobiera z MCP katalog tylko dla tego wariantu.ADCM zestawia:katalog MCP,trwałe evidence użytkownika,fakty z dokumentu,wcześniej potwierdzone decyzje.Brakujące wymagane pole: jedno konkretne pytanie.Niepewna, transformująca interpretacja: propozycja i potwierdzenie użytkownika.Patch tylko na ścieżki dozwolone przez MCP.Walidacja MCP.Render MCP po sukcesie.Dla fixed-width parent/child to znaczy:Dokument -> LLM rozpoznaje OD/DO-> ADCM wylicza proposal parent/leaf-> użytkownik potwierdza-> ADCM sam buduje MCP-format start/end-> MCP walidujeModel nie powinien sam serializować zaakceptowanej listy fixed-width columns.Target: Bronze, Silver, GoldTak, target powinien wejść do tego samego katalogowego mechanizmu. Nie jako lokalna wiedza ADCM o warstwach, lecz przez MCP.MCP już przewiduje kontekst:get_onboarding_requirements(
-    source_type="fixed_width",
-    target_layer=...
-)
-Obecny ContractPort ADCM przekazuje tylko source_type; plan docelowy powinien rozszerzyć go o wybór targetu/layerów albo o katalog targetów.Dobrze byłoby pobrać na początku:generic source overviewgeneric target/layer overviewNastępnie, po odpowiedzi użytkownika, np.:„Potrzebuję Bronze i Silver, bez Gold.”ADCM pobiera z MCP aktywny katalog dla:source: fixed_width,targets: bronze, silver.Wtedy identyczna pętla działa dla targetu:EtapSourceTargetRozpoznanie wyborufixed_width / CSV / JDBCBronze / Silver / GoldKatalog MCPpola wybranego source variantpola aktywnych warstwFakty z dokumentu/czatukolumny, OD/DO, system, dataprojekt, dataset, tabela, transformacjeBrakipytanie po polskupytanie po polskuOpcjeencoding, header, formatoptional Bronze/Silver/Gold komponentyZapisMCP-authorized patchMCP-authorized patchWalidacjapełny kontraktpełny kontraktNie powinno się pytać o wszystkie targety jako wymagane domyślnie. Pierwsze pytanie targetowe powinno być biznesowe, np.:Po odpowiedzi MCP określa, jakie pola dla wybranych warstw są wymagane, opcjonalne lub niedozwolone.Pętla walidacjiTak, po zebraniu faktów ADCM wysyła draft do strict validation MCP.Jeżeli MCP zwróci błąd:ADCM sprawdza, czy istnieje już potwierdzone evidence dla wymaganej ścieżki.Jeśli tak i można je zmapować do katalogu MCP, wykonuje kontrolowaną naprawę.Jeśli nie, pyta użytkownika po polsku o jedną konkretną rzecz.Limit automatycznych prób powinien być parametrem, np.:MAX_AUTOMATIC_REPAIR_ATTEMPTS = 2Po jego przekroczeniu ADCM nie powinien dalej próbować własnych transformacji. Powinien zwrócić pytanie wraz z krótkim wyjaśnieniem, czego MCP potrzebuje.Ważne: auto-repair nie może oznaczać ponawiania tej samej walidacji lub tego samego patcha. Każda automatyczna próba musi zmienić draft i być oparta na istniejącym, autoryzowanym evidence.Poprawki po poprawnej walidacjiTo także powinno działać identycznie:Użytkownik: zmień pipeline id-> LLM rozpoznaje intencję-> evidence user_turn lub user_override-> MCP-authorized patch-> stale validation fingerprint-> ponowna walidacja MCP-> nowy YAML MCPPoprzedni YAML nie jest już bieżącym YAML-em, ale może pozostać jako last_valid_rendered_yaml, dopóki nowa wersja nie przejdzie walidacji.Najważniejsza zasada brzmi:LLM interpretuje.MCP opisuje aktywny kontrakt.Pydantic adapter ADCM utrwala i ogranicza katalog.Deterministyczne gate’y kontrolują zapis i walidację.Użytkownik potwierdza niepewne lub lossy decyzje.Masz też rację, że kolejne sytuacje nie powinny skutkować rosnącą liczbą reguł if fixed_width. Długofalowo należy uogólnić obecny pending_fixed_width_proposal do czegoś w rodzaju:pending_transformation_confirmationz:affected_paths,proposed_value,source_evidence,artifact_id,catalog_fingerprint,reason,accepted / declined.Wtedy fixed-width parent/child będzie tylko pierwszym przypadkiem tego samego mechanizmu użytego później dla mapowania CSV, JDBC, formatów dat, typów kolumn albo target layers.
+# AI Data Contract Manager
+
+Projekt składa się z dwóch lokalnych aplikacji:
+
+- `acdm` — webowy agent Pydantic AI, który interpretuje rozmowę i prowadzi
+  użytkownika przez tworzenie kontraktu;
+- `mcp-contract-forge` — deterministyczny serwer MCP, który odczytuje JSON
+  Schema, zwraca wymagania aktywnego wariantu, waliduje draft i generuje YAML.
+
+Najważniejsza zasada architektoniczna:
+
+> LLM interpretuje wypowiedź użytkownika. MCP definiuje i waliduje kontrakt.
+> Pydantic przechowuje typowany stan. YAML powstaje wyłącznie w MCP.
+
+## Wymagania
+
+- Python 3.11 lub nowszy;
+- PowerShell — poniższe przykłady są przygotowane dla Windows;
+- klucz i URL API dostawcy modelu zgodnego z konfiguracją Pydantic AI.
+
+## Instalacja
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+Copy-Item .env.example .env
+```
+
+Do odtworzenia dokładnie przetestowanego zestawu zależności na Windows
+i Pythonie 3.11:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.lock
+.\.venv\Scripts\python.exe -m pip install -e . --no-deps --no-build-isolation
+```
+
+Uzupełnij co najmniej `OPENAI_API_KEY` w `.env`. Jeśli używasz własnego
+endpointu zgodnego z OpenAI, ustaw również `OPENAI_BASE_URL`.
+
+## Uruchomienie
+
+```powershell
+.\.venv\Scripts\python.exe -m acdm.main
+```
+
+Domyślnie `ACDM_CONTRACT_TRANSPORT=stdio`. ACDM uruchamia wtedy
+`mcp-contract-forge` przez bieżący interpreter:
+
+```text
+python -m mcp_contract_forge.server
+```
+
+Jeden proces i jedna zainicjalizowana sesja MCP są współdzielone przez
+wywołania aplikacji aż do jej zamknięcia.
+
+Do szybkiego developmentu bez osobnego procesu MCP można ustawić:
+
+```dotenv
+ACDM_CONTRACT_TRANSPORT=inprocess
+```
+
+Interfejs jest dostępny domyślnie pod `http://127.0.0.1:7932`.
+
+## Testy
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+```
+
+Testy nie wymagają prawdziwego modelu LLM. Zachowanie agenta jest sprawdzane
+przez `FunctionModel`, a logika kontraktu przez adapter in-process i prawdziwy
+transport MCP stdio.
+
+## Źródła prawdy
+
+- kanoniczny JSON Schema:
+  `contracts/data-contract.schema.json`;
+- poprawne przykłady:
+  `examples/csv-bronze.contract.json` oraz
+  `examples/fixed-width-all-layers.contract.json`;
+- `examples/legacy-contract.partial.json` jest wyłącznie historycznym,
+  niekompletnym przykładem i nie jest czytany przez aplikację.
+
+## Dokumentacja
+
+- [Architektura](docs/architecture.md)
+- [Przepływ agenta i stan sesji](docs/agent-workflow.md)
+- [Kontrakt MCP](docs/mcp-contract-forge.md)
+- [Konfiguracja](docs/configuration.md)
+- [Testowanie](docs/testing.md)
+- [Logowanie audytowe](docs/audit-logging.md)
+- [Scenariusz MVP](docs/mvp-usage.md)
+- [Roadmapa ACDM](docs/acdm-plan.md)
+- [Roadmapa Contract Forge](docs/mcp-contract-forge-plan.md)
+
+## Aktualne ograniczenia
+
+- `Agent.to_web()` jest developerskim interfejsem lokalnym;
+- `InMemorySessionStore` traci aktywny `ContractState` po restarcie procesu;
+- historia widoczna w menu przeglądarki jest zarządzana przez Web Chat UI;
+- log audytowy JSONL nie jest repozytorium stanu i nie odtwarza sesji;
+- aplikacja nie ma jeszcze uwierzytelniania, własnego UI ani Schema Advisora.

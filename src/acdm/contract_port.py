@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import sys
 from typing import Any, Protocol
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from mcp import StdioServerParameters
 
 from mcp_contract_forge import ContractSchemaService
 
+from .mcp_client import McpToolClient, StdioMcpClient
+
 
 class ContractPort(Protocol):
+    async def start(self) -> None: ...
+
+    async def close(self) -> None: ...
+
     async def list_contract_options(self) -> dict[str, Any]: ...
 
     async def get_onboarding_requirements(
@@ -33,6 +37,12 @@ class InProcessContractPort:
 
     def __init__(self, service: ContractSchemaService | None = None) -> None:
         self.service = service or ContractSchemaService()
+
+    async def start(self) -> None:
+        return None
+
+    async def close(self) -> None:
+        return None
 
     async def list_contract_options(self) -> dict[str, Any]:
         return self.service.list_contract_options()
@@ -58,7 +68,7 @@ class InProcessContractPort:
 
 
 class McpContractPort:
-    """Deterministic stdio client; the LLM never sees the raw MCP toolset."""
+    """Contract adapter backed by one reusable MCP tool client."""
 
     def __init__(
         self,
@@ -66,12 +76,32 @@ class McpContractPort:
         command: str | None = None,
         module: str = "mcp_contract_forge.server",
         timeout_seconds: float = 15.0,
+        client: McpToolClient | None = None,
     ) -> None:
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds musi być większe od zera.")
-        self.command = command or sys.executable
-        self.module = module
         self.timeout_seconds = timeout_seconds
+        self.client = client or StdioMcpClient(
+            StdioServerParameters(
+                command=command or sys.executable,
+                args=["-m", module],
+                env=dict(os.environ),
+            ),
+            timeout_seconds=timeout_seconds,
+        )
+
+    async def __aenter__(self) -> "McpContractPort":
+        await self.start()
+        return self
+
+    async def __aexit__(self, *_exc: object) -> None:
+        await self.close()
+
+    async def start(self) -> None:
+        await self.client.start()
+
+    async def close(self) -> None:
+        await self.client.close()
 
     async def list_contract_options(self) -> dict[str, Any]:
         return await self._call("list_contract_options", {})
@@ -102,23 +132,7 @@ class McpContractPort:
     async def _call(
         self, tool_name: str, arguments: dict[str, Any]
     ) -> dict[str, Any]:
-        params = StdioServerParameters(
-            command=self.command,
-            args=["-m", self.module],
-            env=dict(os.environ),
-        )
-        try:
-            async with asyncio.timeout(self.timeout_seconds):
-                async with stdio_client(params) as (read, write):
-                    async with ClientSession(read, write) as session:
-                        await session.initialize()
-                        result = await session.call_tool(tool_name, arguments)
-        except TimeoutError as exc:
-            raise RuntimeError(
-                f"MCP tool {tool_name!r} nie odpowiedział w ciągu "
-                f"{self.timeout_seconds:g} s."
-            ) from exc
-
+        result = await self.client.call_tool(tool_name, arguments)
         if getattr(result, "isError", False) or getattr(
             result, "is_error", False
         ):

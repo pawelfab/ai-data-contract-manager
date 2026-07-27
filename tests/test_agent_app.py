@@ -9,7 +9,9 @@ from starlette.testclient import TestClient
 
 from acdm.agent import create_agent
 from acdm.models import ContractState
+from acdm.session_store import InMemorySessionStore
 from acdm.settings import AppSettings
+from acdm.web_app import create_web_app
 
 
 def test_agent_builds_pydantic_web_app() -> None:
@@ -22,11 +24,43 @@ def test_agent_builds_pydantic_web_app() -> None:
     )
     agent, deps = create_agent(settings)
 
-    app = agent.to_web(deps=deps)
+    events: list[str] = []
+    original_start = deps.contract_port.start
+    original_close = deps.contract_port.close
+
+    async def start() -> None:
+        events.append("start")
+        await original_start()
+
+    async def close() -> None:
+        events.append("close")
+        await original_close()
+
+    deps.contract_port.start = start
+    deps.contract_port.close = close
+    app = create_web_app(agent, deps)
 
     paths = {route.path for route in app.routes}
     assert "/api" in paths
-    assert TestClient(app).get("/api/health").status_code == 200
+    with TestClient(app) as client:
+        assert client.get("/api/health").status_code == 200
+        assert events == ["start"]
+    assert events == ["start", "close"]
+
+
+def test_agent_accepts_session_state_port_adapter() -> None:
+    settings = AppSettings(
+        model="test",
+        contract_transport="inprocess",
+        max_automatic_repair_attempts=2,
+        host="127.0.0.1",
+        port=7932,
+    )
+    store = InMemorySessionStore()
+
+    _agent, deps = create_agent(settings, session_store=store)
+
+    assert deps.store is store
 
 
 def test_configure_scope_runs_without_deferred_approval() -> None:
@@ -67,7 +101,8 @@ def test_configure_scope_runs_without_deferred_approval() -> None:
     )
 
     assert result.output == "Scope gotowy."
-    assert deps.store.get(str(result.conversation_id)).source_type == "csv"
+    state = asyncio.run(deps.store.get(str(result.conversation_id)))
+    assert state.source_type == "csv"
 
 
 def test_agent_accepts_object_patch_for_allowed_container() -> None:
@@ -134,7 +169,7 @@ def test_agent_accepts_object_patch_for_allowed_container() -> None:
         )
     )
 
-    state = deps.store.get(str(result.conversation_id))
+    state = asyncio.run(deps.store.get(str(result.conversation_id)))
     assert result.output == "Opcje zapisane."
     assert state.draft["source"]["options"] == {
         "delimiter": ";",
@@ -153,11 +188,13 @@ def test_final_yaml_is_approved_without_second_deferred_step() -> None:
     )
     agent, deps = create_agent(settings)
     conversation_id = "approval-conversation"
-    deps.store.save(
-        ContractState(
-            conversation_id=conversation_id,
-            pending_yaml="metadata:\n  id: example\n",
-            pending_yaml_fingerprint="fingerprint-1",
+    asyncio.run(
+        deps.store.save(
+            ContractState(
+                conversation_id=conversation_id,
+                pending_yaml="metadata:\n  id: example\n",
+                pending_yaml_fingerprint="fingerprint-1",
+            )
         )
     )
     request_count = 0
@@ -186,6 +223,6 @@ def test_final_yaml_is_approved_without_second_deferred_step() -> None:
         )
     )
 
-    state = deps.store.get(conversation_id)
+    state = asyncio.run(deps.store.get(conversation_id))
     assert result.output == "YAML zatwierdzony."
     assert state.last_valid_yaml_fingerprint == "fingerprint-1"

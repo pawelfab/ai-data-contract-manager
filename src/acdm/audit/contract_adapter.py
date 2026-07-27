@@ -17,6 +17,12 @@ class AuditedContractPort:
         self.inner = inner
         self.audit = audit
 
+    async def start(self) -> None:
+        await self.inner.start()
+
+    async def close(self) -> None:
+        await self.inner.close()
+
     async def list_contract_options(self) -> dict[str, Any]:
         return await self._call(
             "list_contract_options",

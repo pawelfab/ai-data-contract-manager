@@ -143,6 +143,34 @@ def test_invalid_source_path_is_reported(
     )
 
 
+def test_csv_errors_use_only_active_variant_and_item_description(
+    service: ContractSchemaService,
+) -> None:
+    contract = load_example("csv-bronze.contract.json")
+    del contract["source"]["columns"][0]["name"]
+
+    result = service.validate_contract(contract)
+
+    issue = next(
+        item
+        for item in result.issues
+        if item.path == "source.columns.0.name"
+    )
+    columns = next(
+        field
+        for field in service.get_onboarding_requirements(
+            "csv", ["bronze"]
+        ).field_catalog
+        if field.path == "source.columns"
+    )
+    assert issue.description == columns.item_properties["name"]["description"]
+    assert not any(
+        item.path.startswith("source.columns.")
+        and item.path.endswith((".start", ".end"))
+        for item in result.issues
+    )
+
+
 def test_yaml_is_generated_only_for_valid_contract(
     service: ContractSchemaService,
 ) -> None:
