@@ -11,6 +11,14 @@ from pydantic_ai import (
     RunContext,
 )
 
+from .audit import (
+    AuditLogPort,
+    AuditService,
+    AuditedContractPort,
+    JsonlAuditLogAdapter,
+    NullAuditLogAdapter,
+)
+from .audit.capability import create_audit_hooks
 from .contract_port import (
     ContractPort,
     InProcessContractPort,
@@ -43,6 +51,7 @@ from .state_ops import (
 class AppDeps:
     store: SessionStore
     contract_port: ContractPort
+    audit: AuditService
     settings: AppSettings
 
 
@@ -100,18 +109,33 @@ napisanego YAML i nigdy nie ponawiaj identycznej walidacji bez zmiany draftu.
 
 def create_agent(
     settings: AppSettings | None = None,
+    *,
+    audit_port: AuditLogPort | None = None,
 ) -> tuple[Agent[AppDeps, str], AppDeps]:
     settings = settings or AppSettings.from_env()
-    port: ContractPort
+    base_port: ContractPort
     if settings.contract_transport == "inprocess":
-        port = InProcessContractPort()
+        base_port = InProcessContractPort()
     else:
-        port = McpContractPort(
+        base_port = McpContractPort(
             timeout_seconds=settings.mcp_timeout_seconds
         )
+    if audit_port is None:
+        audit_port = (
+            JsonlAuditLogAdapter(settings.audit_dir)
+            if settings.audit_enabled
+            else NullAuditLogAdapter()
+        )
+    audit = AuditService(
+        audit_port,
+        include_model_io=settings.audit_include_model_io,
+        include_mcp_payloads=settings.audit_include_mcp_payloads,
+    )
+    port = AuditedContractPort(base_port, audit)
     deps = AppDeps(
         store=SessionStore(),
         contract_port=port,
+        audit=audit,
         settings=settings,
     )
     agent: Agent[AppDeps, str] = Agent(
@@ -122,6 +146,7 @@ def create_agent(
         instructions=BASE_INSTRUCTIONS,
         defer_model_check=True,
         retries={"tools": 2, "output": 1},
+        capabilities=[create_audit_hooks()],
     )
     register_agent_behavior(agent)
     return agent, deps
