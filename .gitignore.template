@@ -1,0 +1,3 @@
+# Copy relevant lines into your repository .gitignore.
+scripts/agent/config.json
+.agent-audit/

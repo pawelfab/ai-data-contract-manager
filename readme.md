@@ -1,102 +1,119 @@
-# AI Data Contract Manager
+# VS Code Copilot Multi-Agent Workflow Template
 
-Projekt składa się z dwóch lokalnych aplikacji:
+Szablon organizuje pracę GitHub Copilot w VS Code wokół jednego koordynatora i wyspecjalizowanych subagentów.
 
-- `acdm` — webowy agent Pydantic AI, który interpretuje rozmowę i prowadzi
-  użytkownika przez tworzenie kontraktu;
-- `mcp-contract-forge` — deterministyczny serwer MCP, który odczytuje JSON
-  Schema, zwraca wymagania aktywnego wariantu, waliduje draft i generuje YAML.
+## Dlaczego koordynator zamiast łańcucha agent → agent → agent
 
-Najważniejsza zasada architektoniczna:
+Tylko koordynator deleguje pracę. Agenci roboczy nie wywołują kolejnych agentów. Ogranicza to:
+- zapętlenia,
+- niekontrolowany wzrost kosztu i kontekstu,
+- przekazywanie całej historii między rolami,
+- przypadkowe uruchomienie implementacji podczas zwykłego pytania.
 
-> LLM interpretuje wypowiedź użytkownika. MCP definiuje i waliduje kontrakt.
-> Pydantic przechowuje typowany stan. YAML powstaje wyłącznie w MCP.
+Koordynator klasyfikuje żądanie do jednego z trybów:
 
-## Wymagania
+| Tryb | Kiedy | Uruchamiani agenci |
+|---|---|---|
+| `EXPLAIN` | pytanie „jak to działa?”, „gdzie jest?”, „dlaczego?” | Repository Guide; opcjonalnie Code Verifier |
+| `PLAN` | prośba o plan/specyfikację bez implementacji | Repository Guide → Code Verifier → Solution Architect → Contract Reviewer → Contract Finalizer |
+| `IMPLEMENT` | jawna prośba o zmianę kodu | pełny `PLAN` → Implementer → Implementation Reviewer → ewentualna poprawka → Docs Updater |
+| `DOC_SYNC` | aktualizacja dokumentacji do bieżącego kodu | Code Verifier → Docs Updater |
+| `BOOTSTRAP_DOCS` | pierwsze zbudowanie wiedzy o repozytorium | inwentaryzacja → równoległe analizy modułów → Docs Updater |
 
-- Python 3.11 lub nowszy;
-- PowerShell — poniższe przykłady są przygotowane dla Windows;
-- klucz i URL API dostawcy modelu zgodnego z konfiguracją Pydantic AI.
+## Struktura
 
-## Instalacja
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-Copy-Item .env.example .env
+```text
+.github/
+  agents/                  profile agentów
+  prompts/                 komendy /explain-current, /plan-change itd.
+  hooks/                   deterministyczne hooki Copilota
+  skills/repository-knowledge/
+                            zasady i szablony dokumentacji
+docs/architecture/
+  modules/                 odpowiedzialności modułów
+  flows/                   przepływy wykonania
+  symbols/                 katalog klas, metod i funkcji
+  contracts/               zatwierdzone kontrakty zmian
+  reviews/                 raporty przeglądów
+  generated/               inwentaryzacja generowana skryptem
+scripts/agent/              skrypty wspierające
+githooks/                   opcjonalne hooki Git
 ```
-
-Do odtworzenia dokładnie przetestowanego zestawu zależności na Windows
-i Pythonie 3.11:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock
-.\.venv\Scripts\python.exe -m pip install -e . --no-deps --no-build-isolation
-```
-
-Uzupełnij co najmniej `OPENAI_API_KEY` w `.env`. Jeśli używasz własnego
-endpointu zgodnego z OpenAI, ustaw również `OPENAI_BASE_URL`.
 
 ## Uruchomienie
 
-```powershell
-.\.venv\Scripts\python.exe -m acdm.main
-```
+1. Skopiuj zawartość szablonu do katalogu głównego repozytorium.
+2. Dostosuj:
+   - `.github/copilot-instructions.md`,
+   - `scripts/agent/config.example.json`, zapisując kopię jako `scripts/agent/config.json`,
+   - polecenia jakości w konfiguracji.
+3. Sprawdź identyfikatory narzędzi w widoku **Configure Tools**. Szablon używa standardowych zestawów: `agent`, `read`, `search`, `edit`, `execute`.
+4. Wygeneruj mechaniczną inwentaryzację:
 
-Domyślnie `ACDM_CONTRACT_TRANSPORT=stdio`. ACDM uruchamia wtedy
-`mcp-contract-forge` przez bieżący interpreter:
+   ```bash
+   python scripts/agent/repo_inventory.py
+   ```
+
+5. W VS Code uruchom:
+
+   ```text
+   /bootstrap-repository-knowledge
+   ```
+
+6. Po zaakceptowaniu wygenerowanej dokumentacji oznacz ją jako aktualną:
+
+   ```bash
+   python scripts/agent/doc_freshness.py --mark-current --reason "initial documentation"
+   ```
+
+7. Opcjonalnie zainstaluj hooki Git:
+
+   ```bash
+   python scripts/agent/install_git_hooks.py
+   ```
+
+## Codzienne użycie
+
+### Odpowiedź bez modyfikowania kodu
 
 ```text
-python -m mcp_contract_forge.server
+/explain-current Jak działa import zamówień i gdzie walidowany jest plik?
 ```
 
-Jeden proces i jedna zainicjalizowana sesja MCP są współdzielone przez
-wywołania aplikacji aż do jej zamknięcia.
+Agent najpierw czyta `docs/architecture`. Kod analizuje tylko wtedy, gdy dokumentacja jest brakująca, przeterminowana lub nie potwierdza konkretnego symbolu.
 
-Do szybkiego developmentu bez osobnego procesu MCP można ustawić:
+### Plan i kontrakt
 
-```dotenv
-ACDM_CONTRACT_TRANSPORT=inprocess
+```text
+/plan-change Dodaj możliwość ponawiania nieudanych importów.
 ```
 
-Interfejs jest dostępny domyślnie pod `http://127.0.0.1:7932`.
+Wynikiem jest plik `docs/architecture/contracts/<slug>.md`. Kod nie jest modyfikowany.
 
-## Testy
+### Implementacja
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest
+```text
+/implement-change Dodaj możliwość ponawiania nieudanych importów.
 ```
 
-Testy nie wymagają prawdziwego modelu LLM. Zachowanie agenta jest sprawdzane
-przez `FunctionModel`, a logika kontraktu przez adapter in-process i prawdziwy
-transport MCP stdio.
+Koordynator tworzy lub odświeża kontrakt, zleca implementację, niezależny przegląd i na końcu aktualizację dokumentacji.
 
-## Źródła prawdy
+## Zasada aktualności dokumentacji
 
-- kanoniczny JSON Schema:
-  `contracts/data-contract.schema.json`;
-- poprawne przykłady:
-  `examples/csv-bronze.contract.json` oraz
-  `examples/fixed-width-all-layers.contract.json`;
-- `examples/legacy-contract.partial.json` jest wyłącznie historycznym,
-  niekompletnym przykładem i nie jest czytany przez aplikację.
+Dokumentacja nie jest automatycznie uznawana za prawdziwą. Skrypt przechowuje skróty plików źródłowych w `docs/architecture/.freshness.json`.
 
-## Dokumentacja
+- `repo_inventory.py` generuje mapę repozytorium.
+- `doc_freshness.py --check` wykrywa kod zmieniony od ostatniej synchronizacji dokumentacji.
+- `doc_freshness.py --mark-current` może wykonać wyłącznie Docs Updater po sprawdzeniu zmian.
+- hook `Stop` ostrzega o nieaktualnej dokumentacji.
+- hook `pre-commit` może zablokować commit kodu bez aktualizacji dokumentacji.
 
-- [Architektura](docs/architecture.md)
-- [Przepływ agenta i stan sesji](docs/agent-workflow.md)
-- [Kontrakt MCP](docs/mcp-contract-forge.md)
-- [Konfiguracja](docs/configuration.md)
-- [Testowanie](docs/testing.md)
-- [Logowanie audytowe](docs/audit-logging.md)
-- [Scenariusz MVP](docs/mvp-usage.md)
-- [Roadmapa ACDM](docs/acdm-plan.md)
-- [Roadmapa Contract Forge](docs/mcp-contract-forge-plan.md)
+Hook nie powinien sam generować dokumentacji przez LLM. Deterministyczny hook ma jedynie wykryć problem; aktualizację wykonuje agent na podstawie kodu i diffu.
 
-## Aktualne ograniczenia
+## Ważne ograniczenia
 
-- `Agent.to_web()` jest developerskim interfejsem lokalnym;
-- `InMemorySessionStore` traci aktywny `ContractState` po restarcie procesu;
-- historia widoczna w menu przeglądarki jest zarządzana przez Web Chat UI;
-- log audytowy JSONL nie jest repozytorium stanu i nie odtwarza sesji;
-- aplikacja nie ma jeszcze uwierzytelniania, własnego UI ani Schema Advisora.
+- Hooki VS Code są funkcją Preview; format może się zmieniać.
+- Nazwy narzędzi zależą od wersji VS Code i rozszerzeń. Niedostępne narzędzie może zostać pominięte.
+- Proste ekstraktory symboli w `repo_inventory.py` są heurystyczne poza Pythonem. Są indeksem nawigacyjnym, nie źródłem prawdy.
+- Nie włączaj zagnieżdżonych subagentów bez konkretnej potrzeby.
+- Nie zezwalaj agentowi na automatyczne edytowanie hooków, skryptów bezpieczeństwa i instrukcji sterujących.

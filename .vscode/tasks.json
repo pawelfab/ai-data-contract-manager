@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Agent: Generate repository inventory",
+      "type": "shell",
+      "command": "python scripts/agent/repo_inventory.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agent: Check architecture freshness",
+      "type": "shell",
+      "command": "python scripts/agent/doc_freshness.py --check",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agent: Mark architecture current",
+      "type": "shell",
+      "command": "python scripts/agent/doc_freshness.py --mark-current --reason \"manual VS Code task\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agent: Pre-commit quality gate",
+      "type": "shell",
+      "command": "python scripts/agent/quality_gate.py --profile pre-commit",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agent: Pre-push quality gate",
+      "type": "shell",
+      "command": "python scripts/agent/quality_gate.py --profile pre-push",
+      "problemMatcher": []
+    }
+  ]
+}
