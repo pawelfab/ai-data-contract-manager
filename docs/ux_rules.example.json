@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "defaults": {
+    "rules": [
+      {
+        "id": "converter.output.parquet",
+        "action": "set_default",
+        "when_path": "converter.enabled",
+        "when_value": true,
+        "path": "converter.output.format",
+        "value": "parquet"
+      }
+    ]
+  },
+  "systems": {
+    "HOGAN": {
+      "rules": [
+        {
+          "id": "hogan.source-system.copy-to-converter",
+          "action": "copy_value",
+          "source_path": "metadata.sourceSystemGcpId",
+          "path": "converter.source.systemZrodlowy"
+        },
+        {
+          "id": "hogan.filename-pattern",
+          "action": "format_value",
+          "source_path": "metadata.id",
+          "path": "converter.source.filenamePattern",
+          "template": "{source}_input.TXT"
+        }
+      ]
+    }
+  }
+}

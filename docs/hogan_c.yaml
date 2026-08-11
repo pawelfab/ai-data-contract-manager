@@ -1,0 +1,10 @@
+metadata:
+  sourceSystemGcpId: HOGAN
+  id: transactions
+converter:
+  enabled: true
+  output:
+    format: parquet
+  source:
+    systemZrodlowy: HOGAN
+    filenamePattern: transactions_input.TXT

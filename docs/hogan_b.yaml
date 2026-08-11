@@ -1,0 +1,10 @@
+metadata:
+  sourceSystemGcpId: HOGAN
+  id: accounts
+converter:
+  enabled: true
+  output:
+    format: parquet
+  source:
+    systemZrodlowy: HOGAN
+    filenamePattern: accounts_input.TXT

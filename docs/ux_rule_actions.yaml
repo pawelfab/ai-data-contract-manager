@@ -1,0 +1,46 @@
+version: 1
+
+actions:
+  set_default:
+    description: Ustawia wartość pomocniczą, jeżeli użytkownik nie podał własnej wartości.
+    required:
+      - id
+      - action
+      - path
+      - value
+    optional:
+      - when_path
+      - when_value
+
+  copy_value:
+    description: Kopiuje wartość z innej ścieżki kontraktu.
+    required:
+      - id
+      - action
+      - source_path
+      - path
+    optional:
+      - when_path
+      - when_value
+
+  format_value:
+    description: Buduje wartość na podstawie pola źródłowego i szablonu.
+    required:
+      - id
+      - action
+      - path
+      - template
+    optional:
+      - when_path
+      - when_value
+      - source_path
+      - fallback_source_path
+      - when_source_types
+
+  activate_root_section:
+    description: Aktywuje główną sekcję kontraktu.
+    required:
+      - id
+      - action
+      - section
+    optional: []
