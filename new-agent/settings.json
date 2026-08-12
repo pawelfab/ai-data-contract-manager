@@ -1,0 +1,9 @@
+{
+  "chat.useAgentsMdFile": true,
+  "chat.useNestedAgentsMdFiles": false,
+  "chat.subagents.allowInvocationsFromSubagents": false,
+  "chat.useCustomAgentHooks": true,
+  "chat.hookFilesLocations": {
+    ".github/hooks": true
+  }
+}
