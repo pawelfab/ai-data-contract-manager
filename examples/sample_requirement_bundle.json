@@ -1,0 +1,31 @@
+{
+  "stage_id": "source_details",
+  "allowed_paths": [
+    {
+      "path": "source.delimited.delimiter",
+      "value_type": "string",
+      "concepts": ["field_delimiter", "delimiter"]
+    },
+    {
+      "path": "source.delimited.encoding",
+      "value_type": "string",
+      "concepts": ["encoding"]
+    }
+  ],
+  "requirements": [
+    {
+      "path": "source.delimited.delimiter",
+      "required": true
+    }
+  ],
+  "candidates": [
+    {
+      "path": "source.delimited.encoding",
+      "value": "UTF-8",
+      "origin": "mcp_default",
+      "reason": "default text encoding"
+    }
+  ],
+  "capability_requests": [],
+  "complete": false
+}

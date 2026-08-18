@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=70"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "ai-data-contract-manager"
 version = "0.1.0"
-description = "Minimal ACDM web agent and mcp-contract-forge server."
+description = "Schema-authoritative conversational orchestrator for contract onboarding with Pydantic AI and MCP"
 requires-python = ">=3.11"
 dependencies = [
     "jsonschema>=4.23,<5",
@@ -17,23 +17,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8,<10",
-    "pytest-asyncio>=0.24,<2",
-]
-
-[project.scripts]
-acdm = "acdm.main:run"
-mcp-contract-forge = "mcp_contract_forge.server:run"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
+ai = ["pydantic-ai>=1.0"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
 
 [tool.pytest.ini_options]
-addopts = "-q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
