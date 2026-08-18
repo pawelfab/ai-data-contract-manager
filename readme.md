@@ -1,48 +1,34 @@
-# ADCM reference architecture
+# ADCM reference architecture — corrected edition
 
-ADCM is a small, schema-authoritative conversational orchestrator for building data-contract drafts around MCP tools.
+This package consolidates the architecture decisions and fixes discovered during contract analysis and Stage 2 implementation.
 
-The architecture intentionally separates language understanding from contract authority:
+Key properties:
+- ADCM is stateful; Contract Forge is stateless.
+- Forge receives the current nested draft snapshot on every evaluation.
+- CurrentSchemaView replaces prior allowed paths; draft is reprojected after branch changes.
+- Signals and user candidates require Evidence.
+- Candidate provenance stays on ValueCandidate; ResolvedValue points to the winner.
+- ContractDraft supports nested objects/arrays through ContractPath.
+- `evaluate_draft`, `validate_final`, and `render_yaml` have separate semantics.
+- YAML render happens once after turn stabilization and is cached by draft hash + schema revision + render mode.
+- runtime template DSL is preserved for the Airflow DAG Generator.
 
-- **LLM / Pydantic AI** understands user intent, extracts schema-agnostic signals, detects corrections and likely typos.
-- **ADCM** owns chat/session state, evidence, revisions, value candidates, resolution, audit and draft projection.
-- **Contract Forge MCP** owns contract schema, allowed paths, workflow/order, requirements, enrichments, defaults and validation.
-- **Other MCPs** such as Schema Explorer provide evidence/findings/candidates but never mutate the draft directly.
+Read in this order:
+1. `docs/ISSUES_AND_RESOLUTIONS.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/DOMAIN_MODEL.md`
+4. `docs/MCP_CONTRACT.md`
+5. `docs/TURN_LIFECYCLE.md`
+6. `docs/DESIGN_DECISIONS.md`
+7. `LLM_REPO_GUIDE.md`
+8. `PROMPT_STAGE_SPEC_GENERATOR.md`
 
-Core invariant: **a value can enter `ContractDraft` only when its path has been authorized by Contract Forge.**
-
-## Quick start
+Run:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\\Scripts\\activate
 pip install -e '.[dev]'
 pytest
 ```
 
-Optional Pydantic AI adapter:
-
-```bash
-pip install -e '.[ai,dev]'
-```
-
-Run the deterministic demo:
-
-```bash
-python examples/demo_flow.py
-```
-
-Read these first:
-
-- `docs/ARCHITECTURE.md` — complete architecture and boundaries.
-- `docs/DOMAIN_MODEL.md` — Signal → Candidate → ResolvedValue → Draft.
-- `docs/TURN_LIFECYCLE.md` — exact processing sequence of each user turn.
-- `docs/MCP_CONTRACT.md` — expected Contract Forge / future MCP integration contract.
-- `docs/ADAPTERS_AND_DEPLOYMENT.md` — local/cloud/provider substitution.
-- `LLM_REPO_GUIDE.md` — operational guide for an LLM coding agent reading this repository.
-
-## What this repository is
-
-This is a **reference implementation and architecture skeleton**, not a full production UI or a full Contract Forge MCP server. It contains working domain/application logic, persistence/audit ports, a mock Contract Forge adapter, tests and an optional Pydantic AI semantic-interpreter adapter.
-
-The intent is to keep ADCM small: orchestration and state are deterministic Python; LLM is used only where semantics are required.
+Optional Pydantic AI adapter dependencies use the slim package via the `ai` extra.

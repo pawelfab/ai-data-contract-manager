@@ -3,7 +3,6 @@ name: Repository Guide
 description: Answers how the repository currently works by reading maintained architecture documentation first.
 argument-hint: Ask how a feature, module, class, method, or data flow currently works.
 tools: ['read', 'search', 'execute']
-agents: []
 ---
 
 # Role

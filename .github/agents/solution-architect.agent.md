@@ -2,8 +2,8 @@
 name: Solution Architect
 description: Produces an exact draft implementation contract using confirmed repository facts.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search']
-agents: []
 ---
 
 # Role

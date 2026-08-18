@@ -2,8 +2,8 @@ from uuid import UUID
 
 from adcm.application.context_builder import AgentContextBuilder
 from adcm.application.turn_processor import TurnProcessor
-from adcm.application.workflow_runner import WorkflowRunner, WorkflowResult
-from adcm.domain.models import ChatMessage, ConversationState
+from adcm.application.workflow_runner import WorkflowRunner
+from adcm.domain.models import ChatMessage, ConversationState, WorkflowOutcome
 from adcm.ports.semantic_interpreter import SemanticInterpreterPort
 from adcm.ports.session_repository import SessionRepositoryPort
 
@@ -25,12 +25,12 @@ class ChatService:
         self,
         session_id: UUID,
         text: str,
-    ) -> tuple[ConversationState, WorkflowResult]:
+    ) -> tuple[ConversationState, WorkflowOutcome]:
         state = await self.sessions.load(session_id) or ConversationState(session_id=session_id)
         message = ChatMessage(role="user", content=text)
         context = self.context_builder.build(state)
         interpretation = await self.interpreter.interpret_turn(text, context)
         self.turn_processor.apply_user_turn(state, message, interpretation)
-        result = await self.workflow.run(state)
+        outcome = await self.workflow.run_until_stable(state)
         await self.sessions.save(state)
-        return state, result
+        return state, outcome

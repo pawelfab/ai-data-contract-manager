@@ -1,18 +1,18 @@
-from adcm.domain.models import ContractDraft, ResolvedValue
+from adcm.domain.contract_path import ContractPath
+from adcm.domain.models import ContractDraft, CurrentSchemaView, ResolvedValue
 
 
 class DraftProjector:
-    """Hard schema-authority boundary."""
+    """Rebuilds the draft from resolved values and the CURRENT schema view."""
 
     def project(
         self,
         resolved: dict[str, ResolvedValue],
-        allowed_paths: set[str],
+        schema_view: CurrentSchemaView,
         revision: int,
     ) -> ContractDraft:
-        values = {
-            path: item.value
-            for path, item in resolved.items()
-            if path in allowed_paths
-        }
-        return ContractDraft(values=values, revision=revision)
+        document: dict = {}
+        for path, item in resolved.items():
+            if schema_view.is_path_allowed(path):
+                ContractPath.write(document, path, item.value)
+        return ContractDraft(values=document, revision=revision)

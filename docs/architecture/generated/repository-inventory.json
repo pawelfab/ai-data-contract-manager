@@ -1,0 +1,1071 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-18T21:48:47.756123+00:00",
+  "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
+  "files": [
+    {
+      "path": "contracts/contract.json",
+      "language": "JSON",
+      "bytes": 49747,
+      "lines": 1744,
+      "sha256": "98835eaf9f13f6832d55949badd34ec53a922df354cbd18d9cb4195f97bae7d0",
+      "symbols": []
+    },
+    {
+      "path": "examples/contract-rules.json",
+      "language": "JSON",
+      "bytes": 6679,
+      "lines": 159,
+      "sha256": "bcd2455aae379949070043335aeed0e2153c277e16fb86a1514d7d958184cc89",
+      "symbols": []
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "TOML",
+      "bytes": 688,
+      "lines": 30,
+      "sha256": "53b8a622eea232353988e57215fea14c2662fafd8babb997d8ba6487904e4c92",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/__init__.py",
+      "language": "Python",
+      "bytes": 20,
+      "lines": 2,
+      "sha256": "898607735a1570009a063a0b2b71dbcd3a27ba36d3df714ab473aeadcf537058",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/adapters/llm/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/adapters/llm/pydantic_ai_interpreter.py",
+      "language": "Python",
+      "bytes": 1923,
+      "lines": 49,
+      "sha256": "67cf01266bbcc57dd06d659d607004f7eaf1f4e6963456a23ce8bc4d289a8766",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "PydanticAIInterpreter",
+          "line": 34,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 35,
+              "async": false
+            },
+            {
+              "name": "interpret_turn",
+              "line": 40,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/adapters/llm/rule_based_interpreter.py",
+      "language": "Python",
+      "bytes": 1658,
+      "lines": 38,
+      "sha256": "e82ffc677755d3c7677594e00af270564cdbc35d30ab7295121b4b375bf49269",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_ascii_fold",
+          "line": 8
+        },
+        {
+          "kind": "class",
+          "name": "RuleBasedInterpreter",
+          "line": 12,
+          "methods": [
+            {
+              "name": "interpret_turn",
+              "line": 13,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/adapters/logging/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/adapters/logging/jsonl_audit.py",
+      "language": "Python",
+      "bytes": 399,
+      "lines": 13,
+      "sha256": "ee79f0837cd9d71c92c13eaeee9a33144373c32e736462f74e7755d5d0b91ab0",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonlAuditSink",
+          "line": 5,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 6,
+              "async": false
+            },
+            {
+              "name": "append",
+              "line": 10,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/adapters/mcp/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/adapters/mcp/mock_contract_forge.py",
+      "language": "Python",
+      "bytes": 7763,
+      "lines": 195,
+      "sha256": "b1052e802f54f577ac487039731d367cfdc7791770dddda2f55a346b1895e645",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "MockContractForgeAdapter",
+          "line": 27,
+          "methods": [
+            {
+              "name": "_value",
+              "line": 31,
+              "async": false
+            },
+            {
+              "name": "_check_revision",
+              "line": 34,
+              "async": false
+            },
+            {
+              "name": "_base_paths",
+              "line": 41,
+              "async": false
+            },
+            {
+              "name": "evaluate_draft",
+              "line": 44,
+              "async": true
+            },
+            {
+              "name": "validate_final",
+              "line": 176,
+              "async": true
+            },
+            {
+              "name": "render_yaml",
+              "line": 188,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/adapters/persistence/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/adapters/persistence/json_file.py",
+      "language": "Python",
+      "bytes": 820,
+      "lines": 24,
+      "sha256": "9105f1e9bd2ea41344074cceaad5c53304dd2f5310e14dd3e1562b06be308ec5",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonFileSessionRepository",
+          "line": 6,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 7,
+              "async": false
+            },
+            {
+              "name": "_path",
+              "line": 11,
+              "async": false
+            },
+            {
+              "name": "load",
+              "line": 14,
+              "async": true
+            },
+            {
+              "name": "save",
+              "line": 20,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/adapters/persistence/memory.py",
+      "language": "Python",
+      "bytes": 501,
+      "lines": 16,
+      "sha256": "2222f4659df65d41283ecb017aaaae1ebb1b8889ceb901f984fc17e6d94fadf5",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "InMemorySessionRepository",
+          "line": 6,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 7,
+              "async": false
+            },
+            {
+              "name": "load",
+              "line": 10,
+              "async": true
+            },
+            {
+              "name": "save",
+              "line": 14,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/api/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/application/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/application/candidate_resolver.py",
+      "language": "Python",
+      "bytes": 1547,
+      "lines": 39,
+      "sha256": "5c62cccf0ac34e560ffbc48150060ae4532f1c1cacc1da6308c8611cc3b0884f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CandidateResolver",
+          "line": 6,
+          "methods": [
+            {
+              "name": "_rank",
+              "line": 10,
+              "async": false
+            },
+            {
+              "name": "resolve",
+              "line": 20,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/capability_router.py",
+      "language": "Python",
+      "bytes": 826,
+      "lines": 20,
+      "sha256": "daef4793641ccb0e02dbd79bd791bc407a6bc3aa9052070288649898e194541e",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CapabilityRouter",
+          "line": 4,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 5,
+              "async": false
+            },
+            {
+              "name": "register",
+              "line": 8,
+              "async": false
+            },
+            {
+              "name": "can_execute",
+              "line": 11,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 14,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/chat_service.py",
+      "language": "Python",
+      "bytes": 1449,
+      "lines": 37,
+      "sha256": "eee06e57b959384bf19fd5255587e5f6d58811dc4b27c4543b006ae65198a802",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ChatService",
+          "line": 11,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 12,
+              "async": false
+            },
+            {
+              "name": "handle_user_message",
+              "line": 24,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/context_builder.py",
+      "language": "Python",
+      "bytes": 1141,
+      "lines": 25,
+      "sha256": "c9e3431cbedc665d3466b76ebc4602018a817701330f4a28b38622b492551c9a",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AgentContextBuilder",
+          "line": 4,
+          "methods": [
+            {
+              "name": "build",
+              "line": 5,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/draft_projector.py",
+      "language": "Python",
+      "bytes": 646,
+      "lines": 19,
+      "sha256": "a2c0c801c15389b9f4901fbd0905262ce4744fbaeaac37f842b9b96b09e26549",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "DraftProjector",
+          "line": 5,
+          "methods": [
+            {
+              "name": "project",
+              "line": 8,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/preference_expander.py",
+      "language": "Python",
+      "bytes": 1228,
+      "lines": 31,
+      "sha256": "3987f6e65bc13d8465a99edf1f184a5c7d011b754b7f71851d5b74e4cb4c804c",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "PreferenceExpander",
+          "line": 4,
+          "methods": [
+            {
+              "name": "expand",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/render_service.py",
+      "language": "Python",
+      "bytes": 1857,
+      "lines": 57,
+      "sha256": "d2123b18df407c96a984d1dce630f451c18b487284f5605983fd652dbca0a45f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "RenderCacheKey",
+          "line": 17,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContractRenderService",
+          "line": 23,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 26,
+              "async": false
+            },
+            {
+              "name": "render",
+              "line": 30,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/signal_binder.py",
+      "language": "Python",
+      "bytes": 1414,
+      "lines": 36,
+      "sha256": "46460d82f5fc24ae7cf71f79fa290b24239cb6dca8fb9823b9b7179c4cc725bf",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SignalBinder",
+          "line": 4,
+          "methods": [
+            {
+              "name": "bind",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/turn_processor.py",
+      "language": "Python",
+      "bytes": 4489,
+      "lines": 116,
+      "sha256": "83929f6a465e1bead87bfd8fc837474a13db9345625b44360d7e7261c7f38538",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "TurnProcessor",
+          "line": 15,
+          "methods": [
+            {
+              "name": "apply_user_turn",
+              "line": 18,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/application/workflow_runner.py",
+      "language": "Python",
+      "bytes": 12530,
+      "lines": 290,
+      "sha256": "690bb4230a5255e08c73da444b5ac9ce3262ec4aebe67fe470c1038b06f1028d",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "WorkflowRunner",
+          "line": 27,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 30,
+              "async": false
+            },
+            {
+              "name": "_candidate_key",
+              "line": 45,
+              "async": false
+            },
+            {
+              "name": "_append_unique_candidates",
+              "line": 56,
+              "async": false
+            },
+            {
+              "name": "_convert_external_candidate",
+              "line": 70,
+              "async": false
+            },
+            {
+              "name": "_resolve_capabilities",
+              "line": 99,
+              "async": true
+            },
+            {
+              "name": "run_until_stable",
+              "line": 135,
+              "async": true
+            },
+            {
+              "name": "run",
+              "line": 287,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/config.py",
+      "language": "Python",
+      "bytes": 214,
+      "lines": 9,
+      "sha256": "7f84e6abe4f8b25ded40e4af565aba1c699520ac63a6a0baf9a7dd085d26a51e",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Settings",
+          "line": 4,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/domain/__init__.py",
+      "language": "Python",
+      "bytes": 22,
+      "lines": 2,
+      "sha256": "84c159b9388b9c89f0c4c6cfbdee2e438f4121ac0bb306b2a74f1c80eae0f973",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/domain/contract_path.py",
+      "language": "Python",
+      "bytes": 2816,
+      "lines": 76,
+      "sha256": "e1eed48468877b495828ec5e9eb831fda81204d59cf6f0b104e1d25dc7cb9a15",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "PathToken",
+          "line": 11,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContractPath",
+          "line": 16,
+          "methods": [
+            {
+              "name": "parse",
+              "line": 20,
+              "async": false
+            },
+            {
+              "name": "write",
+              "line": 30,
+              "async": false
+            },
+            {
+              "name": "read",
+              "line": 64,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/domain/models.py",
+      "language": "Python",
+      "bytes": 12093,
+      "lines": 432,
+      "sha256": "17051b02d70db0c0b013ccb5c0b8028030ac1a331736752efcd54d9f890444f7",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "utcnow",
+          "line": 13
+        },
+        {
+          "kind": "class",
+          "name": "EvidenceKind",
+          "line": 17,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValueOrigin",
+          "line": 29,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CandidateScope",
+          "line": 54,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Evidence",
+          "line": 63,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Signal",
+          "line": 73,
+          "methods": [
+            {
+              "name": "require_user_evidence",
+              "line": 85,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "Preference",
+          "line": 91,
+          "methods": [
+            {
+              "name": "require_user_evidence",
+              "line": 102,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ValueCandidate",
+          "line": 108,
+          "methods": [
+            {
+              "name": "require_user_evidence",
+              "line": 126,
+              "async": false
+            },
+            {
+              "name": "effective_priority",
+              "line": 131,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ResolvedValue",
+          "line": 135,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContractDraft",
+          "line": 143,
+          "methods": [
+            {
+              "name": "canonical_hash",
+              "line": 147,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "AllowedPath",
+          "line": 152,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Requirement",
+          "line": 159,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CapabilityStatus",
+          "line": 165,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CapabilityRequest",
+          "line": 171,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CapabilityResult",
+          "line": 178,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationFindingStatus",
+          "line": 186,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DependencyType",
+          "line": 192,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationDependency",
+          "line": 198,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationFinding",
+          "line": 205,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ExternalCandidate",
+          "line": 212,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "EvaluationStatus",
+          "line": 223,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FinalValidationStatus",
+          "line": 229,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RenderMode",
+          "line": 235,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CurrentSchemaView",
+          "line": 240,
+          "methods": [
+            {
+              "name": "allowed_path_set",
+              "line": 246,
+              "async": false
+            },
+            {
+              "name": "_schema_pattern",
+              "line": 250,
+              "async": false
+            },
+            {
+              "name": "is_path_allowed",
+              "line": 255,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "ContractInput",
+          "line": 261,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContractEvaluationResult",
+          "line": 267,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FinalValidationResult",
+          "line": 276,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "FinalValidationReceipt",
+          "line": 283,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RenderRequest",
+          "line": 289,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RenderedContract",
+          "line": 295,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "WorkflowOutcomeStatus",
+          "line": 301,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "WorkflowOutcome",
+          "line": 309,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "WorkflowState",
+          "line": 319,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValueChange",
+          "line": 327,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Revision",
+          "line": 335,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AuditEvent",
+          "line": 342,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ChatMessage",
+          "line": 351,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ExtractedSignal",
+          "line": 358,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ExtractedPreference",
+          "line": 365,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CorrectionIntent",
+          "line": 372,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "PossibleTypo",
+          "line": 379,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "TurnInterpretation",
+          "line": 386,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ConversationState",
+          "line": 394,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SignalView",
+          "line": 410,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "PreferenceView",
+          "line": 417,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AgentContext",
+          "line": 424,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/ports/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "src/adcm/ports/audit_sink.py",
+      "language": "Python",
+      "bytes": 162,
+      "lines": 7,
+      "sha256": "45a675dbbca3344687f6d6069bf02202cf8a016dca1828f2ca1a806ff05182ea",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AuditSinkPort",
+          "line": 5,
+          "methods": [
+            {
+              "name": "append",
+              "line": 6,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/ports/capability.py",
+      "language": "Python",
+      "bytes": 164,
+      "lines": 6,
+      "sha256": "4bcc28e1363057889f82d3e2255d3b05d43b342864d6a43f3b50b6eebd774d6f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CapabilityHandlerPort",
+          "line": 4,
+          "methods": [
+            {
+              "name": "execute",
+              "line": 5,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/ports/contract_forge.py",
+      "language": "Python",
+      "bytes": 482,
+      "lines": 18,
+      "sha256": "4471c72b6195538e1870746243bd12d3880952ae6f37c909f656e2ca8488f3f1",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractForgePort",
+          "line": 12,
+          "methods": [
+            {
+              "name": "evaluate_draft",
+              "line": 13,
+              "async": true
+            },
+            {
+              "name": "validate_final",
+              "line": 15,
+              "async": true
+            },
+            {
+              "name": "render_yaml",
+              "line": 17,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/ports/semantic_interpreter.py",
+      "language": "Python",
+      "bytes": 231,
+      "lines": 7,
+      "sha256": "ad1ca3e92d0ed2c164ba8c1d167940f9681a300c13d3fa2b2a1b7d33f475f163",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SemanticInterpreterPort",
+          "line": 5,
+          "methods": [
+            {
+              "name": "interpret_turn",
+              "line": 6,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/adcm/ports/session_repository.py",
+      "language": "Python",
+      "bytes": 280,
+      "lines": 9,
+      "sha256": "94723c139fb4fb69ca3c14535f3d4e03b4b7a14e7e46cf08c31760e798d80dc7",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SessionRepositoryPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "load",
+              "line": 7,
+              "async": true
+            },
+            {
+              "name": "save",
+              "line": 8,
+              "async": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repository Knowledge"
+  short_description: "Verify and maintain repository architecture"
+  default_prompt: "Use $repository-knowledge to explain and verify the current repository architecture."

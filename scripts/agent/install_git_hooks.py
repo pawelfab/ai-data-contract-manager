@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 import stat
-import subprocess
 from pathlib import Path
 
-from common import ROOT, git_available
+from common import ROOT, git_available, run_git
 
 
 def main() -> int:
@@ -16,11 +15,7 @@ def main() -> int:
     for path in hooks_dir.iterdir():
         if path.is_file() and not path.suffix:
             path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    result = subprocess.run(
-        ["git", "config", "core.hooksPath", "githooks"],
-        cwd=ROOT,
-        text=True,
-    )
+    result = run_git(["config", "core.hooksPath", "githooks"])
     if result.returncode != 0:
         return result.returncode
     print("Configured Git hooks path: githooks")

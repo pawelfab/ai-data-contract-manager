@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "ConverterConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "anyOf": [
+              { "noteEquals": null, "path": "output" },
+              { "noteEquals": null, "path": "dest_partition" }
+            ]
+          },
+          "id": "converter.output_target_required",
+          "kind": "at_least_one",
+          "message": "At least one output target must be defined: output or destPartition.",
+          "path": "output",
+          "severity": "error",
+          "source": { "pydantic_validator": "ConverterConfig.validate_fixed_width_config" }
+        },
+        {
+          "assertion": { "exists": false, "path": "source.fixed_width" },
+          "condition": { "noteEquals": "fixed_width", "path": "source.source_type" },
+          "id": "converter.fixed_width.only_for_fixed_width_source",
+          "kind": "conditional_forbidden",
+          "message": "fixed_width section is only allowed when source_type is fixed_width.",
+          "path": "source.fixed_width",
+          "severity": "error",
+          "source": { "pydantic_validator": "ConverterConfig.validate_fixed_width_config" }
+        },
+        {
+          "assertion": { "exists": true, "path": "source.fixed_width" },
+          "condition": { "equals": "fixed_width", "path": "source.source_type" },
+          "id": "converter.fixed_width.required_for_fixed_width_source",
+          "kind": "conditional_required",
+          "message": "fixed_width section is required when source_type is fixed_width.",
+          "path": "source.fixed_width",
+          "severity": "error",
+          "source": { "pydantic_validator": "ConverterConfig.validate_fixed_width_config" }
+        }
+      ]
+    },
+    "DecryptConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": { "exists": true, "path": "spec" },
+          "condition": { "equals": true, "path": "enabled" },
+          "id": "preparator.decrypt.spec_required_when_enabled",
+          "kind": "conditional_required",
+          "message": "spec is required when decrypt.enabled is true.",
+          "path": "spec",
+          "severity": "error",
+          "source": { "pydantic_validator": "DecryptConfig._require_spec_when_enabled" }
+        }
+      ]
+    },
+    "FixedWidthColumnConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": { "equalsPath": "length", "formula": "end - start + 1" },
+          "id": "converter.fixed_width_column.length_matches_bounds",
+          "kind": "computed_consistency",
+          "message": "length must equal end - start + 1 (or is auto-filled when absent).",
+          "path": "length",
+          "severity": "error",
+          "source": { "pydantic_validator": "FixedWidthColumnConfig.validate_and_fill_length" }
+        },
+        {
+          "assertion": { "gtePath": "start", "path": "end" },
+          "id": "converter.fixed_width_column.end_not_before_start",
+          "kind": "cross_field",
+          "message": "end must be greater than or equal to start.",
+          "path": "end",
+          "severity": "error",
+          "source": { "pydantic_validator": "FixedWidthColumnConfig.validate_and_fill_length" }
+        }
+      ]
+    },
+    "PreparatorConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "anyOf": [
+              { "equals": true, "path": "operations.decrypt.enabled" },
+              { "equals": true, "path": "operations.unpack.enabled" }
+            ]
+          },
+          "condition": { "equals": true, "path": "enabled" },
+          "id": "preparator.enabled_requires_operation",
+          "kind": "cross_field",
+          "message": "When preparator.enabled is true, at least one operation must be enabled: operations.decrypt or operations.unpack.enabled.",
+          "path": "operations",
+          "severity": "error",
+          "source": { "pydantic_validator": "PreparatorConfig._require_at_least_one_operation" }
+        }
+      ]
+    },
+    "RecordValidationConfig": {
+      "x-contract-rules": [
+        {
+          "id": "record_validation.macro.registered",
+          "kind": "registry_lookup",
+          "message": "macro must exist in VALIDATION_REGISTRY.",
+          "notes": "Unknown names fail validation and include a closest-match hint.",
+          "path": "macro",
+          "severity": "error",
+          "source": { "pydantic_validator": "RecordValidationConfig.check_macro_registered" }
+        }
+      ]
+    },
+    "SilverTableConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": { "notIn": "columns[*].name", "path": "businessKeyHash.name" },
+          "id": "silver.business_key_hash.name_not_conflicting",
+          "kind": "cross_field",
+          "message": "businessKeyHash.name must be different from existing columns[].name.",
+          "path": "businessKeyHash.name",
+          "severity": "error",
+          "source": { "pydantic_validator": "SilverTableConfig.validate_business_key_hash" }
+        },
+        {
+          "assertion": { "existsIn": "columns[*].name", "path": "businessKeyHash.columns[*]" },
+          "id": "silver.business_key_hash.columns_exist",
+          "kind": "reference_integrity",
+          "message": "businessKeyHash.columns must reference names present in columns[].name.",
+          "path": "businessKeyHash.columns",
+          "severity": "error",
+          "source": { "pydantic_validator": "SilverTableConfig.validate_business_key_hash" }
+        }
+      ]
+    },
+    "TransformedColumn": {
+      "x-contract-rules": [
+        {
+          "id": "transformed_column.validations.registered",
+          "kind": "registry_lookup",
+          "message": "Every validations[] macro must exist in VALIDATION_REGISTRY.",
+          "notes": "Unknown names fail validation and include closest-match suggestions.",
+          "path": "validations",
+          "severity": "error",
+          "source": { "pydantic_validator": "TransformedColumn.check_validations_registered" }
+        }
+      ]
+    },
+    "UnpackConfig": {
+      "x-contract-rules": [
+        {
+          "assertion": { "exists": true, "path": "format" },
+          "condition": { "equals": true, "path": "enabled" },
+          "id": "preparator.unpack.format_required_when_enabled",
+          "kind": "conditional_required",
+          "message": "format is required when unpack.enabled is true.",
+          "path": "format",
+          "severity": "error",
+          "source": { "pydantic_validator": "UnpackConfig._require_format_when_enabled" }
+        }
+      ]
+    }
+  }
+}

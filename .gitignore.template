@@ -1,3 +1,8 @@
-# Copy relevant lines into your repository .gitignore.
+# Local agent configuration and ephemeral session baselines
 scripts/agent/config.json
-.agent-audit/
+.agent-state/
+
+# Generated architecture navigation artifacts (choose whether to commit in your repository)
+# docs/architecture/generated/repository-inventory.json
+# docs/architecture/generated/repository-map.md
+# docs/architecture/generated/documentation-impact.md

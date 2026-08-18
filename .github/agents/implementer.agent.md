@@ -2,8 +2,8 @@
 name: Implementer
 description: Implements a final reviewed contract, writes tests, and runs configured checks.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search', 'edit', 'execute', 'todos']
-agents: []
 ---
 
 # Role

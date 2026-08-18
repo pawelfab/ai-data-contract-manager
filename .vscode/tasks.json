@@ -2,9 +2,21 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Agent: Validate workflow setup",
+      "type": "shell",
+      "command": "python scripts/agent/validate_setup.py",
+      "problemMatcher": []
+    },
+    {
       "label": "Agent: Generate repository inventory",
       "type": "shell",
       "command": "python scripts/agent/repo_inventory.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Agent: Show documentation impact",
+      "type": "shell",
+      "command": "python scripts/agent/doc_impact.py --working-tree --write",
       "problemMatcher": []
     },
     {
@@ -16,7 +28,7 @@
     {
       "label": "Agent: Mark architecture current",
       "type": "shell",
-      "command": "python scripts/agent/doc_freshness.py --mark-current --reason \"manual VS Code task\"",
+      "command": "python scripts/agent/doc_freshness.py --mark-current --reason \"manual VS Code task after verified documentation update\"",
       "problemMatcher": []
     },
     {

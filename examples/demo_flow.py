@@ -17,16 +17,15 @@ async def main() -> None:
     )
     session_id = uuid4()
 
-    turns = [
-        "System SAP, CSV ze średnikiem, zawsze UTF-8 i nie używamy szyfrowania.",
+    for text in [
+        "System SAP, CSV ze srednikiem, zawsze UTF-8 i nie uzywamy szyfrowania.",
         "id=daily_clients",
-    ]
-    for text in turns:
-        state, result = await service.handle_user_message(session_id, text)
+    ]:
+        state, outcome = await service.handle_user_message(session_id, text)
         print("USER:", text)
         print("stage:", state.workflow.current_stage)
-        print("needs_user_input:", result.needs_user_input, result.missing_paths)
-        print("draft:", state.contract_draft.model_dump())
+        print("outcome:", outcome.status, outcome.missing_paths)
+        print("draft:", state.contract_draft.values)
         print()
 
 

@@ -1,68 +1,74 @@
-# MCP integration contract
+# Contract Forge MCP contract
 
-## Contract Forge
+Forge is stateless. ADCM owns conversation/workflow state.
 
-ADCM should consume Contract Forge through `ContractForgePort`; the adapter may use Pydantic AI MCP tools, FastMCP directly or another transport. Do not leak the transport into application logic.
-
-Minimal logical operations:
+## Operations
 
 ```python
-next_requirements(known_values) -> RequirementBundle
-validate_partial(draft) -> list[str]
-validate_final(draft) -> list[str]
+async def evaluate_draft(request: ContractInput) -> ContractEvaluationResult
+async def validate_final(request: ContractInput) -> FinalValidationResult
+async def render_yaml(request: RenderRequest) -> RenderedContract
 ```
 
-A real MCP can expose more explicit methods (`start_onboarding`, `submit_stage_values`, `explain_value`, etc.), but the ADCM adapter should normalize them into the port.
+There is no stateful `submit_values(session_id, ...)` protocol.
 
-## RequirementBundle
+## ContractInput
+Contains:
+- current nested draft snapshot;
+- capability results already obtained by ADCM;
+- optional `expected_schema_revision` consistency token.
 
-A stage bundle contains:
+It does **not** contain ConversationState, chat history, evidence history, unbound Signals or superseded candidates.
 
-- `stage_id`;
-- `allowed_paths` — legal paths currently disclosed by Contract Forge;
-- `requirements` — values required to leave the stage;
-- `candidates` — defaults/enrichments/derived values with explicit origin/reason/evidence;
-- `capability_requests` — calls ADCM should route to other MCPs;
-- `complete`.
+## evaluate_draft
+Returns:
+- `status = INCOMPLETE | COMPLETE | INVALID`;
+- `CurrentSchemaView` with `schema_revision` and allowed paths;
+- current requirements;
+- Forge candidates (default/enrichment/derived) with provenance/priority;
+- validation findings;
+- capability requests.
 
-## Progressive disclosure
+`DEFERRED` is a finding status, not a top-level evaluate status.
 
-Contract Forge must not return the entire contract simply because it can parse the entire schema. It exposes enough legal paths and requirements for the current stage. ADCM accumulates authorized paths over the session.
+## validate_final
+Called by ADCM only after evaluate returns COMPLETE.
 
-## Unknown source systems
+Returns:
+- `VALID`
+- `INVALID`
+- `DEFERRED_EXTERNAL`
 
-Onboarding order and base/default enrichments must work even if the source system has no system-specific enrichment. Contract Forge should layer enrichment conceptually:
+If external final validation is deferred, ADCM decides whether the capability can be resolved automatically. If yes, it obtains the result and retries; otherwise the ADCM outcome is `BLOCKED_EXTERNAL`.
+
+## ADCM WorkflowOutcome mapping
 
 ```text
-common defaults
-+ source family
-+ source format
-+ source-system-specific rules (optional)
+Forge INCOMPLETE + internal progress possible -> continue fast-forward
+Forge INCOMPLETE + capability available       -> call capability, continue
+Forge INCOMPLETE + user-only missing value    -> WAITING_FOR_USER
+Forge COMPLETE                                -> validate_final
+Final VALID                                   -> COMPLETE
+Final INVALID                                 -> INVALID
+Final DEFERRED_EXTERNAL + resolvable           -> capability + retry
+Final DEFERRED_EXTERNAL + unavailable          -> BLOCKED_EXTERNAL
+transport/application failure                  -> FAILED
 ```
 
-Missing the last layer must not destroy workflow structure.
+Forge never decides `WAITING_FOR_USER`.
 
-## Enrichment repository inside Contract Forge
+## Schema revision
+First evaluate may use `expected_schema_revision=None`. Forge returns the revision it used. ADCM sends that revision on subsequent evaluate/validate/render calls. A revision mismatch is a schema-change condition, not something Forge silently ignores.
 
-Keep enrichment storage behind an internal `EnrichmentRepository` port:
+## Rendering
+`RenderMode = DRAFT | FINAL`.
 
-```text
-JsonEnrichmentRepository       # first implementation
-GitHubEnrichmentRepository     # future
-CompositeEnrichmentRepository  # optional layered lookup
-```
+FINAL rendering requires VALID final validation for the same `draft_hash` and `schema_revision`. Rendering is a separate operation and is done after the turn fast-forward loop stabilizes, not after every evaluate call.
 
-ADCM does not know where Contract Forge obtained the enrichment. It only consumes origin/evidence metadata.
+## Enrichment storage
+Forge keeps enrichment storage behind its own port:
+- `JsonEnrichmentRepository`
+- future `GitHubEnrichmentRepository`
+- optional `CompositeEnrichmentRepository`
 
-## Other MCPs
-
-Schema Explorer should expose capabilities such as:
-
-```text
-schema.table_exists
-schema.get_columns
-schema.validate_table_name
-schema.find_similar
-```
-
-Contract Forge can request a capability by name. ADCM routes it through `CapabilityRouter`, stores the returned result as evidence/finding/candidate, then continues Contract Forge. Contract Forge does not need a direct dependency on Schema Explorer transport.
+ADCM does not know where enrichment rules are stored.

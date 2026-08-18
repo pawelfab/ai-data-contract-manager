@@ -7,12 +7,38 @@ from typing import Any
 from common import hook_output, load_config, read_stdin_json
 
 
+MUTATING_TOOL_TOKENS = (
+    "edit",
+    "create",
+    "delete",
+    "write",
+    "terminal",
+    "execute",
+    "shell",
+    "command",
+    "apply_patch",
+    "patch",
+    "replace",
+    "insert",
+)
+
+
 def flatten(value: Any) -> str:
     if isinstance(value, dict):
         return " ".join(f"{key} {flatten(val)}" for key, val in value.items())
     if isinstance(value, list):
         return " ".join(flatten(item) for item in value)
     return str(value)
+
+
+def is_mutating_tool(tool_name: str) -> bool:
+    normalized = tool_name.casefold()
+    return any(token in normalized for token in MUTATING_TOOL_TOKENS)
+
+
+def contains_protected_path(text: str, paths: list[str]) -> bool:
+    normalized = text.replace("\\", "/").casefold()
+    return any(path.replace("\\", "/").casefold() in normalized for path in paths)
 
 
 def main() -> int:
@@ -40,10 +66,8 @@ def main() -> int:
             })
             return 0
 
-    normalized = text.replace("\\", "/")
-    if any(path in normalized for path in config.get("protected_agent_paths", [])):
-        lower_tool = tool_name.lower()
-        if any(word in lower_tool for word in ("edit", "create", "delete", "write", "terminal", "execute")):
+    if contains_protected_path(text, config.get("protected_agent_paths", [])):
+        if is_mutating_tool(tool_name):
             hook_output(specific={
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "ask",

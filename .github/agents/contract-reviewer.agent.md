@@ -2,8 +2,8 @@
 name: Contract Reviewer
 description: Independently challenges a draft implementation contract against the repository and request.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search', 'execute']
-agents: []
 ---
 
 # Role

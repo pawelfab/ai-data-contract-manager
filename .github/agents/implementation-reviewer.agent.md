@@ -2,8 +2,8 @@
 name: Implementation Reviewer
 description: Independently reviews the current diff against the final contract and runs verification without editing code.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search', 'execute']
-agents: []
 ---
 
 # Role

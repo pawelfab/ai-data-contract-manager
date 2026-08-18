@@ -2,8 +2,8 @@
 name: Docs Updater
 description: Updates repository architecture knowledge from verified code, tests, contracts, and diffs.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search', 'edit', 'execute']
-agents: []
 ---
 
 # Role
@@ -24,6 +24,7 @@ Do not copy an outdated contract over newer code.
 ## Update scope
 
 Inspect:
+- `python scripts/agent/doc_impact.py --working-tree --write` or the supplied stale scope,
 - final diff or stale-file report,
 - impacted callers and dependencies,
 - relevant tests,
@@ -60,16 +61,13 @@ Do not paste large source listings.
 
 ## Completion procedure
 
-1. Update curated Markdown files.
-2. Run:
-   - `python scripts/agent/repo_inventory.py`
-3. Check:
-   - `python scripts/agent/doc_freshness.py --check`
-4. After all relevant facts are documented, run:
-   - `python scripts/agent/doc_freshness.py --mark-current --reason "<reason>"`
-5. Re-run:
-   - `python scripts/agent/doc_freshness.py --check`
-6. Do not mark current when verification is incomplete.
+1. Generate a documentation impact hint with `python scripts/agent/doc_impact.py --working-tree --write`.
+2. Update curated Markdown files.
+3. Run `python scripts/agent/repo_inventory.py`.
+4. After all relevant facts are documented, run `python scripts/agent/doc_freshness.py --mark-current --reason "<specific reason>"`.
+5. Re-run `python scripts/agent/doc_freshness.py --check`.
+6. If source changed but curated docs genuinely do not need modification, use `--allow-no-doc-change` with a specific rationale and report it.
+7. Do not mark current when verification is incomplete.
 
 ## Output
 

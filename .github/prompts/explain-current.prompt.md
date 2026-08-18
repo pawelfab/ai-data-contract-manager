@@ -12,4 +12,4 @@ Answer how the repository currently works for:
 
 `${input:question:Describe the behavior, flow, module, class, or method}`
 
-Use maintained architecture documentation first. Verify only the uncertain scope. Do not propose or implement changes unless the user separately asks.
+Use maintained architecture documentation first. Verify only unresolved claims. Do not plan or implement changes.

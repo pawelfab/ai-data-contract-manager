@@ -2,8 +2,8 @@
 name: Contract Finalizer
 description: Resolves review findings and emits the final implementable contract.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search']
-agents: []
 ---
 
 # Role

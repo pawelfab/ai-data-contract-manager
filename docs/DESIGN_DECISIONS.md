@@ -1,21 +1,40 @@
 # Design decisions
 
-## Why not let the LLM own the contract object?
+## Schema is authority
+LLM semantics never authorize contract paths. DraftProjector only accepts paths in the current Forge schema view.
 
-Because chat semantics and schema authority have different failure modes. A model may map a concept to a plausible but nonexistent path. ADCM therefore stores semantic knowledge separately and projects into a draft only after MCP authorization.
+## ADCM stateful, Forge stateless
+ADCM owns sessions, evidence, candidates, revisions and draft. Forge evaluates a supplied snapshot and does not keep onboarding sessions.
 
-## Why keep full chat history if state is structured?
+## Current view replaces old view
+Allowed paths are not accumulated. This enables safe branch corrections and draft reprojection.
 
-Structured state is operational truth; raw chat is semantic context and evidence. A later sentence such as "change the previous separator" may need linguistic context, while revisions need a stable application record.
+## Draft is nested JSON/YAML shape
+Path strings are addressing metadata, not the storage format of ContractDraft.
 
-## Why not pass the entire ConversationState to the LLM?
+## Candidate provenance is not copied into ResolvedValue
+`ResolvedValue.selected_candidate_id` points to the winning candidate. Candidate scope/rule metadata remains on the candidate.
 
-It is larger than necessary and exposes implementation/audit details. `AgentContextBuilder` creates a purpose-built projection: current stage, active signals/preferences, known values, legal paths, pending requirements and recent messages.
+## User evidence invariant is strict
+USER_EXPLICIT signals and candidates require evidence. SignalBinder never fabricates evidence and never changes origin to bypass validation.
 
-## Why deterministic workflow rather than agent tool-loop?
+## Forge vs ADCM precedence
+ADCM resolves origins (user, preference, external, MCP enrichment/default). Forge owns conflicts among Forge rules and should return explicit priority/specificity metadata.
 
-Order, precedence and schema legality are business rules. Keeping them in Python makes behavior testable, cheap and predictable. LLM calls remain limited to semantics.
+## Status ownership
+Forge describes contract state. ADCM describes orchestration state. Therefore Forge never returns WAITING_FOR_USER/BLOCKED_EXTERNAL.
 
-## Why ports/adapters without heavy DDD?
+## Deferred validation
+Forge returns deferred findings/dependencies. ADCM obtains missing capabilities/values and invokes Forge again. There is no background resume in Forge.
 
-External dependencies genuinely vary (model/provider, MCP transport, logging, session storage, enrichment storage), so ports are useful. The business domain is small enough that aggregates/repository-per-entity/event-bus/CQRS would add noise.
+## Schema revision consistency
+Forge returns schema revision; ADCM sends it back as `expected_schema_revision`. Render cache key includes schema revision separately from draft hash.
+
+## Rendering
+Forge owns canonical YAML. `render_yaml` is separate from `evaluate_draft`; render once after turn stabilization when the artifact key changed.
+
+## Template ownership
+Forge resolves `{source}`-style enrichment placeholders but preserves `{{...}}` runtime Contract DSL. Airflow DAG Generator translates runtime DSL later.
+
+## Repository ownership
+Production `contract.json` and enrichment rules belong to Contract Forge. ADCM may keep fixtures for tests only.

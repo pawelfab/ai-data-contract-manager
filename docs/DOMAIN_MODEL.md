@@ -1,77 +1,40 @@
-# Domain model and provenance
-
-## Primary pipeline
-
-```text
-RawMessage
-  -> Evidence
-  -> Signal / Preference
-  -> ValueCandidate
-  -> ResolvedValue
-  -> ContractDraft
-```
-
-## Signal
-
-A `Signal` is a schema-agnostic fact extracted from user language. It does not need a contract path.
-
-Example given before source type is known:
-
-```json
-{"concept":"field_delimiter","value":";","status":"unbound"}
-```
-
-It can remain unbound for several MCP stages. When Contract Forge later authorizes a path declaring `field_delimiter` as a supported concept, `SignalBinder` may create a candidate.
-
-## Preference
-
-A `Preference` is cross-cutting user intent. Example: `encoding=UTF-8` globally or `encryption=false`. A preference is not a contract value by itself. `PreferenceExpander` creates candidates only for currently legal paths that declare the matching concept.
-
-## ValueCandidate
-
-A candidate is a concrete value proposed for a concrete legal path. It records origin, evidence and optional confidence/priority. Multiple candidates can coexist.
-
-Typical sources:
-
-- explicit user value;
-- user preference;
-- existing contract;
-- Schema Explorer finding;
-- MCP enrichment;
-- MCP derived value;
-- MCP default.
-
-## Resolution
-
-`CandidateResolver` is deterministic. Default precedence in this reference implementation is:
-
-```text
-user explicit      100
-user preference     90
-existing contract   80
-external schema     70
-MCP enrichment      60
-MCP derived         40
-MCP default         10
-```
-
-The policy is data/code, never an LLM decision. Priorities can later be injected/configured.
+# Domain model
 
 ## Evidence
+A durable record of where information came from. User-origin data points to the user message evidence. MCP candidates may point to rule/enrichment evidence.
 
-Evidence explains where information came from: a user message, MCP enrichment, default, external schema, GitHub source or derivation. Candidates reference evidence IDs rather than embedding the entire history.
+## Signal
+Schema-agnostic semantic information. It may remain `unbound` until Forge exposes an allowed path with a matching concept. `USER_EXPLICIT` signals require evidence.
 
-## Revisions
+## Preference
+Cross-cutting user preference that may apply to zero, one or many legal paths over time. User preferences require evidence.
 
-A correction supersedes the previous semantic fact instead of deleting it. `Revision` records the change. This allows audit questions such as:
+## ValueCandidate
+A concrete proposed value for a legal path. It contains origin, evidence, optional Forge rule metadata (`scope`, `rule_id`, explicit priority), source Signal/Preference IDs, revision/sequence and status.
 
-- who/what supplied the current value;
-- what value existed previously;
-- why it changed;
-- whether the current value overrides an enrichment/default.
+## ResolvedValue
+The deterministic winner for one path. It intentionally does not duplicate candidate-specific metadata such as `scope`. Use `selected_candidate_id` to inspect provenance.
 
 ## ContractDraft
+The actual nested JSON/YAML-shaped document, not a flat path dictionary. It is a projection of resolved values through the **current** schema view.
 
-The draft intentionally contains only path/value material that could become the final contract. It does not contain evidence, signals or preferences.
+## ContractPath
+Manipulates concrete instance paths such as `silver.tables[0].columns[2].name`. Schema wildcard paths and instance paths are not the same concept.
 
-`DraftProjector` is the security/authority barrier: it projects resolved values only when `path in allowed_paths` supplied by Contract Forge.
+## CurrentSchemaView
+Forge-owned snapshot containing `schema_revision`, current stage and currently legal paths. It replaces the prior view; it is never accumulated by ADCM.
+
+## Revisions
+Business history. Corrections supersede old Signals and candidates but do not delete them.
+
+## Invariants
+1. No draft path without current Forge authorization.
+2. No ResolvedValue without a selected candidate.
+3. No ValueCandidate without origin.
+4. USER_EXPLICIT Signal/Candidate requires Evidence.
+5. Signal may exist without a path.
+6. Preference may affect zero, one or many legal paths.
+7. Corrections preserve history.
+8. LLM cannot mutate ContractDraft.
+9. External MCP cannot mutate ContractDraft.
+10. Schema wins over semantic inference.

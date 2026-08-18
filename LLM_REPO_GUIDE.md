@@ -1,110 +1,50 @@
-# LLM repository guide — ADCM
+# LLM repository guide
 
-## Mission
+Read this before changing the repository.
 
-This repository implements ADCM: the chat/session/orchestration layer that sits between a user/LLM and MCP servers used to build a contract.
+## What ADCM is
+A typed conversational orchestrator around Contract Forge and future MCP capabilities. It is deliberately small. Deterministic application code owns state and workflow; Pydantic AI is only the semantic interpreter adapter.
 
-When modifying this repo, preserve these rules before optimizing anything else.
+## Hard boundaries
+- ADCM owns session/chat/evidence/signals/preferences/candidates/revisions/audit/orchestration.
+- Contract Forge owns schema, canonical paths, requirements, defaults, enrichment rules, validation and YAML serialization.
+- LLM does not authorize paths and does not choose candidate precedence.
+- External MCPs return capability results; they never mutate draft.
 
-## Non-negotiable invariants
+## Current Forge API direction
+Stateless operations:
+- `evaluate_draft(ContractInput)`
+- `validate_final(ContractInput)`
+- `render_yaml(RenderRequest)`
 
-1. Contract Forge schema is authoritative. Never infer or persist a contract path that Contract Forge did not authorize.
-2. LLM cannot mutate `ContractDraft` directly.
-3. External MCP output cannot mutate `ContractDraft` directly.
-4. `Signal` is schema-agnostic and may exist before any contract path exists.
-5. `Preference` is cross-cutting and may eventually produce zero, one or many candidates.
-6. Every `ValueCandidate` has an origin.
-7. User-origin candidates reference evidence from a user message.
-8. `ResolvedValue` is selected from candidates by deterministic policy, not by LLM preference.
-9. Historical values are superseded, not deleted. Revision/audit history is append-only conceptually.
-10. Draft projection accepts only resolved values whose paths are in the current authoritative allowed-path set.
+Do not reintroduce stateful Forge sessions or `submit_values(session_id, ...)`.
 
-## Responsibility map
+## Status semantics
+`evaluate_draft`: INCOMPLETE / COMPLETE / INVALID.
+Individual findings: VALID / INVALID / DEFERRED.
+`validate_final`: VALID / INVALID / DEFERRED_EXTERNAL.
+ADCM outcome: WAITING_FOR_USER / BLOCKED_EXTERNAL / COMPLETE / INVALID / FAILED.
 
-### LLM / semantic interpreter
-Allowed:
-- recognize intent;
-- extract concepts/signals from natural language;
-- detect likely corrections or confirmations;
-- detect likely typos and suggest canonical values;
-- propose semantic bindings from a signal to one of MCP-provided legal paths;
-- compose a human-readable response.
+## CurrentSchemaView
+Replace it on every Forge call. Never union historical allowed paths. DraftProjector always rebuilds the nested draft from current resolved values and the current view.
 
-Not allowed:
-- decide required fields;
-- invent schema paths;
-- decide workflow order;
-- select default vs enrichment vs user value;
-- validate contract correctness;
-- directly edit draft/session persistence.
+## Provenance
+USER_EXPLICIT Signal and ValueCandidate require evidence. Binder propagates provenance; it does not fabricate it. Candidate-specific metadata such as rule scope stays on ValueCandidate.
 
-### ADCM
-Owns:
-- raw chat messages and message IDs;
-- session state;
-- signals and preferences;
-- evidence;
-- value candidates and deterministic resolution;
-- revisions and audit;
-- orchestration of MCP calls;
-- capability routing;
-- projection into contract draft.
+## Corrections
+Do not delete history. Supersede old Signals and candidates. Same-priority resolution must use deterministic revision/sequence, never UUID ordering.
 
-### Contract Forge MCP
-Owns:
-- schema/contract structure;
-- legal/allowed paths;
-- staged onboarding requirements and order;
-- enrichments and defaults with provenance;
-- partial/final validation;
-- dynamic workflow decisions.
+## Arrays
+ContractDraft stores actual nested data. `ContractPath` addresses concrete instance paths. Do not regress to a flat `dict[path,value]` draft.
 
-### Schema Explorer and future MCPs
-Return findings, evidence, constraints, candidate values or validation results. They do not write the contract draft directly.
+## Templates
+Forge resolves `{source}` enrichment-time placeholders only. Preserve runtime DSL: `{{env}}`, `{{date:%Y%m%d}}`, `{{var.name}}`. Airflow DAG Generator translates them later.
 
-## Data pipeline
+## Rendering
+Do not render YAML after every internal Forge iteration. Fast-forward may evaluate Forge several times in one turn. Render after stabilization and cache by `(draft_hash, schema_revision, render_mode)`.
 
-`Raw user message -> TurnInterpretation -> Signal/Preference/Correction -> candidate creation -> deterministic resolution -> DraftProjector -> ContractDraft`
+## Before implementation
+Read `docs/ISSUES_AND_RESOLUTIONS.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN_MODEL.md`, `docs/MCP_CONTRACT.md`, `docs/DESIGN_DECISIONS.md` and the relevant stage specification.
 
-A pre-path signal example:
-
-`"separator is ;" -> Signal(concept="field_delimiter", value=";")`
-
-Only after Contract Forge exposes `source.delimited.delimiter` as legal can it become a `ValueCandidate` for that path.
-
-## Change guidance
-
-When adding a feature:
-
-1. Identify whether it is semantics, orchestration, contract authority or infrastructure.
-2. Put semantic behavior behind `SemanticInterpreterPort`.
-3. Put external services behind a port.
-4. Keep domain models independent of Pydantic AI, MCP transport, databases and web frameworks.
-5. Add tests for any new invariant.
-6. Prefer one small application service over introducing a framework/workflow engine.
-7. Do not turn ADCM into a second Contract Forge.
-
-## Important files
-
-- `src/adcm/domain/models.py` — domain state and provenance.
-- `src/adcm/application/turn_processor.py` — applies one semantic interpretation to state.
-- `src/adcm/application/workflow_runner.py` — deterministic MCP fast-forward loop.
-- `src/adcm/application/signal_binder.py` — legal Signal -> path binding.
-- `src/adcm/application/candidate_resolver.py` — precedence policy.
-- `src/adcm/application/draft_projector.py` — schema authority barrier.
-- `src/adcm/ports/*` — infrastructure boundaries.
-- `src/adcm/adapters/mcp/mock_contract_forge.py` — executable reference behavior.
-- `src/adcm/adapters/llm/pydantic_ai_interpreter.py` — optional semantic adapter.
-
-## Anti-patterns
-
-Do not add code resembling:
-
-```python
-state.contract_draft.values[llm_path] = llm_value
-```
-
-Do not make an agent loop decide which stage Contract Forge should expose next.
-Do not use chat history as the only application state.
-Do not store enrichment/default provenance only in display text.
-Do not immediately map every user statement to a contract path.
+## Do not over-engineer
+Do not add CQRS/Event Sourcing/Kafka/Temporal/multi-agent/DI containers without a concrete requirement.

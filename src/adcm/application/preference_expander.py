@@ -1,8 +1,8 @@
-from adcm.domain.models import AllowedPath, Preference, ValueCandidate, ValueOrigin
+from adcm.domain.models import AllowedPath, CandidateScope, Preference, ValueCandidate
 
 
 class PreferenceExpander:
-    """Maps cross-cutting user preferences to any currently legal path declaring the concept."""
+    """Expands cross-cutting preferences only onto currently authorized paths."""
 
     def expand(
         self,
@@ -19,8 +19,11 @@ class PreferenceExpander:
                         ValueCandidate(
                             path=allowed.path,
                             value=preference.value,
-                            origin=ValueOrigin.USER_PREFERENCE,
-                            evidence_ids=preference.evidence_ids,
+                            origin=preference.origin,
+                            evidence_ids=list(preference.evidence_ids),
+                            scope=CandidateScope.USER,
+                            source_preference_id=preference.id,
+                            created_revision=preference.created_revision,
                             reason=f"expanded preference:{preference.concept}",
                         )
                     )

@@ -1,8 +1,17 @@
-from typing import Any, Protocol
-from adcm.domain.models import RequirementBundle
+from typing import Protocol
+
+from adcm.domain.models import (
+    ContractEvaluationResult,
+    ContractInput,
+    FinalValidationResult,
+    RenderedContract,
+    RenderRequest,
+)
 
 
 class ContractForgePort(Protocol):
-    async def next_requirements(self, known_values: dict[str, Any]) -> RequirementBundle: ...
-    async def validate_partial(self, draft: dict[str, Any]) -> list[str]: ...
-    async def validate_final(self, draft: dict[str, Any]) -> list[str]: ...
+    async def evaluate_draft(self, request: ContractInput) -> ContractEvaluationResult: ...
+
+    async def validate_final(self, request: ContractInput) -> FinalValidationResult: ...
+
+    async def render_yaml(self, request: RenderRequest) -> RenderedContract: ...

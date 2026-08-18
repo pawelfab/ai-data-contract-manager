@@ -3,6 +3,8 @@ from adcm.domain.models import AgentContext, ConversationState, PreferenceView, 
 
 class AgentContextBuilder:
     def build(self, state: ConversationState, *, recent_message_limit: int = 12) -> AgentContext:
+        view = state.workflow.current_schema_view
+        allowed = sorted(view.allowed_path_set) if view is not None else []
         return AgentContext(
             current_stage=state.workflow.current_stage,
             active_signals=[
@@ -16,7 +18,7 @@ class AgentContextBuilder:
                 if p.active
             ],
             known_values={path: rv.value for path, rv in state.resolved_values.items()},
-            allowed_paths=sorted(state.workflow.allowed_paths),
+            allowed_paths=allowed,
             pending_requirements=state.workflow.pending_requirements,
             recent_messages=state.messages[-recent_message_limit:],
         )

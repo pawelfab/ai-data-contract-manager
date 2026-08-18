@@ -1,8 +1,8 @@
-from adcm.domain.models import AllowedPath, Signal, ValueCandidate, ValueOrigin
+from adcm.domain.models import AllowedPath, CandidateScope, Signal, ValueCandidate
 
 
 class SignalBinder:
-    """Binds schema-agnostic concepts only to paths already authorized by MCP."""
+    """Binds schema-agnostic user signals only to paths authorized by Forge."""
 
     def bind(self, signals: list[Signal], allowed_paths: list[AllowedPath]) -> list[ValueCandidate]:
         by_concept: dict[str, list[AllowedPath]] = {}
@@ -17,14 +17,17 @@ class SignalBinder:
             matches = by_concept.get(signal.concept, [])
             if len(matches) != 1:
                 continue
-            path = matches[0].path
+            allowed = matches[0]
             candidates.append(
                 ValueCandidate(
-                    path=path,
+                    path=allowed.path,
                     value=signal.value,
-                    origin=ValueOrigin.USER_EXPLICIT,
-                    evidence_ids=signal.evidence_ids,
+                    origin=signal.origin,
+                    evidence_ids=list(signal.evidence_ids),
                     confidence=signal.confidence,
+                    scope=CandidateScope.USER,
+                    source_signal_id=signal.id,
+                    created_revision=signal.created_revision,
                     reason=f"bound from signal:{signal.concept}",
                 )
             )

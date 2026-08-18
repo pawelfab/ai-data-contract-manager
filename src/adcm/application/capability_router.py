@@ -8,6 +8,9 @@ class CapabilityRouter:
     def register(self, prefix: str, handler: CapabilityHandlerPort) -> None:
         self._handlers[prefix] = handler
 
+    def can_execute(self, capability: str) -> bool:
+        return any(capability.startswith(prefix) for prefix in self._handlers)
+
     async def execute(self, capability: str, args: dict) -> dict:
         matches = [(prefix, h) for prefix, h in self._handlers.items() if capability.startswith(prefix)]
         if not matches:

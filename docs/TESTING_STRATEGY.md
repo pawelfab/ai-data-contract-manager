@@ -1,18 +1,29 @@
 # Testing strategy
 
-Prioritize invariant tests over prompt snapshots.
+## Separate semantic tests from workflow tests
+WorkflowRunner tests use deterministic typed fake interpretations. They must not fail because a demo NLP parser missed spelling/diacritics. RuleBasedInterpreter has its own tests.
 
-Required test classes:
+## Domain invariants
+Test at least:
+- USER_EXPLICIT Signal without evidence fails;
+- SignalBinder propagates evidence and source signal ID;
+- same-origin correction resolves deterministically by revision/sequence;
+- candidate scope is inspected on winning candidate, not ResolvedValue;
+- DraftProjector rejects unauthorized paths;
+- CurrentSchemaView replacement removes no-longer-legal paths;
+- ContractPath writes nested arrays and uses `{}` padding for intermediate object-list elements.
 
-1. Candidate precedence: explicit user beats enrichment and default.
-2. Draft authority: unauthorized paths never enter the draft.
-3. Pre-path signals: remain unbound until a legal path exists.
-4. Cross-cutting preferences: expand only to legal paths.
-5. Corrections: old signal becomes superseded and revision is retained.
-6. Unknown systems: base workflow still proceeds.
-7. Fast-forward: one rich user message can satisfy several MCP stages without additional user turns.
-8. No-progress protection: workflow loop fails deterministically instead of spinning.
-9. MCP provenance: enrichment/default candidates preserve evidence.
-10. External capability results: are candidates/findings, never direct draft writes.
+## Workflow
+Test:
+- one prompt fast-forwards through multiple Forge evaluations;
+- empty-requirement candidate stages still continue;
+- workflow stops only on a real user requirement;
+- capabilities can be resolved and retried;
+- blocked capability maps to BLOCKED_EXTERNAL;
+- COMPLETE triggers final validation.
 
-LLM tests should focus on structured semantic extraction against fixed examples. Core application tests should not require an LLM or network.
+## Rendering
+Test artifact key semantics `(draft_hash, schema_revision, render_mode)` and that FINAL render requires VALID final validation.
+
+## Contract integration
+Real `contract.json`, `x-contract-rules`, enrichment rules and canonical path compilation belong to Contract Forge integration tests, not ADCM mock-path tests.

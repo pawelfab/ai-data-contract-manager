@@ -1,15 +1,15 @@
 ---
 name: implement-change
-description: Plan, implement, independently review, test, and document a repository change.
-argument-hint: Describe the exact change to implement.
-agent: Feature Coordinator
-tools: ['agent', 'read', 'search', 'edit', 'execute', 'todos']
+description: Implement, test, self-review, and document a bounded change using one agent and no subagents.
+argument-hint: Describe the exact change and expected result.
+agent: Feature Fast
+tools: ['read', 'search', 'edit', 'execute', 'todos']
 ---
-
-MODE: IMPLEMENT
 
 Implement:
 
 `${input:change:Describe the requested code change and acceptance outcome}`
 
-Use the full contract-first workflow. Finish with independent review, configured checks, architecture documentation update, inventory regeneration, and freshness verification.
+Use the fast single-agent workflow. Read relevant architecture documentation, inspect only affected code, implement the smallest coherent change, add tests, run relevant checks, self-review the complete diff, update impacted architecture documentation, regenerate repository inventory, and verify freshness.
+
+Do not invoke subagents.

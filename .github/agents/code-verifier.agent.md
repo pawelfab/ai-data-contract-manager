@@ -2,8 +2,8 @@
 name: Code Verifier
 description: Performs bounded read-only verification of current code, tests, callers, and runtime contracts.
 user-invocable: false
+disable-model-invocation: true
 tools: ['read', 'search', 'execute']
-agents: []
 ---
 
 # Role

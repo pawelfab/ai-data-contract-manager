@@ -1,44 +1,19 @@
 # Implementation roadmap
 
-## Phase 1 — current package
+This reference package contains corrected domain/workflow contracts and tests. The production implementation should be split into stage specs generated from `PROMPT_STAGE_SPEC_GENERATOR.md`.
 
-- Domain state and provenance models.
-- Schema-agnostic signals and cross-cutting preferences.
-- Deterministic resolver and draft projector.
-- Staged mock Contract Forge.
-- Session ports/adapters.
-- Optional Pydantic AI semantic adapter.
-- Unit/integration tests.
+Recommended capability order:
 
-## Phase 2 — real Contract Forge MCP adapter
+1. repository/config ownership cleanup;
+2. domain model + path/array/evidence invariants;
+3. ADCM workflow and reprojection;
+4. real stateless Contract Forge adapter/server contract;
+5. Pydantic AI semantic interpreter;
+6. durable persistence/audit;
+7. API/chat endpoints;
+8. Web UI draft/YAML read models;
+9. end-to-end hardening and real contract integration tests.
 
-- Implement Streamable HTTP/required transport.
-- Normalize real MCP tool outputs to `RequirementBundle`.
-- Add partial/final validation mapping.
-- Persist tool-call IDs in evidence.
+The exact stage numbering should follow the current accepted `IMPLEMENTATION_PLAN.md` in the target repository. Do not use this roadmap as a substitute for stage specifications.
 
-## Phase 3 — response composition
-
-- Add typed `ResponseContext` and separate response composer.
-- Present origins such as user/default/enrichment succinctly.
-- Ask only unresolved requirements returned after workflow fast-forward.
-- Surface typo confirmation when confidence policy requires it.
-
-## Phase 4 — Schema Explorer
-
-- Add `SchemaExplorerPort`/capability adapter.
-- Route Contract Forge capability requests.
-- Store table-existence/schema findings as evidence.
-- Add candidates/validation findings without direct draft mutation.
-
-## Phase 5 — durable production persistence
-
-- Durable session store.
-- Separate audit sink.
-- Revision snapshots/event retention policy.
-- Correlation IDs across chat/LLM/MCP calls.
-
-## Phase 6 — GitHub enrichment inside Contract Forge
-
-- Add `GitHubEnrichmentRepository` behind Contract Forge's own repository port.
-- Keep ADCM API unchanged.
+For every stage use `docs/STAGE_SPEC_TEMPLATE.md`. Keep architecture-heavy contracts in the spec and leave private implementation details to the coding model.

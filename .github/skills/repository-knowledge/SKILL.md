@@ -18,9 +18,12 @@ argument-hint: A module, flow, symbol, change, or documentation scope.
 
 ```bash
 python scripts/agent/repo_inventory.py
+python scripts/agent/doc_impact.py --working-tree --write
 python scripts/agent/doc_freshness.py --check
 python scripts/agent/doc_freshness.py --check --json
 python scripts/agent/doc_freshness.py --mark-current --reason "..."
+# Only for verified no-impact changes:
+python scripts/agent/doc_freshness.py --mark-current --allow-no-doc-change --reason "no documentation impact: ..."
 ```
 
 ## Templates
@@ -39,3 +42,5 @@ python scripts/agent/doc_freshness.py --mark-current --reason "..."
 - Split documentation by cohesive module or flow rather than creating one huge file.
 - Keep historical decisions in ADRs or contracts; keep current docs focused on current behavior.
 - Update links and freshness state after verified changes.
+- Do not satisfy the documentation gate by changing only contracts, reviews, or generated files.
+- Use the no-impact exception only with a concrete verified rationale.
