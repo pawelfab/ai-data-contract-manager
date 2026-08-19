@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from adcm.models import Origin
+from adcm.models import ExtractionMethod, Origin
 from adcm.orchestrator import ADCMOrchestrator
 from support import FakeForgeGateway
 
@@ -150,5 +150,31 @@ async def test_baseline_stair_step_and_adcm_conversation_state_ownership():
         "user",
         "assistant",
     ]
+    assert memory.get_fact("source.columns") is None
     assert "contract" not in type(memory).model_fields
     assert not hasattr(gateway, "messages")
+
+
+@pytest.mark.asyncio
+async def test_deterministic_extraction_records_sequenced_user_facts():
+    service = build_service()
+    turn = await service.start()
+
+    turn = await service.message(turn.session_id, "roket")
+    turn = await service.message(turn.session_id, "pipeline: customer_accounts_daily")
+
+    memory = service.sessions[turn.session_id]
+    source_fact = memory.get_fact("metadata.sourceSystemGcpId")
+    pipeline_fact = memory.get_fact("metadata.id")
+
+    assert source_fact.value == "rocket"
+    assert source_fact.message_sequence == 1
+    assert source_fact.extraction_method == ExtractionMethod.DETERMINISTIC
+    assert source_fact.evidence == "roket"
+    assert pipeline_fact.value == "customer_accounts_daily"
+    assert pipeline_fact.message_sequence == 2
+    assert [
+        message.message_sequence
+        for message in memory.messages
+        if message.role == "user"
+    ] == [1, 2]

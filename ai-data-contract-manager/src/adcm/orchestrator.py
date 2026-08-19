@@ -5,7 +5,16 @@ from typing import Any
 
 from .gateway import ForgeGateway
 from .heuristics import HeuristicResolver
-from .models import AssistantTurn, ChatMessage, ConversationMemory, ForgeState, Origin, Requirement
+from .models import (
+    AssistantTurn,
+    ChatMessage,
+    ConversationMemory,
+    ExtractionMethod,
+    ForgeState,
+    Origin,
+    Requirement,
+    UserFact,
+)
 from .semantic import SemanticResolver, NoopSemanticResolver
 
 
@@ -31,12 +40,12 @@ class ADCMOrchestrator:
         memory = ConversationMemory(session_id=session_id, forge_session_id=forge_state.session_id)
         self.sessions[session_id] = memory
         turn = self._turn_from_state(session_id, forge_state)
-        memory.messages.append(ChatMessage(role="assistant", content=turn.message))
+        memory.add_assistant_message(turn.message)
         return turn
 
     async def message(self, session_id: str, text: str) -> AssistantTurn:
         memory = self.sessions[session_id]
-        memory.messages.append(ChatMessage(role="user", content=text))
+        user_message = memory.add_user_message(text)
         state = await self.gateway.get_state(memory.forge_session_id)
 
         # First consume the new message against all currently exposed requirements.
@@ -60,6 +69,7 @@ class ADCMOrchestrator:
                     )
                 )
         if values:
+            self._remember_deterministic(memory, user_message, values)
             state = await self.gateway.submit_values(memory.forge_session_id, values, Origin.USER)
         else:
             semantic_requirements = self._semantic_prefix(state.pending)
@@ -88,6 +98,7 @@ class ADCMOrchestrator:
                     state.contract,
                     allow_plain_fallback=False,
                 )
+                self._remember_deterministic(memory, msg, found)
                 historical_values.update({k: v for k, v in found.items() if k not in historical_values})
             if historical_values:
                 new_state = await self.gateway.submit_values(memory.forge_session_id, historical_values, Origin.USER)
@@ -108,7 +119,7 @@ class ADCMOrchestrator:
             break
 
         turn = self._turn_from_state(session_id, state)
-        memory.messages.append(ChatMessage(role="assistant", content=turn.message))
+        memory.add_assistant_message(turn.message)
         return turn
 
     async def state(self, session_id: str) -> ForgeState:
@@ -124,6 +135,25 @@ class ADCMOrchestrator:
                 break
             eligible.append(requirement)
         return eligible
+
+    @staticmethod
+    def _remember_deterministic(
+        memory: ConversationMemory,
+        message: ChatMessage,
+        values: dict[str, Any],
+    ) -> None:
+        if message.message_sequence is None:
+            return
+        for path, value in values.items():
+            memory.remember_fact(
+                UserFact(
+                    path=path,
+                    value=value,
+                    message_sequence=message.message_sequence,
+                    extraction_method=ExtractionMethod.DETERMINISTIC,
+                    evidence=message.content,
+                )
+            )
 
     @staticmethod
     def _turn_from_state(session_id: str, state: ForgeState) -> AssistantTurn:

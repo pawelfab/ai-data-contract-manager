@@ -15,6 +15,11 @@ class Origin(str, Enum):
     STRUCTURAL = "structural"
 
 
+class ExtractionMethod(str, Enum):
+    DETERMINISTIC = "deterministic"
+    LLM = "llm"
+
+
 class Requirement(BaseModel):
     path: str
     question: str
@@ -70,9 +75,46 @@ class AssistantTurn(BaseModel):
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
     content: str
+    message_sequence: int | None = Field(default=None, ge=1)
+
+
+class UserFact(BaseModel):
+    path: str
+    value: Any
+    message_sequence: int = Field(ge=1)
+    extraction_method: ExtractionMethod
+    confidence: float = Field(default=1.0, ge=0, le=1)
+    evidence: str | None = None
 
 
 class ConversationMemory(BaseModel):
     session_id: str
     forge_session_id: str
     messages: list[ChatMessage] = Field(default_factory=list)
+    facts: dict[str, UserFact] = Field(default_factory=dict)
+    next_message_sequence: int = Field(default=1, ge=1)
+
+    def add_user_message(self, content: str) -> ChatMessage:
+        message = ChatMessage(
+            role="user",
+            content=content,
+            message_sequence=self.next_message_sequence,
+        )
+        self.next_message_sequence += 1
+        self.messages.append(message)
+        return message
+
+    def add_assistant_message(self, content: str) -> ChatMessage:
+        message = ChatMessage(role="assistant", content=content)
+        self.messages.append(message)
+        return message
+
+    def remember_fact(self, fact: UserFact) -> bool:
+        current = self.facts.get(fact.path)
+        if current is not None and fact.message_sequence < current.message_sequence:
+            return False
+        self.facts[fact.path] = fact.model_copy(deep=True)
+        return True
+
+    def get_fact(self, path: str) -> UserFact | None:
+        return self.facts.get(path)

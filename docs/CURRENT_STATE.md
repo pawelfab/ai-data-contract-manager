@@ -37,7 +37,10 @@ entry points and virtual environments.
 `ADCMOrchestrator`:
 - starts a Forge session through MCP Streamable HTTP;
 - presents the first pending requirement;
+- assigns a monotonic sequence to every user message while preserving the full
+  transcript;
 - on each user message tries deterministic extraction against current pending paths;
+- records deterministically extracted values as latest per-path `UserFact` entries;
 - if deterministic extraction yields no values, invokes the semantic resolver only
   for the semantic requirements before the next explicit workflow gate;
 - never sends an `explicit` requirement to the LLM;
@@ -160,7 +163,7 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 30 passing tests in total: 13 ADCM tests and 17 Contract
+The two service suites have 36 passing tests in total: 19 ADCM tests and 17 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -183,6 +186,12 @@ correction, invalid override preservation/diagnostics, and rejection of unknown
 schema paths. The ADCM regression also verifies that semantic extraction is submitted
 as `origin=USER`.
 
+Stage 02 covers latest-user-fact replacement, rejection of an older fact, equal
+sequence replacement, fact extraction metadata/evidence, monotonic user-message
+sequence with a preserved transcript, and integration between deterministic
+orchestrator extraction and conversation memory. Semantic resolver results are
+deliberately not stored as facts yet.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -193,10 +202,9 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Implement Stage 02 USER fact memory without moving message recency into Forge.
-2. Implement Stage 03 stair-step reuse and exposure of overridable fields.
-3. Fix the `source.columns` partial-input UX in Stage 04.
-4. After the staged series, add Schema Explorer/repository lookup and a schema/rules
+1. Implement Stage 03 stair-step reuse and exposure of overridable fields.
+2. Fix the `source.columns` partial-input UX in Stage 04.
+3. After the staged series, add Schema Explorer/repository lookup and a schema/rules
    compatibility gate.
 
 ## 9. Do not accidentally regress
@@ -257,26 +265,41 @@ Forge does not compare user message sequence. ADCM does not yet have a UserFact 
 and Forge does not yet expose an `overridable` collection to the orchestrator; those
 remain Stage 02 and Stage 03 respectively.
 
-## 12. Last change
+## 12. Stage 02 user-fact memory implementation map
+
+ADCM conversation memory now owns USER message recency:
+
+- `ChatMessage.message_sequence` is populated for session user messages only;
+- `ConversationMemory.next_message_sequence` assigns monotonic values starting at 1;
+- `UserFact` stores path, value, message sequence, extraction method, confidence and
+  optional evidence;
+- `ConversationMemory.facts[path]` contains only the latest remembered fact;
+- `remember_fact()` replaces an entry only for an equal or newer sequence, while
+  `get_fact()` performs direct lookup;
+- deterministic extraction from the current message and existing historical scan
+  records facts with `extraction_method=DETERMINISTIC` and raw-message evidence.
+
+This stage does not read `facts` as a new input to the stair-step loop, expose Forge
+`overridable` fields, record semantic resolver results as UserFacts, parse partial
+columns, or add persistence. Those remain later stages.
+
+## 13. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 01.
-Changed files/classes: Forge Origin/can_replace, central write_value, ContractForge
-  candidate handling, RuleEngine and SchemaNavigator writers, MCP response DTOs,
-  ADCM semantic candidate origin, precedence tests, and architecture/current docs.
-Behavior now: Forge enforces USER > SYSTEM_ENRICHMENT > GENERIC_ENRICHMENT >
-  SCHEMA_DEFAULT centrally; valid USER-to-enrichment/default and USER-to-USER
-  replacements are accepted, while invalid candidates preserve the current value and
-  return candidate_issues. LLM extraction remains controlled but uses origin USER.
-Tests run/result: pre-change baseline ADCM 13 passed and Forge 9 passed; post-change
-  full-suite result ADCM 13 passed and Forge 17 passed. Forge retains one known,
-  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency. A real MCP
-  Streamable HTTP Rocket smoke completed successfully after the wire-model change;
-  a transport-level precedence smoke also confirmed a valid USER override and an
-  invalid correction returned through `candidate_issues` without changing the value.
+Last change: completed user-priority/fact-store Stage 02.
+Changed files/classes: ADCM ChatMessage, ExtractionMethod, UserFact,
+  ConversationMemory sequence/fact methods, deterministic orchestrator fact capture,
+  focused memory/orchestrator tests, and this current-state snapshot.
+Behavior now: every ADCM session user message receives a monotonic sequence; the
+  latest deterministic USER fact per exposed path is retained in conversation memory.
+  Forge remains unaware of message history and recency. Facts are not yet a new input
+  to the auto-loop, and semantic results are not yet recorded as facts.
+Tests run/result: pre-change baseline ADCM 13 passed and Forge 17 passed; post-change
+  full-suite result ADCM 19 passed and Forge 17 passed. Forge retains one known,
+  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency.
 Known issues remaining: source.columns partial-input UX; dataFieldId is not present
-  in the current contract schema; ADCM has no latest USER fact store or overridable
-  field loop yet; repository duplicate lookup is planned.
-Next concrete task: Stage 02 from docs/user_priority_and_fact_store, implemented
-  separately and without pulling in Stage 03 behavior.
+  in the current contract schema; ADCM does not yet consume UserFacts in the new
+  overridable-aware Stage 03 loop; repository duplicate lookup is planned.
+Next concrete task: Stage 03 from docs/user_priority_and_fact_store, implemented
+  separately and without pulling in Stage 04 behavior.
 ```
