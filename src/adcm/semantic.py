@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import inspect
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -31,6 +31,9 @@ class SemanticResolver(ABC):
         contract: dict[str, Any],
     ) -> dict[str, Any]: ...
 
+    async def close(self) -> None:
+        """Release provider resources owned by this resolver, if any."""
+
 
 class NoopSemanticResolver(SemanticResolver):
     async def extract_from_history(self, session_id, messages, requirements, contract) -> dict[str, Any]:
@@ -40,22 +43,16 @@ class NoopSemanticResolver(SemanticResolver):
 class PydanticAISemanticResolver(SemanticResolver):
     """Semantic extraction only; it never owns contract progression or tool selection."""
 
-    def __init__(self, model: Any = None):
+    def __init__(self, model: Any):
         try:
             from pydantic_ai import Agent
         except ImportError as exc:  # pragma: no cover
-            raise RuntimeError('Install Pydantic AI extras: pip install -e ".[mcp]"') from exc
+            raise RuntimeError('Install Pydantic AI extras: pip install -e ".[openai]" or ".[vertex]"') from exc
 
-        if model is None:
-            vertex_model = os.getenv("ADCM_VERTEX_MODEL")
-            if vertex_model:
-                from pydantic_ai.models.google import GoogleModel
-                model = GoogleModel(vertex_model, provider="google-cloud")
-            else:
-                model = os.getenv("ADCM_MODEL", "openai:gpt-5.2")
-
+        self.model = model
         self.agent = Agent(
             model,
+            name="contract_fact_extractor",
             output_type=ExtractionResult,
             instructions=(
                 "You extract facts already stated by the user for a contract-building workflow. "
@@ -67,6 +64,15 @@ class PydanticAISemanticResolver(SemanticResolver):
             ),
         )
         self.histories: dict[str, list[Any]] = {}
+
+    async def close(self) -> None:
+        client = getattr(self.model, "client", None)
+        close = getattr(client, "close", None)
+        if close is None:
+            return
+        result = close()
+        if inspect.isawaitable(result):
+            await result
 
     async def extract_from_history(
         self,

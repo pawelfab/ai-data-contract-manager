@@ -14,6 +14,8 @@ src/
     orchestrator.py
     heuristics.py
     semantic.py
+    settings.py
+    model_factory.py
     gateway.py
     api.py
     cli.py
@@ -36,6 +38,8 @@ tests/
   test_schema_dynamic.py
   test_heuristics.py
   test_api.py
+  test_settings.py
+  test_model_factory.py
 ```
 
 ## 2. Current implemented flow
@@ -103,33 +107,35 @@ Add tests for comma-separated names, newline-separated names and mixed `name TYP
 
 ## 5. LLM configuration today
 
-The current runtime defaults to a no-op semantic resolver unless:
+CLI/API/runtime now use one `ADCMSettings` object. It loads the project-root `.env`
+for local development, while process environment variables retain precedence for
+Cloud Run and other deployments. Enabled providers and model names are observable
+without exposing `OPENAI_API_KEY`.
+
+The runtime still defaults to `NoopSemanticResolver`. Enable Pydantic AI with:
 
 ```text
 ADCM_LLM_MODE=pydantic
 ```
 
-is set.
-
-Current intended Vertex-related environment variables include:
+Provider selection is explicit through `ADCM_LLM_PROVIDER` (`auto`, `model`,
+`openai_compatible`, or `vertex`). The local OpenAI-compatible gateway uses:
 
 ```text
-ADCM_VERTEX_MODEL
-GOOGLE_CLOUD_PROJECT
-GOOGLE_CLOUD_LOCATION
+ADCM_LLM_PROVIDER=openai_compatible
+ADCM_MODEL=auto
+OPENAI_BASE_URL=http://127.0.0.1:3030/v1
+OPENAI_API_KEY=local-gateway
 ```
 
-The package contains an `.env.example`, but the application does **not currently load `.env` automatically**. Environment variables need to be set externally unless configuration loading is added.
+`model_factory.build_pydantic_ai_model()` constructs an `OpenAIChatModel` with a
+gateway compatibility profile. Structured extraction uses JSON object mode rather
+than `tool_choice=required`, which the verified gateway rejects. The result is still
+validated as `ExtractionResult`, filtered to current Forge requirements, and then
+submitted to Forge for canonical validation.
 
-### Desired configuration improvement
-
-Create one explicit settings/configuration object (for example Pydantic Settings) used by CLI/API/runtime, with:
-- `.env` support for local development;
-- environment variables in Cloud Run;
-- startup logging of selected modes/model names without logging secrets;
-- validation of incompatible/missing settings.
-
-Do not hide whether the LLM is enabled. The CLI/API should make the active semantic mode observable.
+Vertex remains supported through `ADCM_LLM_PROVIDER=vertex`, `ADCM_VERTEX_MODEL`,
+`GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION`.
 
 ## 6. Current rules/schema issue
 
@@ -146,15 +152,21 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The last package reported 11 passing tests for the in-process path, covering the core Forge/ADCM behaviors and dynamic schema discovery.
+The current suite has 16 passing tests. Coverage now includes settings validation,
+`.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
+shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
+UTF-8 and pass on Windows.
 
-**Important:** real MCP Streamable HTTP was implemented but was not verified in the original sandbox because optional MCP/Pydantic AI dependencies could not be installed there. Verify it in the actual development environment before treating it as proven.
+A live semantic extraction was also verified against
+`http://127.0.0.1:3030/v1` with model `auto`; it returned the expected candidate and
+the provider client closed cleanly. Real MCP Streamable HTTP remains a separate
+end-to-end verification item.
 
 ## 8. Immediate recommended work order
 
 1. Fix `source.columns` partial-input UX and add regression tests.
-2. Introduce explicit settings with `.env` support and observable LLM mode.
-3. Run an end-to-end test with real MCP Streamable HTTP and enabled Pydantic AI/Vertex.
+2. Run an end-to-end test with real MCP Streamable HTTP and the enabled semantic resolver.
+3. Align the Pydantic AI version constraint and `requirements.lock` during the next dependency refresh.
 4. Add a schema/rules compatibility gate/version check.
 5. Only then expand optional decisions and/or Schema Explorer integration.
 
@@ -169,15 +181,16 @@ While fixing the above, preserve:
 - bounded stair-step reuse of historical facts;
 - terminal/API separation from contract semantics.
 
-## 10. Update section after next change
-
-When code changes, replace this section with:
+## 10. Last change
 
 ```text
-Last change:
-Changed files/classes:
-Behavior now:
-Tests run/result:
-Known issues remaining:
-Next concrete task:
+Last change: central settings, OpenAI-compatible model factory and gateway adapter test.
+Changed files/classes: ADCMSettings, build_pydantic_ai_model, runtime/API/CLI wiring,
+  PydanticAISemanticResolver lifecycle, configuration docs and tests.
+Behavior now: .env is loaded automatically; `openai_compatible` uses Chat Completions
+  JSON mode and closes the provider client during CLI/API shutdown.
+Tests run/result: 16 passed; live gateway semantic smoke passed with clean process exit.
+Known issues remaining: source.columns partial-input UX; real MCP HTTP end-to-end;
+  pyproject requires Pydantic AI >=2.32 while the checked lock/venv contain 1.107.1.
+Next concrete task: fix partial source.columns facts or verify combined MCP + LLM runtime.
 ```

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -9,6 +8,7 @@ from pydantic import BaseModel
 
 from .orchestrator import ADCMOrchestrator
 from .runtime import build_orchestrator
+from .settings import load_settings
 
 
 class MessageRequest(BaseModel):
@@ -24,7 +24,10 @@ def create_app(orchestrator: ADCMOrchestrator | None = None) -> FastAPI:
         holder["service"] = service
         app.state.orchestrator = service
         async with service.gateway:
-            yield
+            try:
+                yield
+            finally:
+                await service.semantic.close()
         holder.clear()
 
     app = FastAPI(title="ADCM Minimal API", version="0.1.0", lifespan=lifespan)
@@ -66,10 +69,11 @@ app = create_app()
 def main() -> None:
     import uvicorn
 
+    settings = load_settings()
     uvicorn.run(
         "adcm.api:app",
-        host=os.getenv("ADCM_API_HOST", "127.0.0.1"),
-        port=int(os.getenv("ADCM_API_PORT", "8080")),
+        host=settings.api_host,
+        port=settings.api_port,
         reload=False,
     )
 

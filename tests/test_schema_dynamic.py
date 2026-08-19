@@ -9,8 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_new_required_metadata_field_is_discovered_without_adcm_code_change(tmp_path):
-    schema = json.loads((ROOT / "config" / "contract.json").read_text())
-    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text())
+    schema = json.loads((ROOT / "config" / "contract.json").read_text(encoding="utf-8"))
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
     schema["$defs"]["Metadata"]["required"].append("businessDomain")
     schema["$defs"]["Metadata"]["properties"]["businessDomain"] = {
         "type": "string",
@@ -26,8 +26,8 @@ def test_new_required_metadata_field_is_discovered_without_adcm_code_change(tmp_
 
 
 def test_system_with_multiple_source_types_reveals_source_type_choice():
-    schema = json.loads((ROOT / "config" / "contract.json").read_text())
-    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text())
+    schema = json.loads((ROOT / "config" / "contract.json").read_text(encoding="utf-8"))
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
     rules["systems"]["multi"] = {"source_types": ["csv", "json"], "rules": []}
 
     forge = ContractForge(schema, rules, deploy_env="dev")

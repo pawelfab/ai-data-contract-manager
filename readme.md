@@ -97,6 +97,33 @@ $env:ADCM_MCP_URL = "http://127.0.0.1:8001/mcp"
 adcm-cli
 ```
 
+## Pydantic AI + lokalny gateway OpenAI-compatible
+
+Runtime automatycznie ładuje `.env` z katalogu projektu. Zmienne procesu mają
+pierwszeństwo, dzięki czemu ten sam obiekt ustawień działa lokalnie i w Cloud Run.
+
+Instalacja:
+
+```bash
+pip install -e ".[openai,dev]"
+```
+
+Konfiguracja gatewaya działającego pod `http://127.0.0.1:3030`:
+
+```dotenv
+ADCM_LLM_MODE=pydantic
+ADCM_LLM_PROVIDER=openai_compatible
+ADCM_MODEL=auto
+OPENAI_BASE_URL=http://127.0.0.1:3030/v1
+OPENAI_API_KEY=local-gateway
+```
+
+ADCM używa jawnego `OpenAIChatModel` z profilem zgodności gatewaya. Structured
+output jest przesyłany jako JSON mode, ponieważ ten gateway odrzuca
+`tool_choice=required` używany domyślnie przez część konfiguracji Pydantic AI.
+Wynik nadal przechodzi walidację `ExtractionResult`, a następnie walidację
+Contract Forge.
+
 ## Pydantic AI + Vertex AI
 
 Tryb LLM jest opcjonalny. Heurystyki działają bez kosztu LLM, a Pydantic AI jest używany tylko wtedy, gdy deterministyczne parsowanie nie wystarcza lub gdy trzeba odzyskać informację podaną wcześniej w rozmowie.

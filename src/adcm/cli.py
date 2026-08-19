@@ -5,6 +5,7 @@ import asyncio
 import json
 
 from .runtime import build_orchestrator
+from .settings import load_settings
 
 
 def _read_answer(pending_path: str | None) -> str:
@@ -21,25 +22,36 @@ def _read_answer(pending_path: str | None) -> str:
 
 
 async def run(local_forge: bool, verbose: bool) -> None:
-    service = build_orchestrator(local_forge=local_forge)
+    settings = load_settings()
+    summary = settings.public_runtime_summary()
+    forge_gateway = "local" if local_forge else summary["forge_gateway"]
+    print(
+        "ADCM runtime: "
+        f"forge={forge_gateway}, llm={summary['llm_mode']}, "
+        f"provider={summary['llm_provider']}, model={summary['llm_model']}"
+    )
+    service = build_orchestrator(local_forge=local_forge, settings=settings)
     async with service.gateway:
-        turn = await service.start()
-        while True:
-            print(f"\nADCM: {turn.message}")
-            if verbose and turn.contract:
-                print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
-            if turn.status == "complete":
-                print("\n--- FINAL CONTRACT ---")
-                print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
-                return
-            if turn.status == "invalid":
-                print("\n--- INVALID CONTRACT ---")
-                print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
-                return
-            answer = _read_answer(turn.pending_path)
-            if answer.strip().lower() in {"quit", "exit", ":q"}:
-                return
-            turn = await service.message(turn.session_id, answer)
+        try:
+            turn = await service.start()
+            while True:
+                print(f"\nADCM: {turn.message}")
+                if verbose and turn.contract:
+                    print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
+                if turn.status == "complete":
+                    print("\n--- FINAL CONTRACT ---")
+                    print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
+                    return
+                if turn.status == "invalid":
+                    print("\n--- INVALID CONTRACT ---")
+                    print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
+                    return
+                answer = _read_answer(turn.pending_path)
+                if answer.strip().lower() in {"quit", "exit", ":q"}:
+                    return
+                turn = await service.message(turn.session_id, answer)
+        finally:
+            await service.semantic.close()
 
 
 def main() -> None:
