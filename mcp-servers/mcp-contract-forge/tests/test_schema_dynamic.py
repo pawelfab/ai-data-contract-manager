@@ -84,3 +84,42 @@ def test_future_data_field_id_uses_input_mode_from_ux_rules():
     data_field = next(r for r in state.pending if r.path == "metadata.dataFieldId")
 
     assert data_field.input_mode == "explicit"
+
+
+def test_array_object_requirement_exposes_minimal_resolved_item_schema():
+    forge = ContractForge.from_files(
+        ROOT / "config" / "contract.json",
+        ROOT / "config" / "ux_rules_contract_v1.json",
+        deploy_env="dev",
+    )
+    state = forge.start_session()
+    state = forge.submit_values(
+        state.session_id,
+        {"metadata.sourceSystemGcpId": "sap"},
+        Origin.USER,
+    )
+    columns = next(requirement for requirement in state.pending if requirement.path == "source.columns")
+
+    assert columns.value_schema["type"] == "array"
+    assert columns.value_schema["items"]["type"] == "object"
+    assert columns.value_schema["items"]["required"] == ["name", "dataType"]
+    assert columns.value_schema["items"]["properties"]["name"]["type"] == "string"
+    assert "DATE" in columns.value_schema["items"]["properties"]["dataType"]["enum"]
+
+    rocket = forge.start_session()
+    rocket = forge.submit_values(
+        rocket.session_id,
+        {"metadata.sourceSystemGcpId": "rocket"},
+        Origin.USER,
+    )
+    fixed_columns = next(
+        requirement
+        for requirement in rocket.pending
+        if requirement.path == "source.columns"
+    )
+    assert fixed_columns.value_schema["items"]["required"] == [
+        "name",
+        "start",
+        "end",
+        "dataType",
+    ]

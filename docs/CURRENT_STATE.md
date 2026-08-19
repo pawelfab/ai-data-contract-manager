@@ -44,8 +44,11 @@ entry points and virtual environments.
 - records deterministically extracted values as latest per-path `UserFact` entries;
 - runs a bounded stair-step loop that checks the UserFact store first, then scans
   user messages newest-to-oldest, and submits one USER candidate per step;
+- retains incomplete schema-described `array<object>` values as ADCM-only
+  `PartialFact` entries, merges later messages by item identity, and asks only for
+  required item properties still missing;
 - detects no-progress, rejected/repeated candidates and the maximum step limit;
-- deliberately does not invoke the semantic resolver in Stage 03;
+- deliberately does not invoke the semantic resolver through Stage 04;
 - presents the first remaining requirement or completion/validation state.
 
 ADCM has no import-time or packaging dependency on `contract_forge`. Its local
@@ -62,6 +65,8 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
 - applies every canonical value through one origin-precedence write function;
 - exposes schema-described `overridable` fields whose current origin is system
   enrichment, generic enrichment or schema default;
+- exposes resolved `items/properties/required` metadata for array-of-object
+  requirements without exposing or interpreting a second full schema engine;
 - accepts a valid USER override for an existing schema-known USER/enrichment/default
   value and reports rejected candidates separately from final contract validation;
 - discovers missing requirements from schema;
@@ -86,7 +91,7 @@ and contains no ADCM workflow annotations. The current contract does not define
 `dataFieldId`; its future path is already classified as `explicit` in the UX rules,
 so it will receive the same behavior when the contract owner adds the field.
 
-## 4. Known bug/UX problem — `source.columns`
+## 4. Resolved UX problem — partial `array<object>` input
 
 Observed input:
 
@@ -103,21 +108,16 @@ sap2
 sap3
 ```
 
-causes the same question to repeat.
+is now retained as four partial items instead of being discarded.
 
-### Cause
+ADCM derives the item shape from the Forge requirement schema, records a
+conversation-scoped `PartialFact`, and returns a narrower clarification listing the
+missing fields and affected item names. A later `name TYPE` response is merged by
+the schema-derived identity field. Only a complete candidate is submitted to Forge.
 
-The current heuristic parser for `source.columns` expects a complete column representation that includes a datatype (or valid JSON). A line with only a column name is rejected. No partial column facts are retained. Forge therefore still reports `source.columns` as missing, and the orchestrator renders the same question again.
-
-### Desired fix
-
-Do not simply accept incomplete columns into the canonical contract. Instead:
-1. parse and retain partial names in ADCM conversation memory;
-2. determine what subfields are missing (typically `dataType`);
-3. ask a narrower clarification;
-4. once complete, submit a valid `source.columns` candidate to Forge.
-
-Add tests for comma-separated names, newline-separated names and mixed `name TYPE` inputs.
+The parser supports JSON arrays of objects, multiline `name TYPE`, comma/newline
+name lists, case-insensitive enum matching, and fixed-width name/start/end/type
+records. It is activated by the schema shape rather than the `source.columns` path.
 
 ## 5. LLM configuration today
 
@@ -127,7 +127,7 @@ Cloud Run and other deployments. Enabled providers and model names are observabl
 without exposing `OPENAI_API_KEY`.
 
 The runtime still defaults to `NoopSemanticResolver` and can construct the Pydantic
-AI resolver when configured. Stage 03 deliberately does not invoke either resolver;
+AI resolver when configured. Stage 04 deliberately does not invoke either resolver;
 the configuration below remains available for resolver tests and the later controlled
 semantic-fallback stage:
 
@@ -169,13 +169,13 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 42 passing tests in total: 24 ADCM tests and 18 Contract
+The two service suites have 51 passing tests in total: 32 ADCM tests and 19 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
 
-Stage 03 keeps the semantic resolver disabled in the orchestrator. Resolver/model
+Through Stage 04 the semantic resolver remains disabled in the orchestrator. Resolver/model
 factory tests remain in place for the later semantic-fallback stage, while current
 orchestrator tests assert that no LLM call occurs.
 
@@ -204,6 +204,12 @@ when no fact exists, and termination with diagnostics when a candidate makes no
 progress. Forge coverage verifies schema-derived override metadata and removal of an
 override candidate after its origin becomes USER.
 
+Stage 04 covers comma- and newline-separated partial names, later merging of types,
+complete `name TYPE` input, JSON arrays, invalid datatype clarification, fixed-width
+items, and a different test path to prevent `source.columns` hardcoding. A regression
+also prevents one pasted source structure from overriding a schema-compatible
+derived target array.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -214,8 +220,8 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Fix the `source.columns` partial-input UX in Stage 04.
-2. Add the controlled LLM fallback only in its planned later stage.
+1. Add the controlled LLM fallback only in its planned later stage.
+2. Continue the schema-driven requirements work from the staged plan.
 3. After the staged series, add Schema Explorer/repository lookup and a schema/rules
    compatibility gate.
 
@@ -290,9 +296,10 @@ ADCM conversation memory now owns USER message recency:
 - deterministic extraction from the current message and existing historical scan
   records facts with `extraction_method=DETERMINISTIC` and raw-message evidence.
 
-Stage 03 now reads these facts in the stair-step loop and consumes Forge `overridable`
-fields. Semantic results are still not stored because the LLM is disabled in this
-stage. Partial columns and persistence remain later work.
+Stage 03 reads these facts in the stair-step loop and consumes Forge `overridable`
+fields. Stage 04 adds a separate `partial_facts` store for incomplete structured
+values. Semantic results are still not stored because the LLM remains disabled;
+persistence remains later work.
 
 ## 13. Stage 03 stair-step resolution implementation map
 
@@ -306,26 +313,40 @@ stage. Partial columns and persistence remain later work.
   repeated candidate and `max_auto_steps` stop automatic progression.
 - Exact numeric cron extraction is conservative because the contract's five-token
   regex alone also matches ordinary five-word sentences.
-- LLM fallback, generic array/object parsing and partial structured facts remain out
-  of scope for this stage.
+- LLM fallback remained out of scope for this stage; generic partial array/object
+  parsing is implemented separately in Stage 04.
 
-## 14. Last change
+## 14. Stage 04 partial structured input implementation map
+
+- Forge resolves chained local `$ref` values and exposes only the minimal public
+  item structure required for deterministic `array<object>` parsing.
+- ADCM stores incomplete structures as `PartialFact` values outside the canonical
+  contract and never converts them to `UserFact` until all required item fields exist.
+- Follow-up records merge by a schema-derived string identity property, normally
+  `name`; enum values normalize case-insensitively without datatype alias guessing.
+- Narrow clarification messages list missing fields, affected records, invalid
+  values, the expected record layout and schema enum choices.
+- To avoid ambiguous meaning, a complex pasted structure binds only to Forge's first
+  current requirement (or an already-started partial), while scalar Stage 03
+  overrides continue to use the full exposed field set.
+
+## 15. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 03.
-Changed files/classes: Forge/ADCM Requirement and ForgeState DTOs, schema-derived
-  override discovery, deterministic ADCM stair-step orchestration, candidate issue
-  presentation, cron extraction guard, focused T1-T5 tests and MCP smoke scenario.
-Behavior now: Forge exposes legal lower-origin override candidates; ADCM reuses the
-  latest deterministic UserFacts and prior messages to submit one USER value at a
-  time until it needs genuinely missing information. The LLM remains disabled.
-Tests run/result: ADCM 24 passed and Forge 18 passed. The real Streamable HTTP smoke
-  completed a Rocket contract and applied a schedule stated before source selection.
+Last change: completed user-priority/fact-store Stage 04.
+Changed files/classes: Forge public schema projection and chained-ref handling;
+  ADCM PartialFact memory, generic structured parser/merger, partial clarification,
+  focused T1-T5/regression tests, D-013 and the real MCP smoke scenario.
+Behavior now: incomplete array/object input remains only in ADCM memory, receives a
+  precise missing-data question, and reaches Forge only after deterministic merging
+  produces a complete candidate. The LLM remains disabled.
+Tests run/result: ADCM 32 passed and Forge 19 passed. The real Streamable HTTP smoke
+  retained a fixed-width names-only partial, merged ranges/types, completed the
+  Rocket contract and preserved the derived target columns as generic enrichment.
   Forge retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
   dependency.
-Known issues remaining: source.columns partial-input UX; dataFieldId is not present
-  in the current contract schema; semantic fallback and repository duplicate lookup
-  remain planned.
-Next concrete task: Stage 04 from docs/user_priority_and_fact_store, implemented
-  separately without pulling in later LLM behavior.
+Known issues remaining: dataFieldId is not present in the current contract schema;
+  semantic fallback and repository duplicate lookup remain planned.
+Next concrete task: the next stage from docs/user_priority_and_fact_store, without
+  pulling in later unrelated behavior.
 ```

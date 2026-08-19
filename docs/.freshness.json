@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "marked_at": "2026-08-19T15:46:50.310626+00:00",
-  "reason": "Stage 03 stair-step resolution and overridable fields",
-  "commit": "246123cd406d30e1864385f48a215f7e078f82ab",
+  "marked_at": "2026-08-19T16:31:58.012871+00:00",
+  "reason": "Stage 04 partial structured input",
+  "commit": "fc1a78f3ea5e342a5c932f85b9812a2485c825dd",
   "branch": "adcm_minimal",
   "working_tree_dirty": true,
   "source_hashes": {
@@ -11,10 +11,10 @@
     "ai-data-contract-manager/src/adcm/api.py": "13d24a44c48746eeeba765ada2d9f5d8925d931bea7336b88cbc9fbef6c11be6",
     "ai-data-contract-manager/src/adcm/cli.py": "718693296dd412182165db016f5dbc4e3effbf8639fcc6666ef0af9ab43496a4",
     "ai-data-contract-manager/src/adcm/gateway.py": "e02205c90d0949e241e73c7e664cce9544a310877b0993d1d4f2b9d9ee157feb",
-    "ai-data-contract-manager/src/adcm/heuristics.py": "e65793315ed80b43ea6d6fbd1646a98f79c87b1db0088a4d28d93b9ffa4956ce",
+    "ai-data-contract-manager/src/adcm/heuristics.py": "5c3c53c8446da66534f35b5356e5157b5edff2b2a90fe0c55db507f0ff18137f",
     "ai-data-contract-manager/src/adcm/model_factory.py": "c00245493441cee91d9a47071da1d5903554f4745704971a7878e8e68f41e141",
-    "ai-data-contract-manager/src/adcm/models.py": "590e2ae175723a9b2157dd8afcf4eb35b283b9dbb475a6f548ebe7b516426954",
-    "ai-data-contract-manager/src/adcm/orchestrator.py": "42031c669fd44e454f37d494714ba8a8ad548967a8a776d38f297f1045b811a5",
+    "ai-data-contract-manager/src/adcm/models.py": "1b99dbc7e20054db1063fb6491d471b915381afb8131938bf48b891a27c6fb9e",
+    "ai-data-contract-manager/src/adcm/orchestrator.py": "0bcde64ae4812719327e6794dec540298bb28e64e86d3b23a6162de56c2f9549",
     "ai-data-contract-manager/src/adcm/runtime.py": "42079551c7d996320c1fff92bc818f5dec036cc34fdf91b91bf56958bcb43cf5",
     "ai-data-contract-manager/src/adcm/semantic.py": "dc9ed5da1594869eec82c1bafb581438d2341019e0cd114c61075249a6af13ec",
     "ai-data-contract-manager/src/adcm/settings.py": "1f172349160788f9cb534b738c6a39387bbcf102cb677b53370de90b514613a7",
@@ -29,6 +29,6 @@
     "mcp-servers/mcp-contract-forge/src/contract_forge/models.py": "a7ee43314e9cfb4fc181f1f4f51599d2a8a5507a6a74ce0700c2f9e59e48a349",
     "mcp-servers/mcp-contract-forge/src/contract_forge/path_utils.py": "5e81825fd8c48f2904ce5bf1826f246a552cc5b16f537ae0ca2bc32bfa7cb9f3",
     "mcp-servers/mcp-contract-forge/src/contract_forge/rules.py": "09390c8e46bb0773afbfee1d020e81db3dda7a79a3f57c12ff90a766f3adcd4d",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py": "8d15951915b0ae2b32bf60359a88b0ff3b6074f41fc675398de83a90cd603f92"
+    "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py": "4d53362bf25526a2f9701398ca17d58a93a5897c3513d869835a2f6f91d0a761"
   }
 }

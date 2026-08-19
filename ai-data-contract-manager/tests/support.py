@@ -109,13 +109,49 @@ class FakeForgeGateway(ForgeGateway):
             ),
             ("metadata.owner", "Kto jest właścicielem?", "semantic", {"type": "string"}),
             ("source.uri", "Gdzie znajduje się źródło?", "semantic", {"type": "string"}),
-            ("source.columns", "Podaj kolumny.", "semantic", {"type": "array"}),
+            ("source.columns", "Podaj kolumny.", "semantic", self._columns_schema()),
         )
         return [
             Requirement(path=path, question=question, input_mode=input_mode, value_schema=value_schema)
             for path, question, input_mode, value_schema in definitions
             if not self._has(path)
         ]
+
+    def _columns_schema(self) -> dict[str, Any]:
+        data_types = [
+            "STRING",
+            "INT64",
+            "FLOAT64",
+            "NUMERIC",
+            "BOOLEAN",
+            "DATE",
+            "DATETIME",
+            "TIMESTAMP",
+            "BYTES",
+        ]
+        properties: dict[str, Any] = {
+            "name": {"type": "string"},
+            "dataType": {"type": "string", "enum": data_types},
+            "nullable": {"type": "boolean"},
+        }
+        required = ["name", "dataType"]
+        if self.source_system == "rocket":
+            properties.update(
+                {
+                    "start": {"type": "integer"},
+                    "end": {"type": "integer"},
+                }
+            )
+            required = ["name", "start", "end", "dataType"]
+        return {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": required,
+                "properties": properties,
+            },
+        }
 
     def _has(self, path: str) -> bool:
         current: Any = self.contract

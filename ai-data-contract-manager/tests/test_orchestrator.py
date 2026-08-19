@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from adcm.models import ExtractionMethod, Origin
+from adcm.models import ConversationMemory, ExtractionMethod, Origin, Requirement
 from adcm.orchestrator import ADCMOrchestrator
 from support import FakeForgeGateway
 
@@ -69,6 +69,16 @@ class RejectingFakeForgeGateway(RecordingFakeForgeGateway):
         self.submissions.append(deepcopy(values))
         self.submission_origins.append(origin)
         return self._state()
+
+
+async def advance_to_csv_columns(service: ADCMOrchestrator):
+    turn = await service.start()
+    turn = await service.message(turn.session_id, "sap")
+    turn = await service.message(turn.session_id, "pipeline: customer_daily")
+    turn = await service.message(turn.session_id, "data-platform@example.com")
+    turn = await service.message(turn.session_id, "gs://raw-zone/customer.csv")
+    assert turn.pending_path == "source.columns"
+    return turn
 
 
 @pytest.mark.asyncio
@@ -170,6 +180,118 @@ async def test_t5_rejected_candidate_stops_without_looping_and_explains_failure(
     assert turn.pending_path == "metadata.sourceSystemGcpId"
     assert turn.candidate_issues[0]["validator"] == "no_progress"
     assert "nie zastosował kandydata" in turn.message
+
+
+@pytest.mark.asyncio
+async def test_stage04_t1_names_only_are_stored_as_partial_without_forge_submit():
+    gateway = RecordingFakeForgeGateway()
+    service = ADCMOrchestrator(gateway)
+    turn = await advance_to_csv_columns(service)
+    submissions_before = len(gateway.submissions)
+
+    turn = await service.message(turn.session_id, "data_d, sap1,sap2,sap3")
+
+    memory = service.sessions[turn.session_id]
+    partial = memory.get_partial("source.columns")
+    assert len(gateway.submissions) == submissions_before
+    assert memory.get_fact("source.columns") is None
+    assert partial is not None
+    assert partial.value == [
+        {"name": "data_d"},
+        {"name": "sap1"},
+        {"name": "sap2"},
+        {"name": "sap3"},
+    ]
+    assert partial.missing == ["dataType"]
+    assert "Rozpoznałem 4 elementy" in turn.message
+    assert "dataType dla: data_d, sap1, sap2, sap3" in turn.message
+
+
+@pytest.mark.asyncio
+async def test_stage04_t2_follow_up_types_merge_and_submit_complete_candidate():
+    gateway = RecordingFakeForgeGateway()
+    service = ADCMOrchestrator(gateway)
+    turn = await advance_to_csv_columns(service)
+    turn = await service.message(turn.session_id, "data_d\nsap1\nsap2\nsap3")
+
+    turn = await service.message(
+        turn.session_id,
+        "data_d date\nsap1 string\nsap2 STRING\nsap3 numeric",
+    )
+
+    assert turn.status == "complete"
+    assert gateway.submissions[-1] == {
+        "source.columns": [
+            {"name": "data_d", "dataType": "DATE"},
+            {"name": "sap1", "dataType": "STRING"},
+            {"name": "sap2", "dataType": "STRING"},
+            {"name": "sap3", "dataType": "NUMERIC"},
+        ]
+    }
+    assert service.sessions[turn.session_id].get_partial("source.columns") is None
+
+
+@pytest.mark.asyncio
+async def test_stage04_t4_invalid_datatype_gets_narrow_clarification():
+    gateway = RecordingFakeForgeGateway()
+    service = ADCMOrchestrator(gateway)
+    turn = await advance_to_csv_columns(service)
+    submissions_before = len(gateway.submissions)
+
+    turn = await service.message(turn.session_id, "data_d ORACLE_NUMBER")
+
+    partial = service.sessions[turn.session_id].get_partial("source.columns")
+    assert len(gateway.submissions) == submissions_before
+    assert partial is not None
+    assert partial.value == [{"name": "data_d"}]
+    assert partial.invalid == ["data_d.dataType=ORACLE_NUMBER"]
+    assert "Nie rozpoznałem wartości: data_d.dataType=ORACLE_NUMBER" in turn.message
+    assert "Dozwolone wartości" in turn.message
+
+
+def test_stage04_structured_input_binds_only_to_first_compatible_requirement():
+    service = build_service()
+    memory = ConversationMemory(
+        session_id="adcm-session",
+        forge_session_id="forge-session",
+    )
+    message = memory.add_user_message("account_id STRING")
+    value_schema = {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "required": ["name", "dataType"],
+            "properties": {
+                "name": {"type": "string"},
+                "dataType": {"type": "string", "enum": ["STRING", "DATE"]},
+            },
+        },
+    }
+    source = Requirement(
+        path="source.fields",
+        question="source fields",
+        value_schema=value_schema,
+    )
+    derived_target = Requirement(
+        path="derived.target.fields",
+        question="target fields",
+        value_schema=value_schema,
+    )
+    values = {}
+
+    service._merge_current_structured(
+        memory,
+        message,
+        message.content,
+        [source, derived_target],
+        source.path,
+        values,
+    )
+
+    assert values == {
+        "source.fields": [{"name": "account_id", "dataType": "STRING"}]
+    }
+    assert memory.get_partial("derived.target.fields") is None
 
 
 @pytest.mark.asyncio

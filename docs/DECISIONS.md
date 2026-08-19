@@ -166,11 +166,25 @@ only to the Forge service. A minimal local run requires both service processes.
 
 ---
 
+## D-013 — Incomplete structured facts stay outside the canonical contract
+
+**Status:** Accepted
+
+**Decision:** ADCM stores incomplete `array<object>` values as conversation-scoped
+`PartialFact` entries. It submits a value to Contract Forge only after every
+schema-required item property has been supplied deterministically.
+
+**Why:** Useful user input must survive clarification, but an invalid draft must not
+enter the canonical contract or weaken Forge validation.
+
+**Consequence:** Forge exposes a minimal resolved public schema fragment
+(`items.type`, `items.properties`, `items.required`) so ADCM can identify missing
+data. Forge remains the sole validator of the merged complete candidate. Partial
+facts are currently in-memory and disappear with the ADCM session.
+
+---
+
 ## Open decisions
-
-### O-001 — Partial facts protocol
-
-Should partial structured information be stored only in ADCM memory, or should Forge expose a formal draft-partial protocol? Current preference: keep invalid partial structures outside the canonical contract until a clear Forge protocol exists.
 
 ### O-002 — Optional decisions
 

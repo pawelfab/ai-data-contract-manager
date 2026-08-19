@@ -1,6 +1,7 @@
 from adcm.models import (
     ConversationMemory,
     ExtractionMethod,
+    PartialFact,
     UserFact,
 )
 
@@ -110,3 +111,28 @@ def test_user_message_sequence_is_monotonic_and_transcript_is_preserved():
         "owner team_b",
     ]
     assert [message.message_sequence for message in memory.messages] == [None, 1, None, 2]
+
+
+def test_partial_fact_is_replaced_by_newer_merge_and_can_be_cleared():
+    memory = build_memory()
+    memory.remember_partial(
+        PartialFact(
+            path="custom.fields",
+            value=[{"name": "data_d"}],
+            missing=["dataType"],
+            message_sequence=1,
+        )
+    )
+    newer = PartialFact(
+        path="custom.fields",
+        value=[{"name": "data_d", "dataType": "DATE"}],
+        missing=[],
+        message_sequence=2,
+    )
+
+    assert memory.remember_partial(newer) is True
+    assert memory.get_partial("custom.fields") == newer
+
+    memory.clear_partial("custom.fields")
+
+    assert memory.get_partial("custom.fields") is None

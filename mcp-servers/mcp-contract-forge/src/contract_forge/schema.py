@@ -38,7 +38,11 @@ class SchemaNavigator:
         return merged
 
     def active_node(self, node: dict[str, Any], value: Any = None) -> dict[str, Any]:
-        node = self.resolve_ref(node)
+        node = deepcopy(node)
+        for _ in range(8):
+            if "$ref" not in node:
+                break
+            node = self.resolve_ref(node)
         if "oneOf" in node and isinstance(value, dict):
             discriminator = node.get("discriminator", {}).get("propertyName")
             if discriminator and discriminator in value:
@@ -249,10 +253,45 @@ class SchemaNavigator:
                 out.append(item)
         return out
 
-    @staticmethod
-    def public_schema(node: dict[str, Any]) -> dict[str, Any]:
-        keep = {"type", "enum", "const", "pattern", "minimum", "maximum", "minLength", "maxLength", "minItems", "description", "examples", "format"}
-        return {k: deepcopy(v) for k, v in node.items() if k in keep}
+    def public_schema(self, node: dict[str, Any], *, depth: int = 2) -> dict[str, Any]:
+        """Return the small schema fragment ADCM needs to normalize candidates.
+
+        Stage 04 needs one structural level for ``array<object>`` requirements. This
+        is intentionally not a second JSON Schema engine or a full schema export.
+        """
+        node = self.active_node(node)
+        keep = {
+            "type",
+            "enum",
+            "const",
+            "pattern",
+            "minimum",
+            "maximum",
+            "minLength",
+            "maxLength",
+            "minItems",
+            "description",
+            "examples",
+            "format",
+        }
+        public = {key: deepcopy(value) for key, value in node.items() if key in keep}
+        if depth <= 0:
+            return public
+
+        if node.get("type") == "array" and isinstance(node.get("items"), dict):
+            public["items"] = self.public_schema(node["items"], depth=depth - 1)
+        if node.get("type") == "object":
+            required = node.get("required")
+            if isinstance(required, list):
+                public["required"] = deepcopy(required)
+            properties = node.get("properties")
+            if isinstance(properties, dict):
+                public["properties"] = {
+                    name: self.public_schema(child, depth=depth - 1)
+                    for name, child in properties.items()
+                    if isinstance(child, dict)
+                }
+        return public
 
     @staticmethod
     def allowed_values(node: dict[str, Any]) -> list[Any] | None:

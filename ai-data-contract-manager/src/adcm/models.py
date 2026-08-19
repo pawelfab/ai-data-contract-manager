@@ -91,11 +91,21 @@ class UserFact(BaseModel):
     evidence: str | None = None
 
 
+class PartialFact(BaseModel):
+    path: str
+    value: Any
+    missing: list[str] = Field(default_factory=list)
+    invalid: list[str] = Field(default_factory=list)
+    message_sequence: int = Field(ge=1)
+    evidence: str | None = None
+
+
 class ConversationMemory(BaseModel):
     session_id: str
     forge_session_id: str
     messages: list[ChatMessage] = Field(default_factory=list)
     facts: dict[str, UserFact] = Field(default_factory=dict)
+    partial_facts: dict[str, PartialFact] = Field(default_factory=dict)
     next_message_sequence: int = Field(default=1, ge=1)
 
     def add_user_message(self, content: str) -> ChatMessage:
@@ -122,3 +132,19 @@ class ConversationMemory(BaseModel):
 
     def get_fact(self, path: str) -> UserFact | None:
         return self.facts.get(path)
+
+    def forget_fact(self, path: str) -> None:
+        self.facts.pop(path, None)
+
+    def remember_partial(self, partial: PartialFact) -> bool:
+        current = self.partial_facts.get(partial.path)
+        if current is not None and partial.message_sequence < current.message_sequence:
+            return False
+        self.partial_facts[partial.path] = partial.model_copy(deep=True)
+        return True
+
+    def get_partial(self, path: str) -> PartialFact | None:
+        return self.partial_facts.get(path)
+
+    def clear_partial(self, path: str) -> None:
+        self.partial_facts.pop(path, None)
