@@ -28,6 +28,8 @@ def test_new_required_metadata_field_is_discovered_without_adcm_code_change(tmp_
     schema["$defs"]["Metadata"]["properties"]["businessDomain"] = {
         "type": "string",
         "minLength": 2,
+        "description": "Domena biznesowa danych.",
+        "examples": ["finance"],
         "x-acdm-question": "Jaka jest domena biznesowa?"
     }
 
@@ -35,7 +37,83 @@ def test_new_required_metadata_field_is_discovered_without_adcm_code_change(tmp_
     state = forge.start_session()
     sid = state.session_id
     state = forge.submit_values(sid, {"metadata.sourceSystemGcpId": "sap"}, Origin.USER)
-    assert any(r.path == "metadata.businessDomain" for r in state.pending)
+    business_domain = next(
+        requirement
+        for requirement in state.pending
+        if requirement.path == "metadata.businessDomain"
+    )
+
+    assert business_domain.question == "Jaka jest domena biznesowa?"
+    assert business_domain.value_schema == {
+        "type": "string",
+        "minLength": 2,
+        "description": "Domena biznesowa danych.",
+        "examples": ["finance"],
+    }
+    state = forge.submit_values(sid, {"metadata.businessDomain": "x"}, Origin.USER)
+    assert state.candidate_issues[0].validator == "minLength"
+
+    state = forge.submit_values(sid, {"metadata.businessDomain": "finance"}, Origin.USER)
+    assert state.contract["metadata"]["businessDomain"] == "finance"
+
+
+def test_new_required_enum_is_exposed_and_validated_without_path_code():
+    schema = json.loads((ROOT / "config" / "contract.json").read_text(encoding="utf-8"))
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
+    metadata = schema["$defs"]["Metadata"]
+    metadata["required"].append("classification")
+    metadata["properties"]["classification"] = {
+        "type": "string",
+        "enum": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+        "x-acdm-question": "Jaka jest klasyfikacja?",
+    }
+
+    forge = ContractForge(schema, rules, deploy_env="dev")
+    state = forge.start_session()
+    state = forge.submit_values(
+        state.session_id,
+        {"metadata.sourceSystemGcpId": "sap"},
+        Origin.USER,
+    )
+    requirement = next(
+        item for item in state.pending if item.path == "metadata.classification"
+    )
+
+    assert requirement.allowed_values == ["PUBLIC", "INTERNAL", "RESTRICTED"]
+    assert requirement.value_schema["enum"] == ["PUBLIC", "INTERNAL", "RESTRICTED"]
+
+
+def test_complex_leaf_schema_is_reported_as_unsupported_for_adcm():
+    schema = json.loads((ROOT / "config" / "contract.json").read_text(encoding="utf-8"))
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
+    metadata = schema["$defs"]["Metadata"]
+    metadata["required"].append("deliveryMode")
+    metadata["properties"]["deliveryMode"] = {
+        "anyOf": [
+            {"type": "string", "enum": ["batch"]},
+            {"type": "integer", "minimum": 1},
+        ],
+        "x-acdm-question": "Podaj tryb dostawy.",
+    }
+
+    forge = ContractForge(schema, rules, deploy_env="dev")
+    state = forge.start_session()
+    state = forge.submit_values(
+        state.session_id,
+        {"metadata.sourceSystemGcpId": "sap"},
+        Origin.USER,
+    )
+    requirement = next(
+        item for item in state.pending if item.path == "metadata.deliveryMode"
+    )
+
+    assert requirement.unsupported_schema_keywords == ["anyOf"]
+    state = forge.submit_values(
+        state.session_id,
+        {"metadata.deliveryMode": "batch"},
+        Origin.USER,
+    )
+    assert state.contract["metadata"]["deliveryMode"] == "batch"
 
 
 def test_system_with_multiple_source_types_reveals_source_type_choice():
@@ -99,7 +177,9 @@ def test_array_object_requirement_exposes_minimal_resolved_item_schema():
         Origin.USER,
     )
     columns = next(requirement for requirement in state.pending if requirement.path == "source.columns")
+    uri = next(requirement for requirement in state.pending if requirement.path == "source.uri")
 
+    assert uri.value_schema["format"] == "uri"
     assert columns.value_schema["type"] == "array"
     assert columns.value_schema["items"]["type"] == "object"
     assert columns.value_schema["items"]["required"] == ["name", "dataType"]

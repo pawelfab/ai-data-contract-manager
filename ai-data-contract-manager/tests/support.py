@@ -108,7 +108,16 @@ class FakeForgeGateway(ForgeGateway):
                 {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
             ),
             ("metadata.owner", "Kto jest właścicielem?", "semantic", {"type": "string"}),
-            ("source.uri", "Gdzie znajduje się źródło?", "semantic", {"type": "string"}),
+            (
+                "source.uri",
+                "Gdzie znajduje się źródło?",
+                "semantic",
+                {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": r"^(gs|s3|https?|file)://.+",
+                },
+            ),
             ("source.columns", "Podaj kolumny.", "semantic", self._columns_schema()),
         )
         return [

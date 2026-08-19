@@ -406,6 +406,7 @@
         },
         "uri": {
           "type": "string",
+          "format": "uri",
           "pattern": "^(gs|s3|https?|file)://.+",
           "description": "Lokalizacja pliku lub katalogu CSV.",
           "examples": [
@@ -493,6 +494,7 @@
         },
         "uri": {
           "type": "string",
+          "format": "uri",
           "pattern": "^(gs|s3|https?|file)://.+",
           "description": "Lokalizacja pliku stałopozycyjnego.",
           "examples": [
@@ -583,6 +585,7 @@
         },
         "uri": {
           "type": "string",
+          "format": "uri",
           "pattern": "^(gs|s3|https?|file)://.+",
           "description": "Lokalizacja dokumentów JSON.",
           "examples": [
@@ -669,6 +672,7 @@
         },
         "uri": {
           "type": "string",
+          "format": "uri",
           "pattern": "^(gs|s3|https?|file)://.+",
           "description": "Lokalizacja pliku tekstowego.",
           "examples": [

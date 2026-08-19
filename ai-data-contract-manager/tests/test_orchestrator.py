@@ -82,6 +82,31 @@ class RecordingFakeForgeGateway(FakeForgeGateway):
         return await super().submit_values(session_id, values, origin)
 
 
+class SchemaDrivenFakeForgeGateway(RecordingFakeForgeGateway):
+    def __init__(self, requirements: list[Requirement]):
+        super().__init__()
+        self.extra_requirements = requirements
+        self.source_system = "rocket"
+        self._set("metadata.sourceSystemGcpId", "ROCKET", Origin.USER)
+        self._set("metadata.id", "customer_daily", Origin.USER)
+        self._set("metadata.owner", "data-platform@example.com", Origin.USER)
+        self._set("source.sourceType", "fixed_width", Origin.SYSTEM_ENRICHMENT)
+        self._set("source.uri", "gs://raw-zone/accounts.dat", Origin.USER)
+        self._set(
+            "source.columns",
+            [{"name": "account_id", "start": 0, "end": 8, "dataType": "STRING"}],
+            Origin.USER,
+        )
+        self._set("orchestration.schedule", "0 0 * * *", Origin.USER)
+
+    def _requirements(self) -> list[Requirement]:
+        return [
+            requirement.model_copy(deep=True)
+            for requirement in self.extra_requirements
+            if not self._has(requirement.path)
+        ]
+
+
 class RejectingFakeForgeGateway(RecordingFakeForgeGateway):
     async def submit_values(self, session_id, values, origin):
         self._check_session(session_id)
@@ -577,3 +602,117 @@ async def test_stage05_t6_user_fact_survives_without_raw_source_message():
     assert turn.status == "complete"
     assert {"metadata.owner": "FinOps"} in gateway.submissions
     assert semantic.calls == []
+
+
+@pytest.mark.asyncio
+async def test_stage06_t1_t2_new_string_and_enum_fields_need_no_path_code():
+    gateway = SchemaDrivenFakeForgeGateway(
+        [
+            Requirement(
+                path="metadata.businessDomain",
+                question="Jaka jest domena biznesowa?",
+                value_schema={"type": "string", "minLength": 2},
+            ),
+            Requirement(
+                path="governance.classification",
+                question="Jaka jest klasyfikacja?",
+                value_schema={
+                    "type": "string",
+                    "enum": ["PUBLIC", "INTERNAL", "RESTRICTED"],
+                },
+            ),
+        ]
+    )
+    service = ADCMOrchestrator(gateway)
+    turn = await service.start()
+
+    assert turn.pending_path == "metadata.businessDomain"
+    assert turn.pending_requirement is not None
+    assert turn.pending_requirement.value_schema["minLength"] == 2
+
+    turn = await service.message(turn.session_id, "finance")
+    assert turn.pending_path == "governance.classification"
+
+    turn = await service.message(turn.session_id, "internal")
+
+    assert turn.status == "complete"
+    assert gateway.contract["metadata"]["businessDomain"] == "finance"
+    assert gateway.contract["governance"]["classification"] == "INTERNAL"
+
+
+@pytest.mark.asyncio
+async def test_stage06_t3_array_object_works_for_an_unseen_path():
+    gateway = SchemaDrivenFakeForgeGateway(
+        [
+            Requirement(
+                path="custom.dataset.fields",
+                question="Podaj pola.",
+                value_schema={
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "dataType"],
+                        "properties": {
+                            "name": {"type": "string"},
+                            "dataType": {
+                                "type": "string",
+                                "enum": ["STRING", "DATE"],
+                            },
+                        },
+                    },
+                },
+            )
+        ]
+    )
+    service = ADCMOrchestrator(gateway)
+    turn = await service.start()
+
+    turn = await service.message(
+        turn.session_id,
+        "created_at date\ncustomer_id string",
+    )
+
+    assert turn.status == "complete"
+    assert gateway.contract["custom"]["dataset"]["fields"] == [
+        {"name": "created_at", "dataType": "DATE"},
+        {"name": "customer_id", "dataType": "STRING"},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_stage06_t4_unsupported_schema_neither_guesses_nor_calls_llm():
+    requirement = Requirement(
+        path="custom.deliveryMode",
+        question="Podaj tryb dostawy.",
+        value_schema={},
+        unsupported_schema_keywords=["anyOf"],
+    )
+    gateway = SchemaDrivenFakeForgeGateway([requirement])
+    semantic = FakeSemanticResolver(
+        [
+            ExtractionResult(
+                values=[
+                    CandidateValue(
+                        path="custom.deliveryMode",
+                        value="invented",
+                        confidence=0.99,
+                        evidence="batch",
+                    )
+                ]
+            )
+        ]
+    )
+    service = ADCMOrchestrator(gateway, semantic=semantic)
+    turn = await service.start()
+
+    assert "nie obsługuje konstrukcji schematu: anyOf" in turn.message
+    turn = await service.message(turn.session_id, "batch")
+
+    assert turn.pending_path == "custom.deliveryMode"
+    assert semantic.calls == []
+    assert {"custom.deliveryMode": "batch"} not in gateway.submissions
+
+    turn = await service.message(turn.session_id, '"batch"')
+
+    assert turn.status == "complete"
+    assert gateway.contract["custom"]["deliveryMode"] == "batch"

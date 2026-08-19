@@ -71,7 +71,6 @@ class ADCMOrchestrator:
                 self.heuristics.extract(
                     text,
                     state.pending[:1],
-                    state.contract,
                     allow_plain_fallback=True,
                 )
             )
@@ -85,7 +84,6 @@ class ADCMOrchestrator:
                 self.heuristics.extract(
                     text,
                     remaining,
-                    state.contract,
                     allow_plain_fallback=False,
                     allow_structured=False,
                 )
@@ -124,7 +122,6 @@ class ADCMOrchestrator:
                 self._scan_history(
                     memory,
                     fields,
-                    state.contract,
                     structured_paths=(
                         {state.pending[0].path} if state.pending else set()
                     ),
@@ -258,7 +255,6 @@ class ADCMOrchestrator:
         self,
         memory: ConversationMemory,
         fields: list[Requirement],
-        contract: dict[str, Any],
         *,
         structured_paths: set[str],
     ) -> None:
@@ -270,7 +266,6 @@ class ADCMOrchestrator:
             found = self.heuristics.extract(
                 message.content,
                 fields,
-                contract,
                 allow_plain_fallback=False,
                 allow_structured=False,
             )
@@ -282,7 +277,6 @@ class ADCMOrchestrator:
                     self.heuristics.extract(
                         message.content,
                         structured_fields,
-                        contract,
                         allow_plain_fallback=False,
                         allow_structured=True,
                     )
@@ -314,11 +308,10 @@ class ADCMOrchestrator:
                 return fact
         return None
 
-    @staticmethod
-    def _semantic_prefix(fields: list[Requirement]) -> list[Requirement]:
+    def _semantic_prefix(self, fields: list[Requirement]) -> list[Requirement]:
         semantic: list[Requirement] = []
         for field in fields:
-            if field.input_mode == "explicit":
+            if field.input_mode == "explicit" or not self.heuristics.supports(field):
                 break
             semantic.append(field)
         return semantic
@@ -571,6 +564,13 @@ class ADCMOrchestrator:
                 if partial is not None and (partial.missing or partial.invalid)
                 else requirement.question
             )
+            if requirement.unsupported_schema_keywords:
+                keywords = ", ".join(requirement.unsupported_schema_keywords)
+                question += (
+                    " Automatyczna normalizacja nie obsługuje konstrukcji schematu: "
+                    f"{keywords}. Podaj wartość jako jednoznaczny JSON; Contract Forge "
+                    "wykona właściwą walidację."
+                )
             suffix = (
                 f" Dostępne: {', '.join(map(str, requirement.allowed_values))}."
                 if requirement.allowed_values
@@ -583,6 +583,7 @@ class ADCMOrchestrator:
             message=question + suffix,
             status="needs_input",
             pending_path=requirement.path if requirement else None,
+            pending_requirement=requirement,
             contract=state.contract,
             candidate_issues=candidate_issues,
         )

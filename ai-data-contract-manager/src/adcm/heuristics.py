@@ -5,8 +5,9 @@ import re
 import unicodedata
 from copy import deepcopy
 from dataclasses import dataclass
+from datetime import date
 from difflib import SequenceMatcher
-from typing import Any
+from typing import Any, Protocol
 
 from .models import Requirement
 
@@ -39,14 +40,72 @@ class StructuredParseResult:
         return bool(self.value) and not self.missing and not self.invalid
 
 
+class SpecializedResolver(Protocol):
+    def resolve(
+        self,
+        text: str,
+        requirement: Requirement,
+        *,
+        allow_plain_fallback: bool,
+    ) -> Any | None: ...
+
+
+class LabeledContractFieldResolver:
+    """Keep UX aliases that JSON Schema cannot express out of the generic core."""
+
+    def resolve(
+        self,
+        text: str,
+        requirement: Requirement,
+        *,
+        allow_plain_fallback: bool,
+    ) -> Any | None:
+        del allow_plain_fallback
+        stripped = text.strip()
+
+        if requirement.path == "metadata.id":
+            match = re.search(
+                r"(?:pipeline|id|nazwa)\s*[:=]?\s*([A-Za-z0-9_-]{3,})",
+                stripped,
+                re.I,
+            )
+            if match:
+                return slugify_identifier(match.group(1))
+
+        if requirement.path == "metadata.owner":
+            email = re.search(
+                r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+                stripped,
+            )
+            if email:
+                return email.group(0)
+            match = re.search(
+                r"(?:owner|właściciel|wlasciciel|zespół|zespol)\s*[:=]?\s*(.+)$",
+                stripped,
+                re.I,
+            )
+            if match:
+                return match.group(1).strip()
+        return None
+
+
 class HeuristicResolver:
     """Cheap deterministic normalization before any LLM call."""
+
+    def __init__(
+        self,
+        specialized_resolvers: tuple[SpecializedResolver, ...] | None = None,
+    ) -> None:
+        self.specialized_resolvers = (
+            (LabeledContractFieldResolver(),)
+            if specialized_resolvers is None
+            else specialized_resolvers
+        )
 
     def extract(
         self,
         text: str,
         requirements: list[Requirement],
-        contract: dict[str, Any],
         *,
         allow_plain_fallback: bool,
         allow_structured: bool = True,
@@ -65,7 +124,6 @@ class HeuristicResolver:
             value = self._for_requirement(
                 text,
                 requirement,
-                contract,
                 allow_plain_fallback=allow_plain_fallback,
             )
             if value is not None:
@@ -77,6 +135,8 @@ class HeuristicResolver:
         text: str,
         requirement: Requirement,
     ) -> StructuredParseResult | None:
+        if requirement.unsupported_schema_keywords:
+            return None
         item_schema = self._array_object_item_schema(requirement)
         if item_schema is None:
             return None
@@ -144,90 +204,174 @@ class HeuristicResolver:
         self,
         text: str,
         req: Requirement,
-        contract: dict[str, Any],
         *,
         allow_plain_fallback: bool,
     ) -> Any | None:
         stripped = text.strip()
-        path = req.path
+        if not stripped:
+            return None
+        if req.unsupported_schema_keywords:
+            return self._explicit_json_value(stripped) if allow_plain_fallback else None
 
-        if req.reason == "source_system":
-            return self._fuzzy_choice(
-                stripped,
-                [str(value) for value in (req.allowed_values or [])],
+        choices = self._schema_choices(req)
+        if choices:
+            return self._fuzzy_choice(stripped, choices)
+
+        schema = req.value_schema
+        for resolver in self.specialized_resolvers:
+            value = resolver.resolve(
+                text,
+                req,
+                allow_plain_fallback=allow_plain_fallback,
             )
+            if value is not None:
+                if schema.get("type") == "string" and isinstance(value, str):
+                    return value if self._valid_string(value, schema) else None
+                return value
 
-        if path == "metadata.id":
-            match = re.search(
-                r"(?:pipeline|id|nazwa)\s*[:=]?\s*([A-Za-z0-9_-]{3,})",
-                stripped,
-                re.I,
-            )
-            if match:
-                return slugify_identifier(match.group(1))
-            if allow_plain_fallback and len(stripped.split()) <= 4:
-                candidate = slugify_identifier(stripped)
-                return candidate or None
-
-        if path == "metadata.owner":
-            email = re.search(
-                r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
-                stripped,
-            )
-            if email:
-                return email.group(0)
-            match = re.search(
-                r"(?:owner|właściciel|wlasciciel|zespół|zespol)\s*[:=]?\s*(.+)$",
-                stripped,
-                re.I,
-            )
-            if match:
-                return match.group(1).strip()
-            if allow_plain_fallback and stripped:
-                return stripped
-
-        if path.endswith(".uri"):
-            uri = re.search(r"\b(?:gs|s3|https?|file)://\S+", stripped)
-            if uri:
-                return uri.group(0).rstrip(",;")
-            if allow_plain_fallback and re.match(
-                r"^(?:gs|s3|https?|file)://",
-                stripped,
-            ):
-                return stripped
-
-        if req.allowed_values:
-            choice = self._fuzzy_choice(
-                stripped,
-                [str(value) for value in req.allowed_values],
-            )
-            if choice is not None:
-                return choice
-
-        typ = req.value_schema.get("type")
-        pattern = req.value_schema.get("pattern")
-        description = _ascii(str(req.value_schema.get("description", ""))).lower()
-        if typ == "string" and isinstance(pattern, str) and "cron" in description:
-            try:
-                if re.fullmatch(pattern, stripped) and self._unambiguous_pattern_value(
-                    req,
-                    stripped,
-                ):
-                    return stripped
-            except re.error:
-                # Forge remains responsible for schema correctness and validation.
-                pass
+        typ = schema.get("type")
         if typ == "boolean":
-            low = _ascii(stripped).lower()
-            if low in {"tak", "yes", "true", "1"}:
-                return True
-            if low in {"nie", "no", "false", "0"}:
-                return False
-        if typ == "integer" and re.fullmatch(r"-?\d+", stripped):
-            return int(stripped)
-        if typ == "string" and allow_plain_fallback and stripped:
-            return stripped
+            return self._boolean_value(stripped) if allow_plain_fallback else None
+        if typ == "integer":
+            return self._integer_value(stripped, schema) if allow_plain_fallback else None
+        if typ == "number":
+            return self._number_value(stripped, schema) if allow_plain_fallback else None
+        if typ == "string":
+            return self._string_value(
+                stripped,
+                req,
+                allow_plain_fallback=allow_plain_fallback,
+            )
         return None
+
+    @staticmethod
+    def supports(requirement: Requirement) -> bool:
+        return not requirement.unsupported_schema_keywords
+
+    @staticmethod
+    def _schema_choices(requirement: Requirement) -> list[Any]:
+        schema = requirement.value_schema
+        if "const" in schema:
+            return [schema["const"]]
+        if isinstance(schema.get("enum"), list):
+            return list(schema["enum"])
+        return list(requirement.allowed_values or [])
+
+    @staticmethod
+    def _explicit_json_value(value: str) -> Any | None:
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return None
+
+    @staticmethod
+    def _boolean_value(value: str) -> bool | None:
+        low = _ascii(value).lower()
+        if low in {"tak", "yes", "true", "1"}:
+            return True
+        if low in {"nie", "no", "false", "0"}:
+            return False
+        return None
+
+    @classmethod
+    def _integer_value(cls, value: str, schema: dict[str, Any]) -> int | None:
+        if re.fullmatch(r"-?\d+", value) is None:
+            return None
+        candidate = int(value)
+        return candidate if cls._within_numeric_bounds(candidate, schema) else None
+
+    @classmethod
+    def _number_value(cls, value: str, schema: dict[str, Any]) -> int | float | None:
+        if (
+            re.fullmatch(
+                r"-?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?",
+                value,
+            )
+            is None
+        ):
+            return None
+        candidate: int | float = (
+            float(value)
+            if any(char in value.lower() for char in ".e")
+            else int(value)
+        )
+        return candidate if cls._within_numeric_bounds(candidate, schema) else None
+
+    @staticmethod
+    def _within_numeric_bounds(value: int | float, schema: dict[str, Any]) -> bool:
+        minimum = schema.get("minimum")
+        maximum = schema.get("maximum")
+        if isinstance(minimum, (int, float)) and value < minimum:
+            return False
+        if isinstance(maximum, (int, float)) and value > maximum:
+            return False
+        return True
+
+    def _string_value(
+        self,
+        value: str,
+        requirement: Requirement,
+        *,
+        allow_plain_fallback: bool,
+    ) -> str | None:
+        schema = requirement.value_schema
+        format_name = schema.get("format")
+        if format_name == "uri":
+            match = re.search(r"\b[A-Za-z][A-Za-z0-9+.-]*://[^\s,;]+", value)
+            candidate = match.group(0).rstrip(".)]") if match else None
+            return candidate if candidate and self._valid_string(candidate, schema) else None
+        if format_name == "date":
+            match = re.search(r"\b\d{4}-\d{2}-\d{2}\b", value)
+            if match:
+                try:
+                    date.fromisoformat(match.group(0))
+                except ValueError:
+                    return None
+                return match.group(0) if self._valid_string(match.group(0), schema) else None
+            return None
+        if format_name == "email":
+            match = re.search(
+                r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+                value,
+            )
+            candidate = match.group(0) if match else None
+            return candidate if candidate and self._valid_string(candidate, schema) else None
+        if format_name is not None:
+            return None
+
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str):
+            candidates = [value]
+            if allow_plain_fallback:
+                normalized = slugify_identifier(value)
+                if normalized and normalized != value:
+                    candidates.append(normalized)
+            elif not self._unambiguous_pattern_value(requirement, value):
+                return None
+            for candidate in candidates:
+                if self._valid_string(candidate, schema):
+                    return candidate
+            return None
+
+        if allow_plain_fallback and self._valid_string(value, schema):
+            return value
+        return None
+
+    @staticmethod
+    def _valid_string(value: str, schema: dict[str, Any]) -> bool:
+        minimum = schema.get("minLength")
+        maximum = schema.get("maxLength")
+        if isinstance(minimum, int) and len(value) < minimum:
+            return False
+        if isinstance(maximum, int) and len(value) > maximum:
+            return False
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str):
+            try:
+                return re.fullmatch(pattern, value) is not None
+            except re.error:
+                return False
+        return True
 
     @staticmethod
     def _array_object_item_schema(
@@ -476,32 +620,34 @@ class HeuristicResolver:
     @staticmethod
     def _unambiguous_pattern_value(req: Requirement, value: str) -> bool:
         description = _ascii(str(req.value_schema.get("description", ""))).lower()
-        if "cron" not in description:
-            return True
-        # A permissive five-token schema pattern also matches ordinary sentences.
-        # For automatic extraction accept only an unmistakable numeric cron form;
-        # Forge still performs the authoritative schema validation afterwards.
-        return all(
-            re.fullmatch(r"[0-9*/?,\-]+", token) is not None
-            for token in value.split()
-        )
+        if "cron" in description:
+            # A permissive five-token schema pattern also matches ordinary sentences.
+            return all(
+                re.fullmatch(r"[0-9*/?,\-]+", token) is not None
+                for token in value.split()
+            )
+        return False
 
     @staticmethod
-    def _fuzzy_choice(value: str, choices: list[str]) -> str | None:
+    def _fuzzy_choice(value: str, choices: list[Any]) -> Any | None:
         if not choices:
             return None
         norm = _ascii(value).lower().strip()
-        candidates = [norm] + re.findall(r"[a-z0-9_-]+", norm)
-        best: tuple[float, str] | None = None
-        for candidate in candidates:
-            for choice in choices:
-                score = SequenceMatcher(
-                    None,
-                    candidate,
-                    _ascii(choice).lower(),
-                ).ratio()
-                if candidate == _ascii(choice).lower():
-                    score = 1.0
-                if best is None or score > best[0]:
-                    best = (score, choice)
-        return best[1] if best and best[0] >= 0.72 else None
+        candidates = list(dict.fromkeys([norm, *re.findall(r"[a-z0-9_-]+", norm)]))
+        for choice in choices:
+            if norm == _ascii(str(choice)).lower():
+                return deepcopy(choice)
+        ranked: list[tuple[float, Any]] = []
+        for choice in choices:
+            normalized_choice = _ascii(str(choice)).lower()
+            score = max(
+                SequenceMatcher(None, candidate, normalized_choice).ratio()
+                for candidate in candidates
+            )
+            ranked.append((score, choice))
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        best_score, best_choice = ranked[0]
+        second_score = ranked[1][0] if len(ranked) > 1 else 0.0
+        if best_score < 0.84 or best_score - second_score < 0.08:
+            return None
+        return deepcopy(best_choice)

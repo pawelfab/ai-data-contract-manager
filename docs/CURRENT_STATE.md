@@ -41,6 +41,10 @@ entry points and virtual environments.
   transcript;
 - on each user message tries deterministic extraction against current `pending` and
   Forge-exposed `overridable` paths;
+- selects deterministic enum/const, boolean, numeric, constrained string,
+  URI/date-format and `array<object>` handlers from Requirement schema metadata;
+- keeps only the `pipeline`/`id` and owner/team language aliases in an isolated,
+  optional specialized resolver because JSON Schema cannot express those labels;
 - records deterministically extracted values as latest per-path `UserFact` entries;
 - runs a bounded stair-step loop that checks the UserFact store first, then scans
   user messages newest-to-oldest, and submits one USER candidate per step;
@@ -53,6 +57,9 @@ entry points and virtual environments.
   Forge before the next explicit gate;
 - accepts an LLM candidate only when its path is currently allowed, confidence meets
   the configured threshold and evidence maps to exactly one sequenced user message;
+- does not invoke semantic fallback for Requirement fragments that Forge marks as
+  unsupported; these accept only an explicit JSON representation before Forge
+  performs authoritative validation;
 - stores an accepted semantic candidate as a latest-per-path `UserFact` with
   `extraction_method=LLM`, while still submitting it to Forge as `origin=USER`;
 - presents the first remaining requirement or completion/validation state.
@@ -73,6 +80,9 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
   enrichment, generic enrichment or schema default;
 - exposes resolved `items/properties/required` metadata for array-of-object
   requirements without exposing or interpreting a second full schema engine;
+- projects the supported Requirement subset (`type`, enum/const, constraints,
+  format, examples and bounded object/array shape) and explicitly lists complex
+  schema keywords that ADCM must not interpret;
 - accepts a valid USER override for an existing schema-known USER/enrichment/default
   value and reports rejected candidates separately from final contract validation;
 - discovers missing requirements from schema;
@@ -178,7 +188,7 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 57 passing tests in total: 38 ADCM tests and 19 Contract
+The two service suites have 67 passing tests in total: 46 ADCM tests and 21 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -225,6 +235,13 @@ reuse of a stored LLM UserFact without its raw source message. The mocked provid
 test also verifies pending/overridable/UserFact prompt context and the absence of the
 whole contract payload.
 
+Stage 06 covers new required string and enum fields whose paths do not occur in ADCM
+production code, case-insensitive enum normalization, generic scalar constraints,
+URI/date formats, `array<object>` on an unrelated path, dynamic CLI input selection
+and a controlled unsupported-`anyOf` flow that neither guesses nor invokes the LLM.
+Forge tests verify that new schema fields are discovered, projected and still
+validated authoritatively.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -235,9 +252,8 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Continue with Stage 06 schema-driven requirements from the staged plan.
-2. Complete the staged E2E/cleanup pass.
-3. After the staged series, add Schema Explorer/repository lookup and a schema/rules
+1. Complete Stage 07 E2E and cleanup from the staged plan.
+2. After the staged series, add Schema Explorer/repository lookup and a schema/rules
    compatibility gate.
 
 ## 9. Do not accidentally regress
@@ -363,26 +379,44 @@ UserFact store with `extraction_method=LLM`.
   falls outside the resolver prompt window; no summarization service or vector store
   was added.
 
-## 16. Last change
+## 16. Stage 06 schema-driven requirements implementation map
+
+- `HeuristicResolver` no longer receives the contract snapshot. It dispatches from
+  `Requirement.value_schema` to enum/const, boolean, integer/number, string pattern,
+  URI/date/email format and Stage 04 array/object handlers.
+- Enum matching is case-insensitive and permits fuzzy correction only above a high
+  threshold with an unambiguous winning choice. Failed enum matching cannot fall
+  through to the generic string handler.
+- `metadata.id` and `metadata.owner` remain only inside
+  `LabeledContractFieldResolver`: they preserve useful `pipeline:`, `owner:` and
+  email extraction that standard schema metadata cannot represent. URI extraction
+  is no longer path-specific; Forge schemas now expose standard `format: uri`.
+- Forge adds `unsupported_schema_keywords` to Requirement for complex constructs in
+  the bounded projected fragment. ADCM stops deterministic/semantic inference at
+  such a field, asks for explicit JSON and still sends that candidate to Forge for
+  validation; it does not implement `anyOf`/`allOf`/conditional semantics.
+- `AssistantTurn.pending_requirement` exposes the same Requirement metadata to thin
+  clients. The CLI chooses multiline entry from the `array<object>` shape instead of
+  checking `source.columns`.
+
+## 17. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 05.
-Changed files/classes: SemanticResolver/ExtractionResult prompt contract;
-  ADCMOrchestrator controlled semantic fallback, evidence/sequence enforcement and
-  debug logging; ADCMSettings confidence threshold; focused T1-T6 and provider-prompt
-  tests. No Contract Forge production code changed and no new ADR was required.
-Behavior now: LLM extraction runs only after deterministic resolution fails and only
-  for Forge-exposed semantic fields before the next explicit gate. Accepted results
-  become sequenced LLM UserFacts and are submitted to Forge with origin USER; illegal,
-  ambiguous or low-confidence results are ignored and the user receives the normal
-  precise Forge question.
-Tests run/result: ADCM 38 passed and Forge 19 passed. The mocked OpenAI-compatible
-  transport still uses JSON object mode and verifies the constrained prompt. Forge
+Last change: completed user-priority/fact-store Stage 06.
+Changed files/classes: Forge Requirement/schema projection and URI annotations;
+  ADCM schema-driven HeuristicResolver handlers, isolated labeled-field specialization,
+  unsupported-schema clarification, AssistantTurn pending metadata and dynamic CLI
+  multiline selection; focused T1-T4 and regression tests. No new ADR was required.
+Behavior now: ordinary new required scalar/enum fields and array/object shapes are
+  handled from Forge Requirement metadata without orchestrator path changes. Complex
+  unsupported constructs are reported instead of interpreted, and only explicit JSON
+  can reach Forge for final validation. UserFact recency and origin precedence are
+  unchanged.
+Tests run/result: ADCM 46 passed and Forge 21 passed. Forge
   retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
   dependency.
 Known issues remaining: dataFieldId is not present in the current contract schema;
   raw semantic transcript context remains a 20-user-message window, while UserFacts
   preserve already extracted values; repository duplicate lookup remains planned.
-Next concrete task: Stage 06 from docs/user_priority_and_fact_store, without pulling
-  in later unrelated behavior.
+Next concrete task: Stage 07 E2E/cleanup, without pulling in later unrelated behavior.
 ```

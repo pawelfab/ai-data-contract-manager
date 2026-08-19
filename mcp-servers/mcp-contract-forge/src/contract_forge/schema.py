@@ -9,6 +9,24 @@ from .models import AppliedValue, Origin, Requirement, ValidationIssue
 from .path_utils import get_path, has_path, write_value
 
 
+UNSUPPORTED_REQUIREMENT_KEYWORDS = frozenset(
+    {
+        "allOf",
+        "anyOf",
+        "contains",
+        "dependentRequired",
+        "dependentSchemas",
+        "else",
+        "if",
+        "not",
+        "oneOf",
+        "prefixItems",
+        "then",
+        "unevaluatedItems",
+    }
+)
+
+
 class SchemaNavigator:
     """Small dynamic JSON Schema navigator for the contract subset used by ADCM.
 
@@ -93,6 +111,7 @@ class SchemaNavigator:
                 or f"Podaj wartość dla {path}."
             ),
             value_schema=self.public_schema(node),
+            unsupported_schema_keywords=self.unsupported_requirement_keywords(node),
             allowed_values=self.allowed_values(node),
         )
 
@@ -193,6 +212,7 @@ class SchemaNavigator:
                             path=child_path,
                             question=question_for(child, child_path),
                             value_schema=self.public_schema(child),
+                            unsupported_schema_keywords=self.unsupported_requirement_keywords(child),
                             allowed_values=self.allowed_values(child),
                         )
                     )
@@ -239,6 +259,7 @@ class SchemaNavigator:
                         path=child_path,
                         question=child.get("x-acdm-question") or child.get("description") or f"Podaj wartość dla {child_path}.",
                         value_schema=self.public_schema(child),
+                        unsupported_schema_keywords=self.unsupported_requirement_keywords(child),
                         allowed_values=self.allowed_values(child),
                     )
                 )
@@ -292,6 +313,30 @@ class SchemaNavigator:
                     if isinstance(child, dict)
                 }
         return public
+
+    def unsupported_requirement_keywords(
+        self,
+        node: dict[str, Any],
+        *,
+        depth: int = 2,
+    ) -> list[str]:
+        """Report schema constructs ADCM must not interpret for this requirement."""
+        found: set[str] = set()
+
+        def walk(candidate: dict[str, Any], remaining: int) -> None:
+            candidate = self.active_node(candidate)
+            found.update(UNSUPPORTED_REQUIREMENT_KEYWORDS.intersection(candidate))
+            if remaining <= 0:
+                return
+            if candidate.get("type") == "array" and isinstance(candidate.get("items"), dict):
+                walk(candidate["items"], remaining - 1)
+            if candidate.get("type") == "object":
+                for child in candidate.get("properties", {}).values():
+                    if isinstance(child, dict):
+                        walk(child, remaining - 1)
+
+        walk(node, depth)
+        return sorted(found)
 
     @staticmethod
     def allowed_values(node: dict[str, Any]) -> list[Any] | None:

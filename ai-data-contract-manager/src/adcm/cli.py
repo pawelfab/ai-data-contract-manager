@@ -4,13 +4,26 @@ import argparse
 import asyncio
 import json
 
+from .models import Requirement
 from .runtime import build_orchestrator
 from .settings import load_settings
 
 
-def _read_answer(pending_path: str | None) -> str:
-    if pending_path == "source.columns":
-        print("Wklej kolumny (JSON albo po jednej kolumnie na linię). Zakończ pustą linią:")
+def _uses_multiline_input(requirement: Requirement | None) -> bool:
+    if requirement is None or requirement.unsupported_schema_keywords:
+        return False
+    schema = requirement.value_schema
+    items = schema.get("items")
+    return (
+        schema.get("type") == "array"
+        and isinstance(items, dict)
+        and items.get("type") == "object"
+    )
+
+
+def _read_answer(requirement: Requirement | None) -> str:
+    if _uses_multiline_input(requirement):
+        print("Wklej elementy (JSON albo po jednym rekordzie na linię). Zakończ pustą linią:")
         lines: list[str] = []
         while True:
             line = input()
@@ -45,7 +58,7 @@ async def run(verbose: bool) -> None:
                     print("\n--- INVALID CONTRACT ---")
                     print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
                     return
-                answer = _read_answer(turn.pending_path)
+                answer = _read_answer(turn.pending_requirement)
                 if answer.strip().lower() in {"quit", "exit", ":q"}:
                     return
                 turn = await service.message(turn.session_id, answer)

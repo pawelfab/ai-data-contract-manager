@@ -47,6 +47,7 @@ class Requirement(BaseModel):
     reason: Literal["source_system", "required", "one_of", "invalid"] = "required"
     input_mode: Literal["explicit", "semantic"] = "semantic"
     value_schema: dict[str, Any] = Field(default_factory=dict)
+    unsupported_schema_keywords: list[str] = Field(default_factory=list)
     allowed_values: list[Any] | None = None
     current_value: Any | None = None
     current_origin: Origin | None = None

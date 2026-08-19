@@ -17,6 +17,7 @@ def test_api_session_starts_with_source_system_question():
         body = started.json()
         assert body['status'] == 'needs_input'
         assert body['pending_path'] == 'metadata.sourceSystemGcpId'
+        assert body['pending_requirement']['value_schema']['enum'] == ['rocket', 'sap']
 
         answered = client.post(
             f"/sessions/{body['session_id']}/messages",
