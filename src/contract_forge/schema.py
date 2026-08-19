@@ -167,7 +167,6 @@ class SchemaNavigator:
                         Requirement(
                             path=child_path,
                             question=question_for(child, child_path),
-                            input_mode=self.input_mode(child),
                             value_schema=self.public_schema(child),
                             allowed_values=self.allowed_values(child),
                         )
@@ -213,7 +212,6 @@ class SchemaNavigator:
                 out.append(
                     Requirement(
                         path=child_path,
-                        input_mode=self.input_mode(child),
                         question=child.get("x-acdm-question") or child.get("description") or f"Podaj wartość dla {child_path}.",
                         value_schema=self.public_schema(child),
                         allowed_values=self.allowed_values(child),
@@ -234,10 +232,6 @@ class SchemaNavigator:
     def public_schema(node: dict[str, Any]) -> dict[str, Any]:
         keep = {"type", "enum", "const", "pattern", "minimum", "maximum", "minLength", "maxLength", "minItems", "description", "examples", "format"}
         return {k: deepcopy(v) for k, v in node.items() if k in keep}
-
-    @staticmethod
-    def input_mode(node: dict[str, Any]) -> str:
-        return "explicit" if node.get("x-acdm-input-mode") == "explicit" else "semantic"
 
     @staticmethod
     def allowed_values(node: dict[str, Any]) -> list[Any] | None:

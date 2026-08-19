@@ -57,8 +57,8 @@ tests/
 `ContractForge`:
 - owns canonical session state;
 - exposes source-system gate;
-- labels requirements as `explicit` or `semantic`, using
-  `x-acdm-input-mode` from the schema where applicable;
+- labels requirements as `explicit` or `semantic`, using the workflow policy from
+  `ux_rules_contract_v1.json`;
 - accepts only currently allowed/pending paths;
 - applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
 - discovers missing requirements from schema;
@@ -78,9 +78,10 @@ Source system typo matching is implemented; identifiers are normalized (e.g. upp
 
 The source-system gate, source-type discriminator and `metadata.id` are explicit
 workflow gates. They are handled by deterministic parsing/Pydantic validation and
-Forge validation, without LLM extraction. The current `contract.json` does not
-define `dataFieldId`; when the contract owner adds it, marking it with
-`"x-acdm-input-mode": "explicit"` gives it the same behavior without changing ADCM.
+Forge validation, without LLM extraction. `contract.json` remains read-only input
+and contains no ADCM workflow annotations. The current contract does not define
+`dataFieldId`; its future path is already classified as `explicit` in the UX rules,
+so it will receive the same behavior when the contract owner adds the field.
 
 ## 4. Known bug/UX problem — `source.columns`
 
@@ -162,15 +163,14 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The current suite has 18 passing tests. Coverage now includes settings validation,
+The current suite has 19 passing tests. Coverage now includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
 
 Selective LLM routing is covered as well: source-system and `metadata.id` gates do
 not reach the semantic resolver, a source-type discriminator is explicit, and a
-future schema-defined `dataFieldId` can opt out of LLM extraction through schema
-metadata.
+future schema-defined `dataFieldId` receives its input mode from UX rules.
 
 A live semantic extraction was also verified against
 `http://127.0.0.1:3030/v1` with model `auto`; it returned the expected candidate and
@@ -201,12 +201,14 @@ While fixing the above, preserve:
 ## 10. Last change
 
 ```text
-Last change: schema-driven selective LLM routing for explicit workflow gates.
-Changed files/classes: Requirement.input_mode, SchemaNavigator.input_mode,
-  ContractForge source gates, ADCMOrchestrator._semantic_prefix, contract schema and tests.
+Last change: UX-rule-driven selective LLM routing for explicit workflow gates.
+Changed files/classes: Requirement.input_mode, RuleEngine.input_mode,
+  ContractForge requirement classification, ADCMOrchestrator._semantic_prefix,
+  ux_rules_contract_v1.json and tests.
 Behavior now: source system, source type and metadata.id are resolved without LLM;
-  schema owners can mark future fields such as dataFieldId with x-acdm-input-mode.
-Tests run/result: 18 passed; focused selective-routing tests passed.
+  future fields such as dataFieldId can be classified in UX rules without modifying
+  contract.json.
+Tests run/result: 19 passed; focused selective-routing tests passed.
 Known issues remaining: source.columns partial-input UX; real MCP HTTP end-to-end;
   dataFieldId is not present in the current contract schema; repository duplicate lookup
   is planned; pyproject requires Pydantic AI >=2.32 while the checked lock/venv contain 1.107.1.

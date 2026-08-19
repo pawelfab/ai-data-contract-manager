@@ -83,8 +83,7 @@
           "examples": [
             "customer_accounts_daily"
           ],
-          "x-acdm-question": "Jak ma się nazywać pipeline?",
-          "x-acdm-input-mode": "explicit"
+          "x-acdm-question": "Jak ma się nazywać pipeline?"
         },
         "version": {
           "type": "string",
@@ -110,8 +109,7 @@
             "ROCKET",
             "SAP"
           ],
-          "x-acdm-question": "Jaki jest identyfikator systemu źródłowego?",
-          "x-acdm-input-mode": "explicit"
+          "x-acdm-question": "Jaki jest identyfikator systemu źródłowego?"
         },
         "description": {
           "type": "string",

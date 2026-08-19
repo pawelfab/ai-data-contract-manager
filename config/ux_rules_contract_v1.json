@@ -1,6 +1,14 @@
 {
   "version": "2.0-contract-v1",
   "migration_note": "Rules adapted from ux_rules_new.json to the paths that exist in the attached contract.json. Unsupported legacy rules are documented separately.",
+  "workflow": {
+    "input_modes": {
+      "metadata.sourceSystemGcpId": "explicit",
+      "source.sourceType": "explicit",
+      "metadata.id": "explicit",
+      "metadata.dataFieldId": "explicit"
+    }
+  },
   "defaults": {
     "rules": [
       {

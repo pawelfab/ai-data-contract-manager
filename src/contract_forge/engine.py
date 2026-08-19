@@ -136,7 +136,7 @@ class ContractForge:
                     path="metadata.sourceSystemGcpId",
                     question="Jaki jest system źródłowy?",
                     reason="source_system",
-                    input_mode="explicit",
+                    input_mode=self.rule_engine.input_mode("metadata.sourceSystemGcpId"),
                     value_schema={"type": "string", "enum": systems},
                     allowed_values=systems,
                 )
@@ -149,12 +149,15 @@ class ContractForge:
                     path="source.sourceType",
                     question="Jaki jest typ źródła danych?",
                     reason="one_of",
-                    input_mode="explicit",
+                    input_mode=self.rule_engine.input_mode("source.sourceType"),
                     value_schema={"type": "string", "enum": choices},
                     allowed_values=choices,
                 )
             ]
-        return self.navigator.missing_requirements(session.contract)
+        requirements = self.navigator.missing_requirements(session.contract)
+        for requirement in requirements:
+            requirement.input_mode = self.rule_engine.input_mode(requirement.path)
+        return requirements
 
     def _source_type_choices(self, session: SessionData) -> list[str]:
         if session.source_system:

@@ -126,10 +126,11 @@ This is a lightweight ADR log. Add a new entry only for a durable decision, not 
 
 **Status:** Accepted
 
-**Decision:** Forge exposes an input mode for each requirement. Schema-defined fields
-use `x-acdm-input-mode: explicit` when they must be answered through deterministic
-parsing/Pydantic and Forge validation without LLM extraction. Generated workflow
-gates may set the same mode directly. All other requirements default to `semantic`.
+**Decision:** Forge exposes an input mode for each requirement. The workflow section
+of `ux_rules_contract_v1.json` maps contract paths to `explicit` when they must be
+answered through deterministic parsing/Pydantic and Forge validation without LLM
+extraction. All other requirements default to `semantic`. `contract.json` is never
+modified to carry ADCM workflow policy.
 
 **Why:** Source selection and core identifiers determine later branches and future
 repository lookups. They must remain predictable, auditable and explicitly confirmed.
@@ -137,8 +138,8 @@ repository lookups. They must remain predictable, auditable and explicitly confi
 **Consequence:** ADCM may invoke the LLM only for the semantic prefix before the next
 explicit gate; it never sends an explicit requirement to the semantic resolver.
 The current source-system gate, source-type discriminator and `metadata.id` are
-explicit. A future `dataFieldId` receives the same behavior through schema metadata;
-ADCM does not create that field while it is absent from `contract.json`.
+explicit. The UX rules already classify the future `metadata.dataFieldId`; ADCM does
+not create that field while it is absent from `contract.json`.
 
 ---
 

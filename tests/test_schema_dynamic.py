@@ -4,9 +4,21 @@ from pathlib import Path
 
 from contract_forge.engine import ContractForge
 from contract_forge.models import Origin
-from contract_forge.schema import SchemaNavigator
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_input_mode_policy_lives_only_in_ux_rules():
+    schema_text = (ROOT / "config" / "contract.json").read_text(encoding="utf-8")
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
+
+    assert "x-acdm-input-mode" not in schema_text
+    assert rules["workflow"]["input_modes"] == {
+        "metadata.sourceSystemGcpId": "explicit",
+        "source.sourceType": "explicit",
+        "metadata.id": "explicit",
+        "metadata.dataFieldId": "explicit",
+    }
 
 
 def test_new_required_metadata_field_is_discovered_without_adcm_code_change(tmp_path):
@@ -51,20 +63,24 @@ def test_system_with_multiple_source_types_reveals_source_type_choice():
     assert state.pending[0].path == "metadata.id"
 
 
-def test_future_data_field_id_can_opt_out_of_llm_through_schema_metadata():
+def test_future_data_field_id_uses_input_mode_from_ux_rules():
     schema = json.loads((ROOT / "config" / "contract.json").read_text(encoding="utf-8"))
+    rules = json.loads((ROOT / "config" / "ux_rules_contract_v1.json").read_text(encoding="utf-8"))
     metadata = schema["$defs"]["Metadata"]
     metadata["required"].append("dataFieldId")
     metadata["properties"]["dataFieldId"] = {
         "type": "string",
         "minLength": 1,
         "x-acdm-question": "Jaki jest identyfikator pola danych?",
-        "x-acdm-input-mode": "explicit",
     }
 
-    requirements = SchemaNavigator(schema).missing_requirements(
-        {"metadata": {"version": "1.0.0"}}
+    forge = ContractForge(schema, rules, deploy_env="dev")
+    state = forge.start_session()
+    state = forge.submit_values(
+        state.session_id,
+        {"metadata.sourceSystemGcpId": "sap"},
+        Origin.USER,
     )
-    data_field = next(r for r in requirements if r.path == "metadata.dataFieldId")
+    data_field = next(r for r in state.pending if r.path == "metadata.dataFieldId")
 
     assert data_field.input_mode == "explicit"

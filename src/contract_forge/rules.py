@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
-from typing import Any
+from typing import Any, Literal
 
 from .models import AppliedValue, Origin, RuleIssue
 from .path_utils import get_path, has_path, set_path
@@ -23,6 +23,14 @@ class RuleEngine:
 
     def source_types(self, system: str) -> list[str]:
         return list(self.rules.get("systems", {}).get(system, {}).get("source_types", []))
+
+    def input_mode(self, path: str) -> Literal["explicit", "semantic"]:
+        configured = self.rules.get("workflow", {}).get("input_modes", {}).get(path)
+        if configured is None:
+            return "semantic"
+        if configured not in {"explicit", "semantic"}:
+            raise ValueError(f"Unsupported input mode for {path}: {configured!r}")
+        return configured
 
     def apply_system_source_type(
         self,
