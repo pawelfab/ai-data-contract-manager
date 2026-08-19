@@ -1,0 +1,110 @@
+{
+  "version": "1.0",
+  "supported_actions": [
+    "set_default",
+    "copy_value",
+    "format_value"
+  ],
+  "defaults": {
+    "rules": [
+      {
+        "id": "converter.output.format.parquet",
+        "action": "set_default",
+        "when_path": "converter.enabled",
+        "when_value": true,
+        "path": "converter.output.format",
+        "value": "parquet"
+      }
+    ]
+  },
+  "systems": {
+    "ROCKET": {
+      "rules": [
+        {
+          "id": "rocket.source.type.fixed_width",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "ROCKET",
+          "path": "source.sourceType",
+          "value": "fixed_width"
+        },
+        {
+          "id": "rocket.metadata.version",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "ROCKET",
+          "path": "metadata.version",
+          "value": "1.0.0"
+        },
+        {
+          "id": "rocket.metadata.owner",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "ROCKET",
+          "path": "metadata.owner",
+          "value": "rocket team"
+        },
+        {
+          "id": "rocket.preparator.enabled",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "ROCKET",
+          "path": "preparator.enabled",
+          "value": true
+        },
+        {
+          "id": "rocket.preparator.unpack.enabled",
+          "action": "set_default",
+          "when_path": "preparator.enabled",
+          "when_value": true,
+          "path": "preparator.operations.unpack.enabled",
+          "value": true
+        },
+        {
+          "id": "rocket.preparator.unpack.format.zip",
+          "action": "set_default",
+          "when_path": "preparator.operations.unpack.enabled",
+          "when_value": true,
+          "path": "preparator.operations.unpack.format",
+          "value": "zip"
+        },
+        {
+          "id": "rocket.converter.enabled",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "ROCKET",
+          "path": "converter.enabled",
+          "value": true
+        }
+      ]
+    },
+    "SAP": {
+      "rules": [
+        {
+          "id": "sap.source.type.csv",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "SAP",
+          "path": "source.sourceType",
+          "value": "csv"
+        },
+        {
+          "id": "sap.preparator.disabled",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "SAP",
+          "path": "preparator.enabled",
+          "value": false
+        },
+        {
+          "id": "sap.converter.enabled",
+          "action": "set_default",
+          "when_path": "metadata.sourceSystemGcpId",
+          "when_value": "SAP",
+          "path": "converter.enabled",
+          "value": true
+        }
+      ]
+    }
+  }
+}

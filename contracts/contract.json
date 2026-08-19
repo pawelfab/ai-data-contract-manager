@@ -16,6 +16,14 @@
       "$ref": "#/$defs/Metadata",
       "description": "Identyfikacja i opis kontraktu."
     },
+    "converter": {
+      "$ref": "#/$defs/ConverterConfig",
+      "description": "Opcjonalny etap normalizacji źródła do formatu docelowego."
+    },
+    "preparator": {
+      "$ref": "#/$defs/PreparatorConfig",
+      "description": "Opcjonalny etap przygotowania źródła przed konwersją."
+    },
     "source": {
       "description": "Dokładnie jeden wariant źródła danych.",
       "discriminator": {
@@ -92,6 +100,16 @@
           "examples": [
             "data-platform@example.com"
           ]
+        },
+        "sourceSystemGcpId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identyfikator systemu źródłowego używany przez reguły enrichmentu.",
+          "examples": [
+            "ROCKET",
+            "SAP"
+          ],
+          "x-acdm-question": "Jaki jest identyfikator systemu źródłowego?"
         },
         "description": {
           "type": "string",
@@ -486,7 +504,7 @@
           "type": "array",
           "minItems": 1,
           "items": {
-            "$ref": "#/$defs/FixedWidthColumn"
+            "$ref": "#/$defs/FixedWidthColumnConfig"
           },
           "description": "Kolumny wraz z półotwartymi zakresami start/end.",
           "examples": [
@@ -1533,6 +1551,39 @@
       ]
     },
     "ConverterConfig": {
+      "title": "ConverterConfig",
+      "description": "Konfiguracja normalizacji źródła do formatu docelowego.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "output"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Czy etap converter jest aktywny."
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format"
+          ],
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": [
+                "parquet",
+                "orc",
+                "avro"
+              ],
+              "default": "parquet"
+            }
+          }
+        }
+      },
       "x-contract-rules": [
         {
           "id": "converter.output_target_required",
@@ -1555,6 +1606,22 @@
       ]
     },
     "DecryptConfig": {
+      "title": "DecryptConfig",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
       "x-contract-rules": [
         {
           "id": "preparator.decrypt.spec_required_when_enabled",
@@ -1565,6 +1632,7 @@
       ]
     },
     "FixedWidthColumnConfig": {
+      "$ref": "#/$defs/FixedWidthColumn",
       "x-contract-rules": [
         {
           "id": "converter.fixed_width_column.length_matches_bounds",
@@ -1581,6 +1649,31 @@
       ]
     },
     "PreparatorConfig": {
+      "title": "PreparatorConfig",
+      "description": "Konfiguracja przygotowania źródła przed konwersją.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "operations": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "decrypt": {
+              "$ref": "#/$defs/DecryptConfig"
+            },
+            "unpack": {
+              "$ref": "#/$defs/UnpackConfig"
+            }
+          }
+        }
+      },
       "x-contract-rules": [
         {
           "id": "preparator.enabled_requires_operation",
@@ -1627,6 +1720,29 @@
       ]
     },
     "UnpackConfig": {
+      "title": "UnpackConfig",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "zip",
+            "gzip",
+            "bzip2",
+            "tar",
+            "tar.gz",
+            "7z"
+          ]
+        }
+      },
       "x-contract-rules": [
         {
           "id": "preparator.unpack.format_required_when_enabled",

@@ -1,9 +1,11 @@
 import json
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 
 REPOSITORY_ROOT = Path(__file__).parents[1]
-SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "data-contract.schema.json"
+SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "contract.json"
 RULE_SOURCE_PATH = REPOSITORY_ROOT / "examples" / "contract-rules.json"
 RULE_FIELDS = ("id", "kind", "message", "path")
 
@@ -44,7 +46,16 @@ def test_schema_includes_every_legacy_contract_rule_in_existing_style() -> None:
 
 
 def test_schema_and_active_examples_are_valid_json() -> None:
-    read_json(SCHEMA_PATH)
+    schema = read_json(SCHEMA_PATH)
+    Draft202012Validator.check_schema(schema)
+    assert set(schema["properties"]) >= {
+        "metadata",
+        "source",
+        "converter",
+        "preparator",
+        "targets",
+        "orchestration",
+    }
 
     for example_path in (REPOSITORY_ROOT / "examples").glob("*.contract.json"):
         read_json(example_path)

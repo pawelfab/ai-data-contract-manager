@@ -15,6 +15,7 @@ Evidence: `readme.md`, `LLM_REPO_GUIDE.md`, `src/adcm/domain/models.py::Conversa
 - A caller/UI sends user text and a session UUID to `ChatService.handle_user_message`.
 - A `SemanticInterpreterPort` implementation extracts typed meaning; `PydanticAIInterpreter` is the optional model-backed adapter.
 - Stateless Contract Forge implements `ContractForgePort.evaluate_draft`, `validate_final`, and `render_yaml`.
+- Contract Forge consumes `contracts/contract.json` together with `contracts/ux_rules.json`; the reference package does not evaluate those artifacts inside ADCM.
 - Future MCPs implement capability handlers and are selected by `CapabilityRouter`.
 
 ## Major runtime components
@@ -52,5 +53,5 @@ Evidence: `readme.md`, `LLM_REPO_GUIDE.md`, `src/adcm/domain/models.py::Conversa
 ## Known gaps
 
 - The repository is a reference package, not a deployed UI/service; no deployment manifest or database migration tree exists.
-- The working tree currently contains a schema-path mismatch: `contracts/contract.json` exists while `tests/test_contract_schema_rules.py` still reads `contracts/data-contract.schema.json`.
+- `contracts/contract.json` exposes the canonical `metadata.sourceSystemGcpId`, `converter`, and `preparator` paths used by the ROCKET/SAP UX rules; legacy rule annotations remain covered by the contract artifact test.
 - Ruff configuration exists in `pyproject.toml`, but Ruff is not installed by current project dependencies and is not a workflow gate.

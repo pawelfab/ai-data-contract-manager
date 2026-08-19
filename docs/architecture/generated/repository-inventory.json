@@ -1,14 +1,22 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-18T21:48:47.756123+00:00",
+  "generated_at": "2026-08-19T06:26:27.418089+00:00",
   "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
   "files": [
     {
       "path": "contracts/contract.json",
       "language": "JSON",
-      "bytes": 49747,
-      "lines": 1744,
-      "sha256": "98835eaf9f13f6832d55949badd34ec53a922df354cbd18d9cb4195f97bae7d0",
+      "bytes": 52755,
+      "lines": 1860,
+      "sha256": "ab6747eefae0fcee3f588adabd7d8b5dac615e9bf25ec1fd70727d17a0d1a3aa",
+      "symbols": []
+    },
+    {
+      "path": "contracts/ux_rules.json",
+      "language": "JSON",
+      "bytes": 3056,
+      "lines": 111,
+      "sha256": "637311135ffa13df25d33fc37d64b4c8cf080a043953394b4f6b607476c034e6",
       "symbols": []
     },
     {

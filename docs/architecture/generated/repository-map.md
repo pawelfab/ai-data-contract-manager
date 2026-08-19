@@ -1,16 +1,21 @@
 # Generated repository map
 
-Generated: `2026-08-18T21:48:47.756123+00:00`
+Generated: `2026-08-19T06:26:27.418089+00:00`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **36**
+Source files indexed: **37**
 
 ## `contracts/`
 
 ### `contracts/contract.json`
 - Language: JSON
-- Lines: 1744
+- Lines: 1860
+- Symbols: none extracted
+
+### `contracts/ux_rules.json`
+- Language: JSON
+- Lines: 111
 - Symbols: none extracted
 
 ## `examples/`
