@@ -54,6 +54,30 @@ def test_user_overrides_system_enrichment_and_keeps_provenance():
     assert schedule_write.rule_id is None
 
 
+def test_state_exposes_schema_descriptions_for_lower_origin_overrides_only():
+    forge, session_id = start_rocket()
+    initial = forge.get_state(session_id)
+    overridable = {field.path: field for field in initial.overridable}
+
+    schedule = overridable["orchestration.schedule"]
+    assert schedule.current_value == "0 0 * * *"
+    assert schedule.current_origin == Origin.SYSTEM_ENRICHMENT
+    assert schedule.value_schema["pattern"] == r"^\S+(?:\s+\S+){4}$"
+    assert "metadata.version" in overridable
+    assert "converter.output.format" in overridable
+    assert "metadata.sourceSystemGcpId" not in overridable
+
+    updated = forge.submit_values(
+        session_id,
+        {"orchestration.schedule": "0 6 * * *"},
+        Origin.USER,
+    )
+
+    assert "orchestration.schedule" not in {
+        field.path for field in updated.overridable
+    }
+
+
 def test_generic_enrichment_cannot_replace_user_value():
     contract: dict = {}
     origins: dict[str, Origin] = {}

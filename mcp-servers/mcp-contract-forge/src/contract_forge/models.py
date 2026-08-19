@@ -21,6 +21,14 @@ ORIGIN_PRIORITY: dict[Origin, int] = {
     Origin.STRUCTURAL: 10,
 }
 
+OVERRIDABLE_ORIGINS = frozenset(
+    {
+        Origin.SYSTEM_ENRICHMENT,
+        Origin.GENERIC_ENRICHMENT,
+        Origin.SCHEMA_DEFAULT,
+    }
+)
+
 
 def can_replace(current: Origin | None, candidate: Origin) -> bool:
     """Return whether a candidate origin may replace the current value origin."""
@@ -40,6 +48,8 @@ class Requirement(BaseModel):
     input_mode: Literal["explicit", "semantic"] = "semantic"
     value_schema: dict[str, Any] = Field(default_factory=dict)
     allowed_values: list[Any] | None = None
+    current_value: Any | None = None
+    current_origin: Origin | None = None
 
 
 class ValidationIssue(BaseModel):
@@ -68,6 +78,7 @@ class ForgeState(BaseModel):
     origins: dict[str, str] = Field(default_factory=dict)
     status: Literal["needs_input", "complete", "invalid"] = "needs_input"
     pending: list[Requirement] = Field(default_factory=list)
+    overridable: list[Requirement] = Field(default_factory=list)
     validation_errors: list[ValidationIssue] = Field(default_factory=list)
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)

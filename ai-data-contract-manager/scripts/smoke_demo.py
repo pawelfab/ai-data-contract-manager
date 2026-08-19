@@ -9,15 +9,23 @@ async def main():
     async with service.gateway:
         try:
             turn = await service.start()
-            answers = [
-                "roket",
-                "customer_accounts_daily",
-                "data-platform@example.com",
-                "gs://raw-zone/accounts/accounts.dat",
+            turn = await service.message(turn.session_id, "0 6 * * *")
+            turn = await service.message(
+                turn.session_id,
+                "Rocket. pipeline: customer_accounts_daily; "
+                "owner: data-platform@example.com; "
+                "uri: gs://raw-zone/accounts/accounts.dat",
+            )
+            assert turn.pending_path == "source.columns", turn.model_dump(mode="json")
+            assert turn.contract["orchestration"]["schedule"] == "0 6 * * *", (
+                service.sessions[turn.session_id].facts,
+                turn.candidate_issues,
+            )
+
+            turn = await service.message(
+                turn.session_id,
                 "account_id 0 8 STRING NOT NULL\nbalance 8 20 NUMERIC",
-            ]
-            for answer in answers:
-                turn = await service.message(turn.session_id, answer)
+            )
             assert turn.status == "complete", turn.validation_errors
             print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
         finally:

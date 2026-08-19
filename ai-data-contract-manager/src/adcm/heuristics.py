@@ -96,6 +96,15 @@ class HeuristicResolver:
                 return choice
 
         typ = req.value_schema.get("type")
+        pattern = req.value_schema.get("pattern")
+        description = _ascii(str(req.value_schema.get("description", ""))).lower()
+        if typ == "string" and isinstance(pattern, str) and "cron" in description:
+            try:
+                if re.fullmatch(pattern, stripped) and self._unambiguous_pattern_value(req, stripped):
+                    return stripped
+            except re.error:
+                # Forge remains responsible for schema correctness and validation.
+                pass
         if typ == "boolean":
             low = _ascii(stripped).lower()
             if low in {"tak", "yes", "true", "1"}:
@@ -107,6 +116,19 @@ class HeuristicResolver:
         if typ == "string" and allow_plain_fallback and stripped:
             return stripped
         return None
+
+    @staticmethod
+    def _unambiguous_pattern_value(req: Requirement, value: str) -> bool:
+        description = _ascii(str(req.value_schema.get("description", ""))).lower()
+        if "cron" not in description:
+            return True
+        # A permissive five-token schema pattern also matches ordinary sentences.
+        # For automatic extraction accept only an unmistakable numeric cron form;
+        # Forge still performs the authoritative schema validation afterwards.
+        return all(
+            re.fullmatch(r"[0-9*/?,\-]+", token) is not None
+            for token in value.split()
+        )
 
     @staticmethod
     def _fuzzy_choice(value: str, choices: list[str]) -> str | None:

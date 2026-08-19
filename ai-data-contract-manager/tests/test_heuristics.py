@@ -40,3 +40,34 @@ def test_parse_fixed_width_columns():
     assert out["source.columns"][0]["start"] == 0
     assert out["source.columns"][0]["end"] == 8
     assert out["source.columns"][0]["nullable"] is False
+
+
+def test_strict_history_accepts_unambiguous_cron_but_not_generic_pattern_matches():
+    resolver = HeuristicResolver()
+    cron = Requirement(
+        path="orchestration.schedule",
+        question="schedule",
+        value_schema={
+            "type": "string",
+            "pattern": r"^\S+(?:\s+\S+){4}$",
+            "description": "Harmonogram w formacie Linux cron.",
+        },
+    )
+    identifier = Requirement(
+        path="metadata.id",
+        question="id",
+        value_schema={"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+    )
+
+    assert resolver.extract(
+        "0 6 * * *", [cron], {}, allow_plain_fallback=False
+    ) == {"orchestration.schedule": "0 6 * * *"}
+    assert resolver.extract(
+        "this ordinary sentence has five words",
+        [cron],
+        {},
+        allow_plain_fallback=False,
+    ) == {}
+    assert resolver.extract(
+        "rocket", [identifier], {}, allow_plain_fallback=False
+    ) == {}

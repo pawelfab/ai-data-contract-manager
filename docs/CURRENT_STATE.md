@@ -39,12 +39,13 @@ entry points and virtual environments.
 - presents the first pending requirement;
 - assigns a monotonic sequence to every user message while preserving the full
   transcript;
-- on each user message tries deterministic extraction against current pending paths;
+- on each user message tries deterministic extraction against current `pending` and
+  Forge-exposed `overridable` paths;
 - records deterministically extracted values as latest per-path `UserFact` entries;
-- if deterministic extraction yields no values, invokes the semantic resolver only
-  for the semantic requirements before the next explicit workflow gate;
-- never sends an `explicit` requirement to the LLM;
-- then runs a bounded stair-step loop to reuse earlier conversation facts for newly exposed pending requirements;
+- runs a bounded stair-step loop that checks the UserFact store first, then scans
+  user messages newest-to-oldest, and submits one USER candidate per step;
+- detects no-progress, rejected/repeated candidates and the maximum step limit;
+- deliberately does not invoke the semantic resolver in Stage 03;
 - presents the first remaining requirement or completion/validation state.
 
 ADCM has no import-time or packaging dependency on `contract_forge`. Its local
@@ -59,6 +60,8 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
 - accepts only currently allowed/pending paths;
 - applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
 - applies every canonical value through one origin-precedence write function;
+- exposes schema-described `overridable` fields whose current origin is system
+  enrichment, generic enrichment or schema default;
 - accepts a valid USER override for an existing schema-known USER/enrichment/default
   value and reports rejected candidates separately from final contract validation;
 - discovers missing requirements from schema;
@@ -123,7 +126,10 @@ for local development, while process environment variables retain precedence for
 Cloud Run and other deployments. Enabled providers and model names are observable
 without exposing `OPENAI_API_KEY`.
 
-The runtime still defaults to `NoopSemanticResolver`. Enable Pydantic AI with:
+The runtime still defaults to `NoopSemanticResolver` and can construct the Pydantic
+AI resolver when configured. Stage 03 deliberately does not invoke either resolver;
+the configuration below remains available for resolver tests and the later controlled
+semantic-fallback stage:
 
 ```text
 ADCM_LLM_MODE=pydantic
@@ -140,10 +146,10 @@ OPENAI_API_KEY=local-gateway
 ```
 
 `model_factory.build_pydantic_ai_model()` constructs an `OpenAIChatModel` with a
-gateway compatibility profile. Structured extraction uses JSON object mode rather
-than `tool_choice=required`, which the verified gateway rejects. The result is still
-validated as `ExtractionResult`, filtered to current Forge requirements, and then
-submitted to Forge for canonical validation.
+gateway compatibility profile. The resolver component uses JSON object mode rather
+than `tool_choice=required`, which the verified gateway rejects. Its result is
+validated as `ExtractionResult` and filtered to Forge-exposed requirements, but the
+orchestrator does not consume it until the planned semantic-fallback stage.
 
 Vertex remains supported through `ADCM_LLM_PROVIDER=vertex`, `ADCM_VERTEX_MODEL`,
 `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION`.
@@ -163,15 +169,15 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 36 passing tests in total: 19 ADCM tests and 17 Contract
+The two service suites have 42 passing tests in total: 24 ADCM tests and 18 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
 
-Selective LLM routing is covered as well: source-system and `metadata.id` gates do
-not reach the semantic resolver, a source-type discriminator is explicit, and a
-future schema-defined `dataFieldId` receives its input mode from UX rules.
+Stage 03 keeps the semantic resolver disabled in the orchestrator. Resolver/model
+factory tests remain in place for the later semantic-fallback stage, while current
+orchestrator tests assert that no LLM call occurs.
 
 The Stage 00 baseline regression explicitly protects the source-system-first gate,
 the next requirement exposed by Forge, two automatic history-driven submissions,
@@ -192,6 +198,12 @@ sequence with a preserved transcript, and integration between deterministic
 orchestrator extraction and conversation memory. Semantic resolver results are
 deliberately not stored as facts yet.
 
+Stage 03 covers facts supplied before Forge reveals their requirements, latest USER
+fact selection, USER override of a system-enriched schedule, a single precise question
+when no fact exists, and termination with diagnostics when a candidate makes no
+progress. Forge coverage verifies schema-derived override metadata and removal of an
+override candidate after its origin becomes USER.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -202,8 +214,8 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Implement Stage 03 stair-step reuse and exposure of overridable fields.
-2. Fix the `source.columns` partial-input UX in Stage 04.
+1. Fix the `source.columns` partial-input UX in Stage 04.
+2. Add the controlled LLM fallback only in its planned later stage.
 3. After the staged series, add Schema Explorer/repository lookup and a schema/rules
    compatibility gate.
 
@@ -261,9 +273,8 @@ USER > SYSTEM_ENRICHMENT > GENERIC_ENRICHMENT > SCHEMA_DEFAULT > STRUCTURAL
   `ForgeState.candidate_issues`; they do not make a valid canonical contract invalid;
 - ADCM submits facts extracted deterministically or semantically as `origin=USER`.
 
-Forge does not compare user message sequence. ADCM does not yet have a UserFact store,
-and Forge does not yet expose an `overridable` collection to the orchestrator; those
-remain Stage 02 and Stage 03 respectively.
+Forge does not compare user message sequence. ADCM owns the UserFact store and Forge
+exposes lower-origin values through `ForgeState.overridable` for the Stage 03 loop.
 
 ## 12. Stage 02 user-fact memory implementation map
 
@@ -279,27 +290,42 @@ ADCM conversation memory now owns USER message recency:
 - deterministic extraction from the current message and existing historical scan
   records facts with `extraction_method=DETERMINISTIC` and raw-message evidence.
 
-This stage does not read `facts` as a new input to the stair-step loop, expose Forge
-`overridable` fields, record semantic resolver results as UserFacts, parse partial
-columns, or add persistence. Those remain later stages.
+Stage 03 now reads these facts in the stair-step loop and consumes Forge `overridable`
+fields. Semantic results are still not stored because the LLM is disabled in this
+stage. Partial columns and persistence remain later work.
 
-## 13. Last change
+## 13. Stage 03 stair-step resolution implementation map
+
+- Contract Forge derives `overridable` fields from canonical provenance plus the
+  active schema; no orchestrator path allowlist is used.
+- Every exposed override includes its current value, current origin, public value
+  schema, allowed values and question/description.
+- ADCM evaluates `pending` before `overridable`, checks UserFacts before history,
+  scans history newest-to-oldest and submits exactly one USER candidate per step.
+- Candidate diagnostics are propagated to `AssistantTurn`; unchanged state, a
+  repeated candidate and `max_auto_steps` stop automatic progression.
+- Exact numeric cron extraction is conservative because the contract's five-token
+  regex alone also matches ordinary five-word sentences.
+- LLM fallback, generic array/object parsing and partial structured facts remain out
+  of scope for this stage.
+
+## 14. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 02.
-Changed files/classes: ADCM ChatMessage, ExtractionMethod, UserFact,
-  ConversationMemory sequence/fact methods, deterministic orchestrator fact capture,
-  focused memory/orchestrator tests, and this current-state snapshot.
-Behavior now: every ADCM session user message receives a monotonic sequence; the
-  latest deterministic USER fact per exposed path is retained in conversation memory.
-  Forge remains unaware of message history and recency. Facts are not yet a new input
-  to the auto-loop, and semantic results are not yet recorded as facts.
-Tests run/result: pre-change baseline ADCM 13 passed and Forge 17 passed; post-change
-  full-suite result ADCM 19 passed and Forge 17 passed. Forge retains one known,
-  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency.
+Last change: completed user-priority/fact-store Stage 03.
+Changed files/classes: Forge/ADCM Requirement and ForgeState DTOs, schema-derived
+  override discovery, deterministic ADCM stair-step orchestration, candidate issue
+  presentation, cron extraction guard, focused T1-T5 tests and MCP smoke scenario.
+Behavior now: Forge exposes legal lower-origin override candidates; ADCM reuses the
+  latest deterministic UserFacts and prior messages to submit one USER value at a
+  time until it needs genuinely missing information. The LLM remains disabled.
+Tests run/result: ADCM 24 passed and Forge 18 passed. The real Streamable HTTP smoke
+  completed a Rocket contract and applied a schedule stated before source selection.
+  Forge retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
+  dependency.
 Known issues remaining: source.columns partial-input UX; dataFieldId is not present
-  in the current contract schema; ADCM does not yet consume UserFacts in the new
-  overridable-aware Stage 03 loop; repository duplicate lookup is planned.
-Next concrete task: Stage 03 from docs/user_priority_and_fact_store, implemented
-  separately and without pulling in Stage 04 behavior.
+  in the current contract schema; semantic fallback and repository duplicate lookup
+  remain planned.
+Next concrete task: Stage 04 from docs/user_priority_and_fact_store, implemented
+  separately without pulling in later LLM behavior.
 ```

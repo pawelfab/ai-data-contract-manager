@@ -8,8 +8,16 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from .models import ForgeState, Origin, Requirement, RuleIssue, SessionData, ValidationIssue
-from .path_utils import has_path, write_value
+from .models import (
+    OVERRIDABLE_ORIGINS,
+    ForgeState,
+    Origin,
+    Requirement,
+    RuleIssue,
+    SessionData,
+    ValidationIssue,
+)
+from .path_utils import get_path, has_path, write_value
 from .rules import RuleEngine
 from .schema import SchemaNavigator
 
@@ -83,12 +91,7 @@ class ContractForge:
             return False
         if not self.navigator.path_exists_in_schema(path, session.contract):
             return False
-        return session.origins.get(path) in {
-            Origin.USER,
-            Origin.SYSTEM_ENRICHMENT,
-            Origin.GENERIC_ENRICHMENT,
-            Origin.SCHEMA_DEFAULT,
-        }
+        return session.origins.get(path) in OVERRIDABLE_ORIGINS | {Origin.USER}
 
     def _disallowed_path_issue(self, session: SessionData, path: str) -> ValidationIssue:
         if not self.navigator.path_exists_in_schema(path, session.contract):
@@ -214,6 +217,26 @@ class ContractForge:
                 return configured
         return self.navigator.source_type_values()
 
+    def _overridable(self, session: SessionData) -> list[Requirement]:
+        """Expose lower-precedence values the user may replace through Forge."""
+        fields: list[Requirement] = []
+        for path, origin in sorted(session.origins.items()):
+            if origin not in OVERRIDABLE_ORIGINS or not has_path(session.contract, path):
+                continue
+            requirement = self.navigator.requirement_at_path(path, session.contract)
+            if requirement is None:
+                continue
+            fields.append(
+                requirement.model_copy(
+                    update={
+                        "input_mode": self.rule_engine.input_mode(path),
+                        "current_value": deepcopy(get_path(session.contract, path)),
+                        "current_origin": origin,
+                    }
+                )
+            )
+        return fields
+
     def _state(self, session: SessionData) -> ForgeState:
         pending = self._pending(session)
         validation_errors = [] if pending else self.navigator.validate(session.contract)
@@ -235,6 +258,7 @@ class ContractForge:
             origins={k: v.value for k, v in session.origins.items()},
             status=status,
             pending=pending,
+            overridable=self._overridable(session),
             validation_errors=validation_errors,
             candidate_issues=deepcopy(session.candidate_issues),
             applied=deepcopy(session.applied[-100:]),

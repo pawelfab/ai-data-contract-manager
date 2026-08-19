@@ -76,6 +76,22 @@ class SchemaNavigator:
     def path_exists_in_schema(self, path: str, contract: dict[str, Any]) -> bool:
         return self.schema_at_path(path, contract) is not None
 
+    def requirement_at_path(self, path: str, contract: dict[str, Any]) -> Requirement | None:
+        """Describe an active-schema path with the same metadata as a pending field."""
+        node = self.schema_at_path(path, contract)
+        if node is None:
+            return None
+        return Requirement(
+            path=path,
+            question=(
+                node.get("x-acdm-question")
+                or node.get("description")
+                or f"Podaj wartość dla {path}."
+            ),
+            value_schema=self.public_schema(node),
+            allowed_values=self.allowed_values(node),
+        )
+
     def source_type_values(self) -> list[str]:
         """Return source discriminator values without depending on a concrete branch."""
         source = self.resolve_ref(self.schema.get("properties", {}).get("source", {}))

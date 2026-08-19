@@ -14,6 +14,7 @@ class FakeForgeGateway(ForgeGateway):
         self.session_id = "forge-test-session"
         self.source_system: str | None = None
         self.contract: dict[str, Any] = {}
+        self.origins: dict[str, Origin] = {}
 
     async def start_session(self) -> ForgeState:
         return self._state()
@@ -29,7 +30,10 @@ class FakeForgeGateway(ForgeGateway):
         origin: Origin,
     ) -> ForgeState:
         self._check_session(session_id)
-        allowed = {requirement.path for requirement in self._requirements()}
+        allowed = {
+            requirement.path
+            for requirement in [*self._requirements(), *self._overridable()]
+        }
         for path, value in values.items():
             if path not in allowed:
                 continue
@@ -38,10 +42,15 @@ class FakeForgeGateway(ForgeGateway):
                 if candidate not in {"rocket", "sap"}:
                     continue
                 self.source_system = candidate
-                self._set(path, candidate.upper())
-                self._set("source.sourceType", "fixed_width" if candidate == "rocket" else "csv")
+                self._set(path, candidate.upper(), Origin.USER)
+                self._set(
+                    "source.sourceType",
+                    "fixed_width" if candidate == "rocket" else "csv",
+                    Origin.SYSTEM_ENRICHMENT,
+                )
+                self._set("orchestration.schedule", "0 0 * * *", Origin.SYSTEM_ENRICHMENT)
             else:
-                self._set(path, value)
+                self._set(path, value, origin)
         return self._state()
 
     def _state(self) -> ForgeState:
@@ -50,9 +59,33 @@ class FakeForgeGateway(ForgeGateway):
             session_id=self.session_id,
             source_system=self.source_system,
             contract=deepcopy(self.contract),
+            origins={path: origin.value for path, origin in self.origins.items()},
             status="needs_input" if pending else "complete",
             pending=pending,
+            overridable=self._overridable(),
         )
+
+    def _overridable(self) -> list[Requirement]:
+        path = "orchestration.schedule"
+        if self.origins.get(path) not in {
+            Origin.SYSTEM_ENRICHMENT,
+            Origin.GENERIC_ENRICHMENT,
+            Origin.SCHEMA_DEFAULT,
+        }:
+            return []
+        return [
+            Requirement(
+                path=path,
+                question="Podaj harmonogram w formacie cron.",
+                value_schema={
+                    "type": "string",
+                    "pattern": r"^\S+(?:\s+\S+){4}$",
+                    "description": "Harmonogram w formacie Linux cron.",
+                },
+                current_value=self.contract["orchestration"]["schedule"],
+                current_origin=self.origins[path],
+            )
+        ]
 
     def _requirements(self) -> list[Requirement]:
         if self.source_system is None:
@@ -68,7 +101,12 @@ class FakeForgeGateway(ForgeGateway):
             ]
 
         definitions = (
-            ("metadata.id", "Jak ma się nazywać pipeline?", "explicit", {"type": "string"}),
+            (
+                "metadata.id",
+                "Jak ma się nazywać pipeline?",
+                "explicit",
+                {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+            ),
             ("metadata.owner", "Kto jest właścicielem?", "semantic", {"type": "string"}),
             ("source.uri", "Gdzie znajduje się źródło?", "semantic", {"type": "string"}),
             ("source.columns", "Podaj kolumny.", "semantic", {"type": "array"}),
@@ -87,12 +125,13 @@ class FakeForgeGateway(ForgeGateway):
             current = current[part]
         return True
 
-    def _set(self, path: str, value: Any) -> None:
+    def _set(self, path: str, value: Any, origin: Origin) -> None:
         current = self.contract
         parts = path.split(".")
         for part in parts[:-1]:
             current = current.setdefault(part, {})
         current[parts[-1]] = value
+        self.origins[path] = origin
 
     def _check_session(self, session_id: str) -> None:
         if session_id != self.session_id:
