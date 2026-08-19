@@ -2,7 +2,10 @@
 
 ## Status
 
-Rdzeń aplikacji jest wykonany i przetestowany lokalnie dla ścieżki in-process Contract Forge oraz FastAPI. Referencyjny transport MCP Streamable HTTP jest zaimplementowany, ale nie został uruchomiony w tym sandboxie, ponieważ środowisko nie ma dostępu do PyPI i nie można było doinstalować opcjonalnych `fastmcp` / `pydantic-ai-slim`.
+Rdzeń aplikacji jest rozdzielony na dwie niezależnie instalowane usługi. ADCM oraz
+MCP Contract Forge mają własne manifesty, środowiska i testy. Transport MCP
+Streamable HTTP został uruchomiony i zweryfikowany pełnym przepływem Rocket pomiędzy
+dwoma procesami.
 
 ## Zrealizowane wymagania
 
@@ -25,15 +28,18 @@ Rdzeń aplikacji jest wykonany i przetestowany lokalnie dla ścieżki in-process
 Wykonano:
 
 ```text
-python -m compileall -q src tests scripts
-PYTHONPATH=src python scripts/smoke_demo.py
-pytest -q
+ai-data-contract-manager\.venv\Scripts\python.exe -m pytest ai-data-contract-manager\tests -q
+mcp-servers\mcp-contract-forge\.venv\Scripts\python.exe -m pytest mcp-servers\mcp-contract-forge\tests -q
+# po uruchomieniu contract-forge-mcp:
+ai-data-contract-manager\.venv\Scripts\python.exe ai-data-contract-manager\scripts\smoke_demo.py
 ```
 
 Wynik:
 
 ```text
-11 passed
+ADCM: 12 passed
+Contract Forge: 8 passed
+MCP smoke: complete Rocket contract
 ```
 
 Testy obejmują m.in. Rocket happy path, SAP enrichment, typo matching, oba formaty kolumn, stair-step loop, FastAPI, zmianę JSON Schema, wielowariantowy sourceType oraz wykrycie starych niepasujących rules.

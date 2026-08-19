@@ -8,10 +8,10 @@ argument-hint: A module, flow, symbol, change, or documentation scope.
 
 ## Read order
 
-1. `docs/architecture/.freshness.json`
-2. `docs/architecture/README.md`
+1. `docs/.freshness.json`
+2. `docs/CURRENT_STATE.md`
 3. relevant curated files
-4. `docs/architecture/generated/repository-map.md`
+4. `docs/generated/repository-map.md`
 5. bounded code and test verification
 
 ## Commands

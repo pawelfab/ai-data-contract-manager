@@ -1,6 +1,8 @@
-# Start here — ADCM in VS Code / Codex
+# Start here — ADCM monorepo in VS Code / Codex
 
-Put this package in the root of the ADCM repository so `AGENTS.md` is at repository root.
+Open the monorepo root so `AGENTS.md`, `docs/`, `ai-data-contract-manager/` and
+`mcp-servers/` are visible together. The root itself is not an installable Python
+package; run commands from the relevant service directory.
 
 Suggested first request to the coding agent:
 

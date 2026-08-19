@@ -143,6 +143,26 @@ not create that field while it is absent from `contract.json`.
 
 ---
 
+## D-012 — ADCM and every MCP are independent services in one monorepo
+
+**Status:** Accepted
+
+**Decision:** The monorepo root owns cross-service documentation and tooling. ADCM
+lives under `ai-data-contract-manager/`; Contract Forge lives under
+`mcp-servers/mcp-contract-forge/`. Each service owns its source tree, tests,
+documentation, manifest, lock snapshot and virtual environment.
+
+**Why:** Deployment and dependency boundaries must match the runtime architecture.
+The former in-process adapter let ADCM import Forge implementation types and obscured
+whether the MCP transport really worked.
+
+**Consequence:** ADCM no longer supports `--local-forge` and never imports the
+`contract_forge` package. It validates MCP responses with client-side DTOs and uses
+a fake gateway in unit tests. Contract schema, rules and contract artifacts belong
+only to the Forge service. A minimal local run requires both service processes.
+
+---
+
 ## Open decisions
 
 ### O-001 — Partial facts protocol

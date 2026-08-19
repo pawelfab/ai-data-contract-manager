@@ -3,10 +3,9 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from contract_forge.models import ForgeState, Origin, Requirement
 from .gateway import ForgeGateway
 from .heuristics import HeuristicResolver
-from .models import AssistantTurn, ChatMessage, ConversationMemory
+from .models import AssistantTurn, ChatMessage, ConversationMemory, ForgeState, Origin, Requirement
 from .semantic import SemanticResolver, NoopSemanticResolver
 
 

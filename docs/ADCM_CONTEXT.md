@@ -158,8 +158,13 @@ Contract Forge should remain the contract rules engine. Schema Explorer contribu
 Current/minimal form:
 - CLI terminal;
 - FastAPI boundary for future web UI;
-- local in-process Forge adapter for fast tests/demo;
-- MCP Streamable HTTP for real separation.
+- MCP Streamable HTTP to the separately installed Contract Forge service;
+- service-local fake gateway in ADCM unit tests, without importing Forge.
+
+The monorepo contains separate Python projects under `ai-data-contract-manager/`
+and `mcp-servers/mcp-contract-forge/`. Each has its own manifest, environment and
+test suite. `contract.json`, enrichment/workflow rules and contract artifacts live
+only under the Forge service.
 
 Target deployment context discussed for the wider project includes Cloud Run. For production, in-process session dictionaries are not sufficient when instances scale; session state needs a durable/shared store.
 

@@ -3,32 +3,27 @@ requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "adcm-minimal"
+name = "ai-data-contract-manager"
 version = "0.1.0"
-description = "Minimal ADCM orchestrator + Contract Forge MCP reference implementation"
+description = "Conversational orchestrator and API client for data contract creation"
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.10,<3",
   "pydantic-settings>=2.7,<3",
   "python-dotenv>=1.0,<2",
-  "jsonschema>=4.23,<5",
   "fastapi>=0.115,<1",
-  "uvicorn>=0.34,<1"
+  "uvicorn>=0.34,<1",
+  "pydantic-ai-slim[mcp]>=1.107.1,<2"
 ]
 
 [project.optional-dependencies]
 
-mcp = [
-  "fastmcp>=3.4.7,<4",
-  "pydantic-ai-slim[mcp]>=2.32,<3"
-]
-
 openai = [
-  "pydantic-ai-slim[mcp,openai]>=2.32,<3"
+  "pydantic-ai-slim[openai]>=1.107.1,<2"
 ]
 
 vertex = [
-  "pydantic-ai-slim[mcp,google]>=2.32,<3"
+  "pydantic-ai-slim[google]>=1.107.1,<2"
 ]
 
 dev = [
@@ -40,7 +35,6 @@ dev = [
 [project.scripts]
 adcm-cli = "adcm.cli:main"
 adcm-api = "adcm.api:main"
-contract-forge-mcp = "contract_forge.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -48,3 +42,4 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+addopts = "-p no:cacheprovider"

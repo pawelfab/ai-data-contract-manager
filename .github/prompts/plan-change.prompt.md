@@ -12,4 +12,4 @@ Create a reviewed implementation contract for:
 
 `${input:change:Describe the requested change and desired outcome}`
 
-The final artifact must be saved under `docs/architecture/contracts/`. Do not modify application code.
+The final artifact must be saved under `docs/contracts/`. Do not modify application code.

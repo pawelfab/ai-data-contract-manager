@@ -15,9 +15,9 @@ Your primary source is the maintained Markdown knowledge base. Avoid a broad cod
 ## Procedure
 
 1. Read:
-   - `docs/architecture/README.md`,
-   - `docs/architecture/.freshness.json` when present,
-   - `docs/architecture/generated/repository-map.md`,
+   - `docs/CURRENT_STATE.md`,
+   - `docs/.freshness.json` when present,
+   - `docs/generated/repository-map.md` when present,
    - only relevant module, flow, and symbol documents.
 2. Optionally run:
    - `python scripts/agent/doc_freshness.py --check --json`

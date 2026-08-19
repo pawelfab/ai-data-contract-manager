@@ -25,7 +25,7 @@ def main() -> int:
     context = (
         f"Repository branch: {branch}. "
         f"Architecture documentation freshness: {result['status']}. "
-        f"Read AGENTS.md and docs/architecture/README.md before broad repository analysis."
+        f"Read AGENTS.md and docs/CURRENT_STATE.md before broad repository analysis."
         f"{suffix}"
     )
     hook_output(

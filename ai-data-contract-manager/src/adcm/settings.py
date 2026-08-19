@@ -20,8 +20,6 @@ class ADCMSettings(BaseSettings):
         populate_by_name=True,
     )
 
-    deploy_env: str = Field(default="dev", validation_alias="ADCM_DEPLOY_ENV")
-    gateway: Literal["local", "mcp"] = Field(default="mcp", validation_alias="ADCM_GATEWAY")
     mcp_url: str = Field(default="http://127.0.0.1:8001/mcp", validation_alias="ADCM_MCP_URL")
 
     llm_mode: LLMMode = Field(default="local", validation_alias="ADCM_LLM_MODE")
@@ -30,9 +28,6 @@ class ADCMSettings(BaseSettings):
     vertex_model: str | None = Field(default=None, validation_alias="ADCM_VERTEX_MODEL")
     openai_base_url: str | None = Field(default=None, validation_alias="OPENAI_BASE_URL")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias="OPENAI_API_KEY")
-
-    contract_schema_path: Path | None = Field(default=None, validation_alias="CONTRACT_SCHEMA_PATH")
-    contract_rules_path: Path | None = Field(default=None, validation_alias="CONTRACT_RULES_PATH")
 
     api_host: str = Field(default="127.0.0.1", validation_alias="ADCM_API_HOST")
     api_port: int = Field(default=8080, ge=1, le=65535, validation_alias="ADCM_API_PORT")
@@ -56,8 +51,7 @@ class ADCMSettings(BaseSettings):
     def public_runtime_summary(self) -> dict[str, str]:
         """Return observable runtime choices without exposing credentials."""
         return {
-            "deploy_env": self.deploy_env,
-            "forge_gateway": self.gateway,
+            "forge_gateway": "mcp",
             "llm_mode": self.llm_mode,
             "llm_provider": self.resolved_llm_provider if self.llm_mode == "pydantic" else "disabled",
             "llm_model": self.semantic_model_name if self.llm_mode == "pydantic" else "disabled",

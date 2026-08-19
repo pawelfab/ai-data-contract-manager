@@ -1,24 +1,22 @@
 # Project-wide Copilot instructions
 
-> Replace placeholders in this file with repository-specific facts.
-
 ## Project identity
 
-- Product/domain: `<describe the product>`
-- Primary languages: `<languages>`
-- Frameworks: `<frameworks>`
-- Runtime versions: `<versions>`
-- Package/build tools: `<tools>`
-- Deployment target: `<target>`
+- Product/domain: conversational data-contract creation
+- Primary languages: Python, JSON, Markdown
+- Frameworks: FastAPI, Pydantic AI, MCP, JSON Schema
+- Runtime versions: Python 3.11+
+- Package/build tools: pip, setuptools, pytest
+- Deployment target: independent services locally and on Cloud Run
 
 ## Architecture
 
-- Architectural style: `<modular monolith / services / layered / hexagonal / other>`
-- Dependency direction: `<rules>`
-- Main source roots: `<paths>`
-- Test roots: `<paths>`
-- Migration roots: `<paths>`
-- Generated code roots: `<paths; never edit manually>`
+- Architectural style: service-oriented monorepo
+- Dependency direction: ADCM calls Contract Forge only through MCP; services never import each other's Python package
+- Main source roots: `ai-data-contract-manager/src`, `mcp-servers/mcp-contract-forge/src`
+- Test roots: `ai-data-contract-manager/tests`, `mcp-servers/mcp-contract-forge/tests`
+- Contract/config roots: `mcp-servers/mcp-contract-forge/config`, `mcp-servers/mcp-contract-forge/contracts`
+- Generated documentation root: `docs/generated`
 
 ## Commands
 
@@ -49,4 +47,4 @@ Follow `AGENTS.md`.
 
 Use the Feature Coordinator for complete workflows. Use Repository Guide for read-only questions about current behavior.
 
-Architecture knowledge lives under `docs/architecture/`. Treat its freshness marker as a warning system, not as proof that documentation is correct.
+Architecture knowledge lives under the root `docs/`. Treat its freshness marker as a warning system, not as proof that documentation is correct.

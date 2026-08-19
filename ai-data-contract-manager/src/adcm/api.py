@@ -20,7 +20,7 @@ def create_app(orchestrator: ADCMOrchestrator | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        service = orchestrator or build_orchestrator(local_forge=False)
+        service = orchestrator or build_orchestrator()
         holder["service"] = service
         app.state.orchestrator = service
         async with service.gateway:

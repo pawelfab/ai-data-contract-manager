@@ -8,7 +8,7 @@ agents: []
 
 # Role
 
-Synchronize `docs/architecture` with the actual repository. Do not modify application code.
+Synchronize the root `docs/` knowledge base with the actual repository. Do not modify application code.
 
 ## Sources
 

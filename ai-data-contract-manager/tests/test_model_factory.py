@@ -7,10 +7,9 @@ pytest.importorskip("pydantic_ai")
 openai = pytest.importorskip("openai")
 
 from adcm.model_factory import build_pydantic_ai_model
-from adcm.models import ChatMessage
+from adcm.models import ChatMessage, Requirement
 from adcm.semantic import PydanticAISemanticResolver
 from adcm.settings import ADCMSettings
-from contract_forge.models import Requirement
 
 
 @pytest.mark.asyncio

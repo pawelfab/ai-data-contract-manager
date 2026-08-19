@@ -6,8 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from contract_forge.models import Requirement
-from .models import ChatMessage
+from .models import ChatMessage, Requirement
 
 
 class CandidateValue(BaseModel):

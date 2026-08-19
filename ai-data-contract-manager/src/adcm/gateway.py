@@ -4,8 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Any
 
-from contract_forge.engine import ContractForge
-from contract_forge.models import ForgeState, Origin
+from .models import ForgeState, Origin
 
 
 class ForgeGateway(ABC):
@@ -25,22 +24,6 @@ class ForgeGateway(ABC):
         return None
 
 
-class LocalForgeGateway(ForgeGateway):
-    """In-process adapter for tests and a zero-network demo. Production path is MCPForgeGateway."""
-
-    def __init__(self, forge: ContractForge):
-        self.forge = forge
-
-    async def start_session(self) -> ForgeState:
-        return self.forge.start_session()
-
-    async def get_state(self, session_id: str) -> ForgeState:
-        return self.forge.get_state(session_id)
-
-    async def submit_values(self, session_id: str, values: dict[str, Any], origin: Origin) -> ForgeState:
-        return self.forge.submit_values(session_id, values, origin)
-
-
 class MCPForgeGateway(ForgeGateway):
     """MCP client with one reusable Streamable HTTP toolset connection.
 
@@ -52,7 +35,7 @@ class MCPForgeGateway(ForgeGateway):
         try:
             from pydantic_ai.mcp import MCPToolset
         except ImportError as exc:  # pragma: no cover - optional runtime dependency
-            raise RuntimeError('Install MCP extras: pip install -e ".[mcp]"') from exc
+            raise RuntimeError('Install ADCM dependencies: pip install -e "."') from exc
         self._toolset = MCPToolset(url, tool_error_behavior="error")
         self._entered = False
 

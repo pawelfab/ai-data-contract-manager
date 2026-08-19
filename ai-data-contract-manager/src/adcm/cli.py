@@ -21,16 +21,15 @@ def _read_answer(pending_path: str | None) -> str:
     return input("> ")
 
 
-async def run(local_forge: bool, verbose: bool) -> None:
+async def run(verbose: bool) -> None:
     settings = load_settings()
     summary = settings.public_runtime_summary()
-    forge_gateway = "local" if local_forge else summary["forge_gateway"]
     print(
         "ADCM runtime: "
-        f"forge={forge_gateway}, llm={summary['llm_mode']}, "
+        f"forge={summary['forge_gateway']}, llm={summary['llm_mode']}, "
         f"provider={summary['llm_provider']}, model={summary['llm_model']}"
     )
-    service = build_orchestrator(local_forge=local_forge, settings=settings)
+    service = build_orchestrator(settings=settings)
     async with service.gateway:
         try:
             turn = await service.start()
@@ -56,14 +55,9 @@ async def run(local_forge: bool, verbose: bool) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Minimal ADCM terminal client")
-    parser.add_argument(
-        "--local-forge",
-        action="store_true",
-        help="Run Contract Forge in-process (smoke/demo). Omit to use MCP Streamable HTTP.",
-    )
     parser.add_argument("--verbose", action="store_true", help="Print contract snapshot after each turn")
     args = parser.parse_args()
-    asyncio.run(run(local_forge=args.local_forge, verbose=args.verbose))
+    asyncio.run(run(verbose=args.verbose))
 
 
 if __name__ == "__main__":

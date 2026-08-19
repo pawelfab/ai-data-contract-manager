@@ -1,0 +1,37 @@
+# MCP Contract Forge
+
+Contract Forge jest samodzielnym serwisem MCP i właścicielem kanonicznego kontraktu.
+Zawiera schemat, reguły enrichmentu/workflow, walidację i stan sesji Forge.
+
+## Struktura
+
+```text
+src/contract_forge/
+config/
+  contract.json
+  ux_rules_contract_v1.json
+  ux_rules_original.json
+contracts/
+tests/
+docs/
+```
+
+## Instalacja i uruchomienie
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+contract-forge-mcp
+```
+
+Domyślny endpoint to `http://127.0.0.1:8001/mcp`. Konfigurację można zmienić
+zmiennymi opisanymi w `.env.example`.
+
+## Testy
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Testy Forge nie importują ADCM.

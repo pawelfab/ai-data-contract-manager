@@ -1,9 +1,11 @@
 {
   "source_roots": [
-    "src",
-    "contracts",
-    "examples/contract-rules.json",
-    "pyproject.toml"
+    "ai-data-contract-manager/src",
+    "ai-data-contract-manager/pyproject.toml",
+    "mcp-servers/mcp-contract-forge/src",
+    "mcp-servers/mcp-contract-forge/config",
+    "mcp-servers/mcp-contract-forge/contracts",
+    "mcp-servers/mcp-contract-forge/pyproject.toml"
   ],
   "source_extensions": [
     ".py",
@@ -42,87 +44,64 @@
     ".mypy_cache",
     ".ruff_cache",
     "__pycache__",
-    "docs/architecture/generated",
-    "docs/architecture",
+    "docs/generated",
     ".github",
     ".vscode",
     "scripts/agent",
     "githooks"
   ],
-  "architecture_docs_dir": "docs/architecture",
-  "inventory_json": "docs/architecture/generated/repository-inventory.json",
-  "repository_map": "docs/architecture/generated/repository-map.md",
-  "documentation_impact_report": "docs/architecture/generated/documentation-impact.md",
-  "freshness_file": "docs/architecture/.freshness.json",
+  "architecture_docs_dir": "docs",
+  "inventory_json": "docs/generated/repository-inventory.json",
+  "repository_map": "docs/generated/repository-map.md",
+  "documentation_impact_report": "docs/generated/documentation-impact.md",
+  "freshness_file": "docs/.freshness.json",
   "session_state_dir": ".agent-state",
   "session_state_max_age_hours": 168,
   "documentation_relevant_patterns": [
-    "^src/",
-    "^contracts/",
-    "^examples/contract-rules\\.json$",
-    "^pyproject\\.toml$"
+    "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
+    "^mcp-servers/mcp-contract-forge/(src/|config/|contracts/|pyproject\\.toml$)"
   ],
   "documentation_evidence_patterns": [
-    "^docs/architecture/README\\.md$",
-    "^docs/architecture/system-context\\.md$",
-    "^docs/architecture/modules/.+\\.md$",
-    "^docs/architecture/flows/.+\\.md$",
-    "^docs/architecture/symbols/.+\\.md$"
+    "^docs/(ARCHITECTURE|ADCM_CONTEXT|CURRENT_STATE|DECISIONS|RULE_COMPATIBILITY)\\.md$"
   ],
   "documentation_non_evidence_patterns": [
-    "^docs/architecture/generated/",
-    "^docs/architecture/contracts/",
-    "^docs/architecture/reviews/"
+    "^docs/generated/"
   ],
   "documentation_map": [
     {
-      "source_pattern": "^src/adcm/application/",
+      "source_pattern": "^ai-data-contract-manager/src/adcm/",
       "docs": [
-        "docs/architecture/modules/application.md",
-        "docs/architecture/symbols/application.md",
-        "docs/architecture/flows/turn-lifecycle.md"
+        "docs/ARCHITECTURE.md",
+        "docs/ADCM_CONTEXT.md",
+        "docs/CURRENT_STATE.md"
       ]
     },
     {
-      "source_pattern": "^src/adcm/domain/",
+      "source_pattern": "^ai-data-contract-manager/pyproject\\.toml$",
       "docs": [
-        "docs/architecture/modules/domain.md",
-        "docs/architecture/symbols/domain.md"
+        "docs/CURRENT_STATE.md"
       ]
     },
     {
-      "source_pattern": "^src/adcm/ports/",
+      "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
       "docs": [
-        "docs/architecture/modules/ports.md",
-        "docs/architecture/symbols/ports.md",
-        "docs/architecture/system-context.md"
+        "docs/ARCHITECTURE.md",
+        "docs/ADCM_CONTEXT.md",
+        "docs/CURRENT_STATE.md"
       ]
     },
     {
-      "source_pattern": "^src/adcm/adapters/",
+      "source_pattern": "^mcp-servers/mcp-contract-forge/(config|contracts)/",
       "docs": [
-        "docs/architecture/modules/adapters.md",
-        "docs/architecture/symbols/adapters.md",
-        "docs/architecture/system-context.md"
+        "docs/RULE_COMPATIBILITY.md",
+        "docs/CURRENT_STATE.md"
       ]
     },
     {
-      "source_pattern": "^src/adcm/config\\.py$",
+      "source_pattern": "^(ai-data-contract-manager|mcp-servers/mcp-contract-forge)/pyproject\\.toml$",
       "docs": [
-        "docs/architecture/system-context.md"
-      ]
-    },
-    {
-      "source_pattern": "^(contracts/|examples/contract-rules\\.json$)",
-      "docs": [
-        "docs/architecture/modules/contract-schema.md",
-        "docs/architecture/system-context.md"
-      ]
-    },
-    {
-      "source_pattern": "^pyproject\\.toml$",
-      "docs": [
-        "docs/architecture/system-context.md"
+        "docs/ARCHITECTURE.md",
+        "docs/CURRENT_STATE.md"
       ]
     }
   ],
@@ -131,7 +110,8 @@
     "lint": [],
     "typecheck": [],
     "test": [
-      "python -m pytest -q"
+      "ai-data-contract-manager\\.venv\\Scripts\\python.exe -m pytest ai-data-contract-manager\\tests -q",
+      "mcp-servers\\mcp-contract-forge\\.venv\\Scripts\\python.exe -m pytest mcp-servers\\mcp-contract-forge\\tests -q"
     ],
     "build": []
   },

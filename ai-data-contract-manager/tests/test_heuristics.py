@@ -1,5 +1,5 @@
-from contract_forge.models import Requirement
 from adcm.heuristics import HeuristicResolver
+from adcm.models import Requirement
 
 
 def test_source_system_typo():

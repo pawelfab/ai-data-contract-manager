@@ -6,7 +6,7 @@ import unicodedata
 from difflib import SequenceMatcher
 from typing import Any
 
-from contract_forge.models import Requirement
+from .models import Requirement
 
 
 TYPE_NAMES = {

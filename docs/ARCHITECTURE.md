@@ -1,5 +1,18 @@
 # ADCM — target architecture
 
+## Repository layout
+
+The repository root is a monorepo coordination layer, not a Python package:
+
+```text
+ai-data-contract-manager/                  # independently deployed ADCM service
+mcp-servers/mcp-contract-forge/            # independently deployed Forge service
+docs/                                      # cross-service architecture and decisions
+```
+
+Each service owns its `src`, tests, documentation, `pyproject.toml`, lock snapshot
+and `.venv`. The services do not import one another's Python packages.
+
 ## 1. Component view
 
 ```text
@@ -32,8 +45,8 @@
                    v
 +--------------------------------------+
 | Forge Gateway                        |
-| - local adapter for tests/demo       |
-| - MCP Streamable HTTP adapter        |
+| - MCP Streamable HTTP client         |
+| - response DTO validation            |
 +------------------+-------------------+
                    |
                    v
@@ -60,6 +73,9 @@ ADCM Orchestrator ---> Schema Explorer MCP ---> BigQuery / Git repo
         |
         +---------- context ----------> Contract Forge MCP
 ```
+
+The physical service boundary is mandatory even for the minimal local demo. ADCM
+tests replace the MCP boundary with a fake gateway; they do not run Forge in-process.
 
 ## 2. Session state
 

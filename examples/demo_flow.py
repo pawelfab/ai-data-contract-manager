@@ -1,33 +1,25 @@
-import asyncio
-from uuid import uuid4
+"""Minimal conversation against a running Contract Forge MCP service.
 
-from adcm.adapters.llm.rule_based_interpreter import RuleBasedInterpreter
-from adcm.adapters.mcp.mock_contract_forge import MockContractForgeAdapter
-from adcm.adapters.persistence.memory import InMemorySessionRepository
-from adcm.application.chat_service import ChatService
-from adcm.application.workflow_runner import WorkflowRunner
+Run this with the ADCM virtual environment after starting `contract-forge-mcp`.
+"""
+
+import asyncio
+
+from adcm.runtime import build_orchestrator
 
 
 async def main() -> None:
-    sessions = InMemorySessionRepository()
-    service = ChatService(
-        sessions=sessions,
-        interpreter=RuleBasedInterpreter(),
-        workflow=WorkflowRunner(MockContractForgeAdapter()),
-    )
-    session_id = uuid4()
-
-    turns = [
-        "System SAP, CSV ze średnikiem, zawsze UTF-8 i nie używamy szyfrowania.",
-        "id=daily_clients",
-    ]
-    for text in turns:
-        state, result = await service.handle_user_message(session_id, text)
-        print("USER:", text)
-        print("stage:", state.workflow.current_stage)
-        print("needs_user_input:", result.needs_user_input, result.missing_paths)
-        print("draft:", state.contract_draft.model_dump())
-        print()
+    service = build_orchestrator()
+    async with service.gateway:
+        try:
+            turn = await service.start()
+            print("ADCM:", turn.message)
+            for answer in ("rocket", "pipeline: daily_clients"):
+                print("USER:", answer)
+                turn = await service.message(turn.session_id, answer)
+                print("ADCM:", turn.message)
+        finally:
+            await service.semantic.close()
 
 
 if __name__ == "__main__":

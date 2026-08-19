@@ -1,13 +1,12 @@
 from fastapi.testclient import TestClient
 
 from adcm.api import create_app
-from adcm.runtime import build_orchestrator
-from adcm.settings import ADCMSettings
+from adcm.orchestrator import ADCMOrchestrator
+from support import FakeForgeGateway
 
 
 def test_api_session_starts_with_source_system_question():
-    settings = ADCMSettings(_env_file=None, llm_mode="local")
-    app = create_app(build_orchestrator(local_forge=True, settings=settings))
+    app = create_app(ADCMOrchestrator(FakeForgeGateway()))
     with TestClient(app) as client:
         health = client.get('/health')
         assert health.status_code == 200

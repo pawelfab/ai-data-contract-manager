@@ -1,21 +1,11 @@
-from pathlib import Path
-
 import pytest
 
-from adcm.gateway import LocalForgeGateway
 from adcm.orchestrator import ADCMOrchestrator
-from contract_forge.engine import ContractForge
-
-ROOT = Path(__file__).resolve().parents[1]
+from support import FakeForgeGateway
 
 
 def build_service():
-    forge = ContractForge.from_files(
-        ROOT / "config" / "contract.json",
-        ROOT / "config" / "ux_rules_contract_v1.json",
-        deploy_env="dev",
-    )
-    return ADCMOrchestrator(LocalForgeGateway(forge))
+    return ADCMOrchestrator(FakeForgeGateway())
 
 
 @pytest.mark.asyncio
@@ -59,13 +49,8 @@ class FakeSemanticResolver:
 
 @pytest.mark.asyncio
 async def test_explicit_source_gate_never_calls_semantic_resolver():
-    forge = ContractForge.from_files(
-        ROOT / "config" / "contract.json",
-        ROOT / "config" / "ux_rules_contract_v1.json",
-        deploy_env="dev",
-    )
     semantic = FakeSemanticResolver({"metadata.sourceSystemGcpId": "rocket"})
-    service = ADCMOrchestrator(LocalForgeGateway(forge), semantic=semantic)
+    service = ADCMOrchestrator(FakeForgeGateway(), semantic=semantic)
     turn = await service.start()
 
     turn = await service.message(turn.session_id, "wybierz za mnie")
@@ -76,11 +61,6 @@ async def test_explicit_source_gate_never_calls_semantic_resolver():
 
 @pytest.mark.asyncio
 async def test_stair_step_loop_reuses_information_as_forge_reveals_requirements():
-    forge = ContractForge.from_files(
-        ROOT / "config" / "contract.json",
-        ROOT / "config" / "ux_rules_contract_v1.json",
-        deploy_env="dev",
-    )
     semantic = FakeSemanticResolver({
         "metadata.id": "customer_accounts_daily",
         "metadata.owner": "data-platform@example.com",
@@ -90,7 +70,7 @@ async def test_stair_step_loop_reuses_information_as_forge_reveals_requirements(
             {"name": "balance", "start": 8, "end": 20, "dataType": "NUMERIC"},
         ],
     })
-    service = ADCMOrchestrator(LocalForgeGateway(forge), semantic=semantic)
+    service = ADCMOrchestrator(FakeForgeGateway(), semantic=semantic)
     turn = await service.start()
 
     # The user states everything up-front, but the explicit metadata.id gate cannot

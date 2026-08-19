@@ -64,7 +64,7 @@ Do not paste broad chat history or unrelated repository content.
 3. Invoke **Solution Architect** with the request, current-state report, and verification deltas.
 4. Invoke **Contract Reviewer** with the draft contract.
 5. Invoke **Contract Finalizer** with both the draft and review.
-6. Save the returned final contract to `docs/architecture/contracts/<feature-slug>.md`.
+6. Save the returned final contract to `docs/contracts/<feature-slug>.md`.
 7. Do not modify application code.
 8. Return the contract path, key decisions, assumptions, and unresolved blockers.
 

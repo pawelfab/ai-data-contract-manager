@@ -1,0 +1,891 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-19T14:42:07.088026+00:00",
+  "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
+  "files": [
+    {
+      "path": "ai-data-contract-manager/pyproject.toml",
+      "language": "TOML",
+      "bytes": 899,
+      "lines": 46,
+      "sha256": "c474884b34ddd7e95d3de2bd1ad81397e5f92d6efdad03602d9a80c98f441bc7",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/__init__.py",
+      "language": "Python",
+      "bytes": 75,
+      "lines": 4,
+      "sha256": "f43c8c444516f1a50e2ae00643e8ed8d1cf8bde6fe4ac0fb01062b86999ff889",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/api.py",
+      "language": "Python",
+      "bytes": 2323,
+      "lines": 83,
+      "sha256": "13d24a44c48746eeeba765ada2d9f5d8925d931bea7336b88cbc9fbef6c11be6",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "MessageRequest",
+          "line": 14,
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "create_app",
+          "line": 18
+        },
+        {
+          "kind": "function",
+          "name": "main",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/cli.py",
+      "language": "Python",
+      "bytes": 2242,
+      "lines": 65,
+      "sha256": "718693296dd412182165db016f5dbc4e3effbf8639fcc6666ef0af9ab43496a4",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_read_answer",
+          "line": 11
+        },
+        {
+          "kind": "async_function",
+          "name": "run",
+          "line": 24
+        },
+        {
+          "kind": "function",
+          "name": "main",
+          "line": 56
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/gateway.py",
+      "language": "Python",
+      "bytes": 3311,
+      "lines": 92,
+      "sha256": "e02205c90d0949e241e73c7e664cce9544a310877b0993d1d4f2b9d9ee157feb",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ForgeGateway",
+          "line": 10,
+          "methods": [
+            {
+              "name": "start_session",
+              "line": 12,
+              "async": true
+            },
+            {
+              "name": "get_state",
+              "line": 15,
+              "async": true
+            },
+            {
+              "name": "submit_values",
+              "line": 18,
+              "async": true
+            },
+            {
+              "name": "__aenter__",
+              "line": 20,
+              "async": true
+            },
+            {
+              "name": "__aexit__",
+              "line": 23,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "MCPForgeGateway",
+          "line": 27,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 34,
+              "async": false
+            },
+            {
+              "name": "__aenter__",
+              "line": 42,
+              "async": true
+            },
+            {
+              "name": "__aexit__",
+              "line": 48,
+              "async": true
+            },
+            {
+              "name": "start_session",
+              "line": 54,
+              "async": true
+            },
+            {
+              "name": "get_state",
+              "line": 58,
+              "async": true
+            },
+            {
+              "name": "submit_values",
+              "line": 62,
+              "async": true
+            },
+            {
+              "name": "_normalize",
+              "line": 70,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/heuristics.py",
+      "language": "Python",
+      "bytes": 7351,
+      "lines": 189,
+      "sha256": "ab24961fc2b570d8707975d58823eaa1005eef0bbc17d76c8e6ed85ddd2c9ec5",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_ascii",
+          "line": 18
+        },
+        {
+          "kind": "function",
+          "name": "slugify_identifier",
+          "line": 22
+        },
+        {
+          "kind": "class",
+          "name": "HeuristicResolver",
+          "line": 31,
+          "methods": [
+            {
+              "name": "extract",
+              "line": 34,
+              "async": false
+            },
+            {
+              "name": "_for_requirement",
+              "line": 49,
+              "async": false
+            },
+            {
+              "name": "_fuzzy_choice",
+              "line": 112,
+              "async": false
+            },
+            {
+              "name": "_parse_columns",
+              "line": 128,
+              "async": false
+            },
+            {
+              "name": "_parse_regular_line",
+              "line": 161,
+              "async": false
+            },
+            {
+              "name": "_parse_fixed_width_line",
+              "line": 175,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/model_factory.py",
+      "language": "Python",
+      "bytes": 2144,
+      "lines": 54,
+      "sha256": "c00245493441cee91d9a47071da1d5903554f4745704971a7878e8e68f41e141",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_openai_model_name",
+          "line": 8
+        },
+        {
+          "kind": "function",
+          "name": "build_pydantic_ai_model",
+          "line": 15
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/models.py",
+      "language": "Python",
+      "bytes": 2188,
+      "lines": 79,
+      "sha256": "b554db81c349c80290f564b692ec54d1a10bade48f14a4378d433f5edd5e1711",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Origin",
+          "line": 8,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Requirement",
+          "line": 19,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationIssue",
+          "line": 28,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AppliedValue",
+          "line": 34,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RuleIssue",
+          "line": 41,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ForgeState",
+          "line": 47,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AssistantTurn",
+          "line": 61,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ChatMessage",
+          "line": 70,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ConversationMemory",
+          "line": 75,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/orchestrator.py",
+      "language": "Python",
+      "bytes": 6720,
+      "lines": 155,
+      "sha256": "f54c595636daf72d5989281f4c521b9e1392cc2535b7271f6f588696503b4a85",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ADCMOrchestrator",
+          "line": 12,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 15,
+              "async": false
+            },
+            {
+              "name": "start",
+              "line": 28,
+              "async": true
+            },
+            {
+              "name": "message",
+              "line": 37,
+              "async": true
+            },
+            {
+              "name": "state",
+              "line": 114,
+              "async": true
+            },
+            {
+              "name": "_semantic_prefix",
+              "line": 119,
+              "async": false
+            },
+            {
+              "name": "_turn_from_state",
+              "line": 129,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/runtime.py",
+      "language": "Python",
+      "bytes": 1318,
+      "lines": 42,
+      "sha256": "42079551c7d996320c1fff92bc818f5dec036cc34fdf91b91bf56958bcb43cf5",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "build_gateway",
+          "line": 14
+        },
+        {
+          "kind": "function",
+          "name": "build_semantic",
+          "line": 19
+        },
+        {
+          "kind": "function",
+          "name": "build_orchestrator",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/semantic.py",
+      "language": "Python",
+      "bytes": 3798,
+      "lines": 110,
+      "sha256": "dc9ed5da1594869eec82c1bafb581438d2341019e0cd114c61075249a6af13ec",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CandidateValue",
+          "line": 12,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ExtractionResult",
+          "line": 19,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SemanticResolver",
+          "line": 23,
+          "methods": [
+            {
+              "name": "extract_from_history",
+              "line": 25,
+              "async": true
+            },
+            {
+              "name": "close",
+              "line": 33,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "NoopSemanticResolver",
+          "line": 37,
+          "methods": [
+            {
+              "name": "extract_from_history",
+              "line": 38,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "PydanticAISemanticResolver",
+          "line": 42,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 45,
+              "async": false
+            },
+            {
+              "name": "close",
+              "line": 67,
+              "async": true
+            },
+            {
+              "name": "extract_from_history",
+              "line": 76,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/settings.py",
+      "language": "Python",
+      "bytes": 3408,
+      "lines": 84,
+      "sha256": "1f172349160788f9cb534b738c6a39387bbcf102cb677b53370de90b514613a7",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ADCMSettings",
+          "line": 14,
+          "methods": [
+            {
+              "name": "resolved_llm_provider",
+              "line": 36,
+              "async": false
+            },
+            {
+              "name": "semantic_model_name",
+              "line": 46,
+              "async": false
+            },
+            {
+              "name": "public_runtime_summary",
+              "line": 51,
+              "async": false
+            },
+            {
+              "name": "validate_enabled_llm",
+              "line": 61,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "project_root",
+          "line": 76
+        },
+        {
+          "kind": "function",
+          "name": "load_settings",
+          "line": 80
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/config/contract.json",
+      "language": "JSON",
+      "bytes": 52755,
+      "lines": 1860,
+      "sha256": "ab6747eefae0fcee3f588adabd7d8b5dac615e9bf25ec1fd70727d17a0d1a3aa",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/config/ux_rules_contract_v1.json",
+      "language": "JSON",
+      "bytes": 4291,
+      "lines": 153,
+      "sha256": "2074b6015f24fd85870366db26b7ea60a583fd675d07ccb2e01142829b7c2423",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/config/ux_rules_original.json",
+      "language": "JSON",
+      "bytes": 18137,
+      "lines": 455,
+      "sha256": "4019e89c5463b3a062ee0d1fb4a451ec754c6e06ae73709a842da521190a6cb4",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/contracts/data-contract.schema.json",
+      "language": "JSON",
+      "bytes": 47922,
+      "lines": 1640,
+      "sha256": "998a8b4027e963a2459cbd89c7b57be0ec867554e104d8b00ea39104a85ac209",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/pyproject.toml",
+      "language": "TOML",
+      "bytes": 628,
+      "lines": 31,
+      "sha256": "b3513132174938f1552c28d161bdb595b8ebbfc26fa370732d7eeee5ef2581a8",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/__init__.py",
+      "language": "Python",
+      "bytes": 154,
+      "lines": 5,
+      "sha256": "c2b2ce7b64327937b9675a2e28185680939b9940c7974b4c2ad2fa9a0e653eb8",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/engine.py",
+      "language": "Python",
+      "bytes": 8752,
+      "lines": 200,
+      "sha256": "191b1d0b5a966259c6434ab78204a6658c9419cb8eb0a10e3fb12c138db417d0",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractForge",
+          "line": 17,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 26,
+              "async": false
+            },
+            {
+              "name": "from_files",
+              "line": 33,
+              "async": false
+            },
+            {
+              "name": "list_source_systems",
+              "line": 38,
+              "async": false
+            },
+            {
+              "name": "start_session",
+              "line": 44,
+              "async": false
+            },
+            {
+              "name": "submit_values",
+              "line": 49,
+              "async": false
+            },
+            {
+              "name": "get_state",
+              "line": 65,
+              "async": false
+            },
+            {
+              "name": "_apply_explicit",
+              "line": 70,
+              "async": false
+            },
+            {
+              "name": "_advance",
+              "line": 101,
+              "async": false
+            },
+            {
+              "name": "_pending",
+              "line": 131,
+              "async": false
+            },
+            {
+              "name": "_source_type_choices",
+              "line": 162,
+              "async": false
+            },
+            {
+              "name": "_state",
+              "line": 169,
+              "async": false
+            },
+            {
+              "name": "_get",
+              "line": 195,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/mcp_server.py",
+      "language": "Python",
+      "bytes": 2575,
+      "lines": 85,
+      "sha256": "5750d1f55431bdfc997d30f12d5d34f17f4c11e59ce8afe9a12cf1ad0e33d660",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_root",
+          "line": 13
+        },
+        {
+          "kind": "function",
+          "name": "_service_path",
+          "line": 17
+        },
+        {
+          "kind": "function",
+          "name": "build_forge",
+          "line": 23
+        },
+        {
+          "kind": "function",
+          "name": "create_server",
+          "line": 34
+        },
+        {
+          "kind": "function",
+          "name": "main",
+          "line": 79
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/models.py",
+      "language": "Python",
+      "bytes": 1988,
+      "lines": 73,
+      "sha256": "7f1695bdf55675dd57629fb5f7a3e94a344b3bd8fbbd6868f4eaaccb072e973a",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Origin",
+          "line": 8,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Requirement",
+          "line": 27,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationIssue",
+          "line": 36,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AppliedValue",
+          "line": 42,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RuleIssue",
+          "line": 49,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ForgeState",
+          "line": 55,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SessionData",
+          "line": 67,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/path_utils.py",
+      "language": "Python",
+      "bytes": 1731,
+      "lines": 61,
+      "sha256": "34f3ad4ebc7f64166d802b32b8a8a278fde117c4c60f9f3df350963a7af703e0",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "split_path",
+          "line": 9
+        },
+        {
+          "kind": "function",
+          "name": "get_path",
+          "line": 13
+        },
+        {
+          "kind": "function",
+          "name": "has_path",
+          "line": 27
+        },
+        {
+          "kind": "function",
+          "name": "set_path",
+          "line": 35
+        },
+        {
+          "kind": "function",
+          "name": "delete_path",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/rules.py",
+      "language": "Python",
+      "bytes": 7439,
+      "lines": 184,
+      "sha256": "6cb8d8baa3acdc68edb6b369d1bba58c35aa342edadb78b4b90adcc70d2a0b97",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "RuleEngine",
+          "line": 14,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 15,
+              "async": false
+            },
+            {
+              "name": "systems",
+              "line": 21,
+              "async": false
+            },
+            {
+              "name": "source_types",
+              "line": 24,
+              "async": false
+            },
+            {
+              "name": "input_mode",
+              "line": 27,
+              "async": false
+            },
+            {
+              "name": "apply_system_source_type",
+              "line": 35,
+              "async": false
+            },
+            {
+              "name": "apply_pass",
+              "line": 48,
+              "async": false
+            },
+            {
+              "name": "_apply_rule",
+              "line": 72,
+              "async": false
+            },
+            {
+              "name": "_condition_matches",
+              "line": 147,
+              "async": false
+            },
+            {
+              "name": "_render",
+              "line": 157,
+              "async": false
+            },
+            {
+              "name": "_transform",
+              "line": 165,
+              "async": false
+            },
+            {
+              "name": "_set",
+              "line": 173,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py",
+      "language": "Python",
+      "bytes": 12097,
+      "lines": 262,
+      "sha256": "ba885d32b7f478f1219cb206eed6e45ffe34b29021aa2d105daef6817c3d5212",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SchemaNavigator",
+          "line": 12,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 21,
+              "async": false
+            },
+            {
+              "name": "resolve_ref",
+              "line": 25,
+              "async": false
+            },
+            {
+              "name": "active_node",
+              "line": 40,
+              "async": false
+            },
+            {
+              "name": "schema_at_path",
+              "line": 57,
+              "async": false
+            },
+            {
+              "name": "path_exists_in_schema",
+              "line": 76,
+              "async": false
+            },
+            {
+              "name": "source_type_values",
+              "line": 79,
+              "async": false
+            },
+            {
+              "name": "inject_defaults",
+              "line": 94,
+              "async": false
+            },
+            {
+              "name": "ensure_required_containers",
+              "line": 119,
+              "async": false
+            },
+            {
+              "name": "missing_requirements",
+              "line": 141,
+              "async": false
+            },
+            {
+              "name": "_walk_array",
+              "line": 194,
+              "async": false
+            },
+            {
+              "name": "_walk_object_item",
+              "line": 204,
+              "async": false
+            },
+            {
+              "name": "_dedupe",
+              "line": 222,
+              "async": false
+            },
+            {
+              "name": "public_schema",
+              "line": 232,
+              "async": false
+            },
+            {
+              "name": "allowed_values",
+              "line": 237,
+              "async": false
+            },
+            {
+              "name": "validate_value",
+              "line": 245,
+              "async": false
+            },
+            {
+              "name": "validate",
+              "line": 256,
+              "async": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

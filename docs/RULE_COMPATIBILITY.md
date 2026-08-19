@@ -6,8 +6,8 @@ Załączone pliki nie są obecnie jednym spójnym kontraktem wykonawczym. `ux_ru
 
 Dlatego aplikacja zawiera dwa pliki:
 
-- `config/ux_rules_original.json` — oryginał, bez zmian;
-- `config/ux_rules_contract_v1.json` — minimalny, jawnie zmigrowany zestaw do obecnego schema.
+- `mcp-servers/mcp-contract-forge/config/ux_rules_original.json` — oryginał, bez zmian;
+- `mcp-servers/mcp-contract-forge/config/ux_rules_contract_v1.json` — minimalny, jawnie zmigrowany zestaw do obecnego schema.
 
 Nie ma runtime'owego „zgadywania”, że stara ścieżka ma oznaczać nową. Takie zgadywanie w ADCM łamałoby własność kontraktu po stronie MCP.
 
