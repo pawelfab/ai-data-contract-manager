@@ -18,11 +18,13 @@ def test_rocket_happy_path():
     forge = build_forge()
     state = forge.start_session()
     assert state.pending[0].path == "metadata.sourceSystemGcpId"
+    assert state.pending[0].input_mode == "explicit"
 
     state = forge.submit_values(state.session_id, {"metadata.sourceSystemGcpId": "rocket"}, Origin.USER)
     assert state.contract["source"]["sourceType"] == "fixed_width"
     assert state.contract["targets"]["bronze"]["table"]["dataset"] == "rocket_bronze"
     assert state.pending[0].path == "metadata.id"
+    assert state.pending[0].input_mode == "explicit"
 
     sid = state.session_id
     state = forge.submit_values(sid, {"metadata.id": "customer_accounts_daily"}, Origin.USER)

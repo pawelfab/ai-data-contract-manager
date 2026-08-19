@@ -136,6 +136,7 @@ class ContractForge:
                     path="metadata.sourceSystemGcpId",
                     question="Jaki jest system źródłowy?",
                     reason="source_system",
+                    input_mode="explicit",
                     value_schema={"type": "string", "enum": systems},
                     allowed_values=systems,
                 )
@@ -148,6 +149,7 @@ class ContractForge:
                     path="source.sourceType",
                     question="Jaki jest typ źródła danych?",
                     reason="one_of",
+                    input_mode="explicit",
                     value_schema={"type": "string", "enum": choices},
                     allowed_values=choices,
                 )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from contract_forge.models import ForgeState, Origin
+from contract_forge.models import ForgeState, Origin, Requirement
 from .gateway import ForgeGateway
 from .heuristics import HeuristicResolver
 from .models import AssistantTurn, ChatMessage, ConversationMemory
@@ -63,11 +63,13 @@ class ADCMOrchestrator:
         if values:
             state = await self.gateway.submit_values(memory.forge_session_id, values, Origin.USER)
         else:
-            semantic_values = await self.semantic.extract_from_history(
-                session_id, memory.messages, state.pending, state.contract
-            )
-            if semantic_values:
-                state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
+            semantic_requirements = self._semantic_prefix(state.pending)
+            if semantic_requirements:
+                semantic_values = await self.semantic.extract_from_history(
+                    session_id, memory.messages, semantic_requirements, state.contract
+                )
+                if semantic_values:
+                    state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
 
         # Stair-step loop: Forge may reveal requirement B only after A is resolved.
         # Reuse earlier conversation facts without asking the user again.
@@ -94,14 +96,16 @@ class ADCMOrchestrator:
                     state = new_state
                     continue
 
-            semantic_values = await self.semantic.extract_from_history(
-                session_id, memory.messages, state.pending, state.contract
-            )
-            if semantic_values:
-                new_state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
-                if new_state.contract != state.contract:
-                    state = new_state
-                    continue
+            semantic_requirements = self._semantic_prefix(state.pending)
+            if semantic_requirements:
+                semantic_values = await self.semantic.extract_from_history(
+                    session_id, memory.messages, semantic_requirements, state.contract
+                )
+                if semantic_values:
+                    new_state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
+                    if new_state.contract != state.contract:
+                        state = new_state
+                        continue
             break
 
         turn = self._turn_from_state(session_id, state)
@@ -111,6 +115,16 @@ class ADCMOrchestrator:
     async def state(self, session_id: str) -> ForgeState:
         memory = self.sessions[session_id]
         return await self.gateway.get_state(memory.forge_session_id)
+
+    @staticmethod
+    def _semantic_prefix(requirements: list[Requirement]) -> list[Requirement]:
+        """Return semantic-eligible requirements before the next explicit workflow gate."""
+        eligible = []
+        for requirement in requirements:
+            if requirement.input_mode == "explicit":
+                break
+            eligible.append(requirement)
+        return eligible
 
     @staticmethod
     def _turn_from_state(session_id: str, state: ForgeState) -> AssistantTurn:

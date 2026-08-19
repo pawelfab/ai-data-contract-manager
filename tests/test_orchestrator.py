@@ -58,6 +58,23 @@ class FakeSemanticResolver:
 
 
 @pytest.mark.asyncio
+async def test_explicit_source_gate_never_calls_semantic_resolver():
+    forge = ContractForge.from_files(
+        ROOT / "config" / "contract.json",
+        ROOT / "config" / "ux_rules_contract_v1.json",
+        deploy_env="dev",
+    )
+    semantic = FakeSemanticResolver({"metadata.sourceSystemGcpId": "rocket"})
+    service = ADCMOrchestrator(LocalForgeGateway(forge), semantic=semantic)
+    turn = await service.start()
+
+    turn = await service.message(turn.session_id, "wybierz za mnie")
+
+    assert turn.pending_path == "metadata.sourceSystemGcpId"
+    assert semantic.calls == []
+
+
+@pytest.mark.asyncio
 async def test_stair_step_loop_reuses_information_as_forge_reveals_requirements():
     forge = ContractForge.from_files(
         ROOT / "config" / "contract.json",
@@ -76,15 +93,22 @@ async def test_stair_step_loop_reuses_information_as_forge_reveals_requirements(
     service = ADCMOrchestrator(LocalForgeGateway(forge), semantic=semantic)
     turn = await service.start()
 
-    # The user states everything up-front. Forge initially accepts only source-system;
-    # the semantic resolver is re-run as each next requirement is revealed.
+    # The user states everything up-front, but the explicit metadata.id gate cannot
+    # be completed by the semantic resolver.
     turn = await service.message(
         turn.session_id,
         "Rocket. Chcę utworzyć customer accounts daily, owner data-platform, "
         "plik mam w raw zone i wkleiłem też definicję kolumn.",
     )
 
+    assert turn.pending_path == "metadata.id"
+    assert semantic.calls == []
+
+    turn = await service.message(turn.session_id, "pipeline: customer_accounts_daily")
+
     assert turn.status == "complete"
-    assert semantic.calls  # semantic loop really participated
+    assert semantic.calls
+    assert all("metadata.sourceSystemGcpId" not in call for call in semantic.calls)
+    assert all("metadata.id" not in call for call in semantic.calls)
     assert turn.contract["metadata"]["id"] == "customer_accounts_daily"
     assert turn.contract["source"]["uri"].startswith("gs://")

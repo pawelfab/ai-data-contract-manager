@@ -28,6 +28,7 @@ class Requirement(BaseModel):
     path: str
     question: str
     reason: Literal["source_system", "required", "one_of", "invalid"] = "required"
+    input_mode: Literal["explicit", "semantic"] = "semantic"
     value_schema: dict[str, Any] = Field(default_factory=dict)
     allowed_values: list[Any] | None = None
 

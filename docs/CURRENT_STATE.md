@@ -48,13 +48,17 @@ tests/
 - starts a Forge session;
 - presents the first pending requirement;
 - on each user message tries deterministic extraction against current pending paths;
-- if deterministic extraction yields no values, invokes the semantic resolver;
+- if deterministic extraction yields no values, invokes the semantic resolver only
+  for the semantic requirements before the next explicit workflow gate;
+- never sends an `explicit` requirement to the LLM;
 - then runs a bounded stair-step loop to reuse earlier conversation facts for newly exposed pending requirements;
 - presents the first remaining requirement or completion/validation state.
 
 `ContractForge`:
 - owns canonical session state;
 - exposes source-system gate;
+- labels requirements as `explicit` or `semantic`, using
+  `x-acdm-input-mode` from the schema where applicable;
 - accepts only currently allowed/pending paths;
 - applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
 - discovers missing requirements from schema;
@@ -71,6 +75,12 @@ ADCM: Jaki jest system źródłowy? Dostępne: rocket, sap.
 For SAP it then asks for pipeline id, owner, CSV URI and source columns.
 
 Source system typo matching is implemented; identifiers are normalized (e.g. uppercase user input for `metadata.id` can be canonicalized to schema-safe lowercase form).
+
+The source-system gate, source-type discriminator and `metadata.id` are explicit
+workflow gates. They are handled by deterministic parsing/Pydantic validation and
+Forge validation, without LLM extraction. The current `contract.json` does not
+define `dataFieldId`; when the contract owner adds it, marking it with
+`"x-acdm-input-mode": "explicit"` gives it the same behavior without changing ADCM.
 
 ## 4. Known bug/UX problem — `source.columns`
 
@@ -152,10 +162,15 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The current suite has 16 passing tests. Coverage now includes settings validation,
+The current suite has 18 passing tests. Coverage now includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
+
+Selective LLM routing is covered as well: source-system and `metadata.id` gates do
+not reach the semantic resolver, a source-type discriminator is explicit, and a
+future schema-defined `dataFieldId` can opt out of LLM extraction through schema
+metadata.
 
 A live semantic extraction was also verified against
 `http://127.0.0.1:3030/v1` with model `auto`; it returned the expected candidate and
@@ -165,10 +180,12 @@ end-to-end verification item.
 ## 8. Immediate recommended work order
 
 1. Fix `source.columns` partial-input UX and add regression tests.
-2. Run an end-to-end test with real MCP Streamable HTTP and the enabled semantic resolver.
-3. Align the Pydantic AI version constraint and `requirements.lock` during the next dependency refresh.
-4. Add a schema/rules compatibility gate/version check.
-5. Only then expand optional decisions and/or Schema Explorer integration.
+2. Add Schema Explorer/repository duplicate-contract lookup after all schema-defined
+   core identifiers have been collected.
+3. Run an end-to-end test with real MCP Streamable HTTP and the enabled semantic resolver.
+4. Align the Pydantic AI version constraint and `requirements.lock` during the next dependency refresh.
+5. Add a schema/rules compatibility gate/version check.
+6. Only then expand optional decisions.
 
 ## 9. Do not accidentally regress
 
@@ -184,13 +201,15 @@ While fixing the above, preserve:
 ## 10. Last change
 
 ```text
-Last change: central settings, OpenAI-compatible model factory and gateway adapter test.
-Changed files/classes: ADCMSettings, build_pydantic_ai_model, runtime/API/CLI wiring,
-  PydanticAISemanticResolver lifecycle, configuration docs and tests.
-Behavior now: .env is loaded automatically; `openai_compatible` uses Chat Completions
-  JSON mode and closes the provider client during CLI/API shutdown.
-Tests run/result: 16 passed; live gateway semantic smoke passed with clean process exit.
+Last change: schema-driven selective LLM routing for explicit workflow gates.
+Changed files/classes: Requirement.input_mode, SchemaNavigator.input_mode,
+  ContractForge source gates, ADCMOrchestrator._semantic_prefix, contract schema and tests.
+Behavior now: source system, source type and metadata.id are resolved without LLM;
+  schema owners can mark future fields such as dataFieldId with x-acdm-input-mode.
+Tests run/result: 18 passed; focused selective-routing tests passed.
 Known issues remaining: source.columns partial-input UX; real MCP HTTP end-to-end;
-  pyproject requires Pydantic AI >=2.32 while the checked lock/venv contain 1.107.1.
-Next concrete task: fix partial source.columns facts or verify combined MCP + LLM runtime.
+  dataFieldId is not present in the current contract schema; repository duplicate lookup
+  is planned; pyproject requires Pydantic AI >=2.32 while the checked lock/venv contain 1.107.1.
+Next concrete task: fix partial source.columns facts or add the Schema Explorer lookup
+  once the contract owner defines the complete core identifier set.
 ```

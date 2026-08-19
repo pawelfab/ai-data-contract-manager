@@ -122,6 +122,26 @@ This is a lightweight ADR log. Add a new entry only for a durable decision, not 
 
 ---
 
+## D-011 — Contract requirements select explicit or semantic input
+
+**Status:** Accepted
+
+**Decision:** Forge exposes an input mode for each requirement. Schema-defined fields
+use `x-acdm-input-mode: explicit` when they must be answered through deterministic
+parsing/Pydantic and Forge validation without LLM extraction. Generated workflow
+gates may set the same mode directly. All other requirements default to `semantic`.
+
+**Why:** Source selection and core identifiers determine later branches and future
+repository lookups. They must remain predictable, auditable and explicitly confirmed.
+
+**Consequence:** ADCM may invoke the LLM only for the semantic prefix before the next
+explicit gate; it never sends an explicit requirement to the semantic resolver.
+The current source-system gate, source-type discriminator and `metadata.id` are
+explicit. A future `dataFieldId` receives the same behavior through schema metadata;
+ADCM does not create that field while it is absent from `contract.json`.
+
+---
+
 ## Open decisions
 
 ### O-001 — Partial facts protocol
