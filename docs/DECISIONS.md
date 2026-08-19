@@ -46,9 +46,12 @@ This is a lightweight ADR log. Add a new entry only for a durable decision, not 
 
 **Decision:** Forge applies, in order: system enrichment -> generic enrichment -> JSON Schema defaults -> missing required discovery.
 
-**Value precedence:** explicit user > LLM-extracted user fact > system enrichment > generic enrichment > schema default.
+**Value precedence:** user > system enrichment > generic enrichment > schema default.
 
 **Consequence:** Lower-priority mechanisms must not overwrite stronger values silently.
+Deterministic and LLM extraction are methods of obtaining a USER fact, not separate
+business origins. Recency between USER facts belongs to ADCM; Forge accepts a later
+valid USER submit without comparing message sequence.
 
 ---
 

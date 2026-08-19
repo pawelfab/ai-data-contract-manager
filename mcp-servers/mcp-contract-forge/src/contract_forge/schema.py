@@ -5,8 +5,8 @@ from typing import Any, Iterable
 
 from jsonschema import Draft202012Validator
 
-from .models import Origin, Requirement, ValidationIssue
-from .path_utils import get_path, has_path, set_path
+from .models import AppliedValue, Origin, Requirement, ValidationIssue
+from .path_utils import get_path, has_path, write_value
 
 
 class SchemaNavigator:
@@ -91,8 +91,8 @@ class SchemaNavigator:
                 values.append(const)
         return values
 
-    def inject_defaults(self, contract: dict[str, Any], origins: dict[str, Origin]) -> list[tuple[str, Any]]:
-        applied: list[tuple[str, Any]] = []
+    def inject_defaults(self, contract: dict[str, Any], origins: dict[str, Origin]) -> list[AppliedValue]:
+        applied: list[AppliedValue] = []
 
         def walk(node: dict[str, Any], value: Any, path: str, active: bool = True) -> None:
             node = self.active_node(node, value)
@@ -103,9 +103,15 @@ class SchemaNavigator:
                     child = self.resolve_ref(child)
                     child_path = f"{path}.{name}" if path else name
                     if name not in value and "default" in child:
-                        value[name] = deepcopy(child["default"])
-                        origins[child_path] = Origin.SCHEMA_DEFAULT
-                        applied.append((child_path, deepcopy(child["default"])))
+                        result = write_value(
+                            contract,
+                            origins,
+                            child_path,
+                            child["default"],
+                            Origin.SCHEMA_DEFAULT,
+                        )
+                        if result:
+                            applied.append(result)
                     if name in value:
                         walk(child, value[name], child_path)
             elif isinstance(value, list):
@@ -128,8 +134,7 @@ class SchemaNavigator:
                 child = self.resolve_ref(props.get(name, {}))
                 child_path = f"{path}.{name}" if path else name
                 if name not in value and child.get("type") == "object":
-                    value[name] = {}
-                    origins[child_path] = Origin.STRUCTURAL
+                    write_value(contract, origins, child_path, {}, Origin.STRUCTURAL)
                 if name in value:
                     walk(child, value[name], child_path)
             for name, child in props.items():

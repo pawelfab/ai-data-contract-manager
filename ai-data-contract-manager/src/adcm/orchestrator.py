@@ -68,7 +68,7 @@ class ADCMOrchestrator:
                     session_id, memory.messages, semantic_requirements, state.contract
                 )
                 if semantic_values:
-                    state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
+                    state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.USER)
 
         # Stair-step loop: Forge may reveal requirement B only after A is resolved.
         # Reuse earlier conversation facts without asking the user again.
@@ -101,7 +101,7 @@ class ADCMOrchestrator:
                     session_id, memory.messages, semantic_requirements, state.contract
                 )
                 if semantic_values:
-                    new_state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.LLM)
+                    new_state = await self.gateway.submit_values(memory.forge_session_id, semantic_values, Origin.USER)
                     if new_state.contract != state.contract:
                         state = new_state
                         continue

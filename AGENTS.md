@@ -65,7 +65,10 @@ The LLM does **not** control this loop. Code does.
 
 Preserve this precedence unless an explicit architectural decision changes it:
 
-`explicit user > LLM-extracted user fact > system enrichment > generic enrichment > JSON Schema default`
+`user > system enrichment > generic enrichment > JSON Schema default`
+
+Deterministic and LLM extraction are methods of obtaining a user fact, not separate
+business origins. A fact extracted by the LLM is submitted to Forge with `origin=USER`.
 
 Enrichment should normally be fill-only and must not silently override a stronger source.
 

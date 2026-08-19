@@ -137,8 +137,7 @@ A repeated identical question after a rejected parse is poor UX unless accompani
 Recommended origin model:
 
 ```text
-USER_EXPLICIT
-LLM_EXTRACTED_USER_FACT
+USER
 SYSTEM_ENRICHMENT
 GENERIC_ENRICHMENT
 SCHEMA_DEFAULT
@@ -148,13 +147,17 @@ STRUCTURAL
 Recommended precedence:
 
 ```text
-USER_EXPLICIT
-  > LLM_EXTRACTED_USER_FACT
+USER
   > SYSTEM_ENRICHMENT
   > GENERIC_ENRICHMENT
   > SCHEMA_DEFAULT
   > STRUCTURAL
 ```
+
+Deterministic and LLM extraction are ADCM metadata, not Forge business origins. A
+fact extracted from the user's words by either method reaches Forge as `USER`.
+Recency between multiple USER facts belongs to ADCM conversation memory, not to
+Forge precedence.
 
 Forge should expose origins for debugging and later UI explanations such as:
 

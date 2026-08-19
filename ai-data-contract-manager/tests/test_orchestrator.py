@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+from adcm.models import Origin
 from adcm.orchestrator import ADCMOrchestrator
 from support import FakeForgeGateway
 
@@ -53,9 +54,11 @@ class RecordingFakeForgeGateway(FakeForgeGateway):
     def __init__(self):
         super().__init__()
         self.submissions = []
+        self.submission_origins = []
 
     async def submit_values(self, session_id, values, origin):
         self.submissions.append(deepcopy(values))
+        self.submission_origins.append(origin)
         return await super().submit_values(session_id, values, origin)
 
 
@@ -136,6 +139,7 @@ async def test_baseline_stair_step_and_adcm_conversation_state_ownership():
         {"metadata.id"},
         {"source.columns"},
     ]
+    assert gateway.submission_origins == [Origin.USER] * 4
     assert turn.status == "complete"
 
     memory = service.sessions[turn.session_id]

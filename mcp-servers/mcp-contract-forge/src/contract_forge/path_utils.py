@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from .models import AppliedValue, Origin, can_replace
+
 _MISSING = object()
 
 
@@ -40,11 +42,41 @@ def set_path(data: dict[str, Any], path: str, value: Any) -> None:
     for part in parts[:-1]:
         if isinstance(current, dict):
             current = current.setdefault(part, {})
+        elif isinstance(current, list) and part.isdigit() and int(part) < len(current):
+            current = current[int(part)]
         else:
-            raise TypeError(f"Cannot descend through non-object at {part!r} for {path!r}")
-    if not isinstance(current, dict):
-        raise TypeError(f"Cannot set {path!r} on non-object")
-    current[parts[-1]] = deepcopy(value)
+            raise TypeError(f"Cannot descend through value at {part!r} for {path!r}")
+    leaf = parts[-1]
+    if isinstance(current, dict):
+        current[leaf] = deepcopy(value)
+        return
+    if isinstance(current, list) and leaf.isdigit() and int(leaf) < len(current):
+        current[int(leaf)] = deepcopy(value)
+        return
+    raise TypeError(f"Cannot set {path!r} on current value")
+
+
+def write_value(
+    contract: dict[str, Any],
+    origins: dict[str, Origin],
+    path: str,
+    value: Any,
+    origin: Origin,
+    *,
+    rule_id: str | None = None,
+) -> AppliedValue | None:
+    """Apply one value through the central origin-precedence and provenance rule."""
+    current_origin = origins.get(path) if has_path(contract, path) else None
+    if not can_replace(current_origin, origin):
+        return None
+    set_path(contract, path, value)
+    origins[path] = origin
+    return AppliedValue(
+        path=path,
+        value=deepcopy(value),
+        origin=origin,
+        rule_id=rule_id,
+    )
 
 
 def delete_path(data: dict[str, Any], path: str) -> None:

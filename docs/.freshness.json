@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "marked_at": "2026-08-19T14:42:07.193017+00:00",
-  "reason": "verified independent ADCM and Contract Forge services",
+  "marked_at": "2026-08-19T15:12:48.539326+00:00",
+  "reason": "Stage 01 Forge origin precedence documented",
   "commit": null,
   "branch": null,
   "working_tree_dirty": null,
@@ -13,8 +13,8 @@
     "ai-data-contract-manager/src/adcm/gateway.py": "e02205c90d0949e241e73c7e664cce9544a310877b0993d1d4f2b9d9ee157feb",
     "ai-data-contract-manager/src/adcm/heuristics.py": "ab24961fc2b570d8707975d58823eaa1005eef0bbc17d76c8e6ed85ddd2c9ec5",
     "ai-data-contract-manager/src/adcm/model_factory.py": "c00245493441cee91d9a47071da1d5903554f4745704971a7878e8e68f41e141",
-    "ai-data-contract-manager/src/adcm/models.py": "b554db81c349c80290f564b692ec54d1a10bade48f14a4378d433f5edd5e1711",
-    "ai-data-contract-manager/src/adcm/orchestrator.py": "f54c595636daf72d5989281f4c521b9e1392cc2535b7271f6f588696503b4a85",
+    "ai-data-contract-manager/src/adcm/models.py": "6ee5197ba56dd62d072435600ce5b466b8ad38e781cfa5ae4bb8abaf258ff91d",
+    "ai-data-contract-manager/src/adcm/orchestrator.py": "4ca4fc5914840d27260b48b50820c47c921d9ee88703b1464249e106eedbab13",
     "ai-data-contract-manager/src/adcm/runtime.py": "42079551c7d996320c1fff92bc818f5dec036cc34fdf91b91bf56958bcb43cf5",
     "ai-data-contract-manager/src/adcm/semantic.py": "dc9ed5da1594869eec82c1bafb581438d2341019e0cd114c61075249a6af13ec",
     "ai-data-contract-manager/src/adcm/settings.py": "1f172349160788f9cb534b738c6a39387bbcf102cb677b53370de90b514613a7",
@@ -24,11 +24,11 @@
     "mcp-servers/mcp-contract-forge/contracts/data-contract.schema.json": "998a8b4027e963a2459cbd89c7b57be0ec867554e104d8b00ea39104a85ac209",
     "mcp-servers/mcp-contract-forge/pyproject.toml": "b3513132174938f1552c28d161bdb595b8ebbfc26fa370732d7eeee5ef2581a8",
     "mcp-servers/mcp-contract-forge/src/contract_forge/__init__.py": "c2b2ce7b64327937b9675a2e28185680939b9940c7974b4c2ad2fa9a0e653eb8",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/engine.py": "191b1d0b5a966259c6434ab78204a6658c9419cb8eb0a10e3fb12c138db417d0",
+    "mcp-servers/mcp-contract-forge/src/contract_forge/engine.py": "e368874a64a61bf23eb32f335156e3079778d6f672a54eb18202997ce997fee5",
     "mcp-servers/mcp-contract-forge/src/contract_forge/mcp_server.py": "5750d1f55431bdfc997d30f12d5d34f17f4c11e59ce8afe9a12cf1ad0e33d660",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/models.py": "7f1695bdf55675dd57629fb5f7a3e94a344b3bd8fbbd6868f4eaaccb072e973a",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/path_utils.py": "34f3ad4ebc7f64166d802b32b8a8a278fde117c4c60f9f3df350963a7af703e0",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/rules.py": "6cb8d8baa3acdc68edb6b369d1bba58c35aa342edadb78b4b90adcc70d2a0b97",
-    "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py": "ba885d32b7f478f1219cb206eed6e45ffe34b29021aa2d105daef6817c3d5212"
+    "mcp-servers/mcp-contract-forge/src/contract_forge/models.py": "ab1fa8680b1602db065154d6f057348bec344bb1983687e8049f44f87c8cf4c0",
+    "mcp-servers/mcp-contract-forge/src/contract_forge/path_utils.py": "5e81825fd8c48f2904ce5bf1826f246a552cc5b16f537ae0ca2bc32bfa7cb9f3",
+    "mcp-servers/mcp-contract-forge/src/contract_forge/rules.py": "09390c8e46bb0773afbfee1d020e81db3dda7a79a3f57c12ff90a766f3adcd4d",
+    "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py": "bf059315b86d3b0d1b1256280e9d14abb96643762577481ed1c17625895ccb68"
   }
 }

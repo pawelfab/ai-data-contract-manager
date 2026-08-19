@@ -8,8 +8,8 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from .models import AppliedValue, ForgeState, Origin, Requirement, RuleIssue, SessionData
-from .path_utils import get_path, has_path, set_path
+from .models import ForgeState, Origin, Requirement, RuleIssue, SessionData, ValidationIssue
+from .path_utils import has_path, write_value
 from .rules import RuleEngine
 from .schema import SchemaNavigator
 
@@ -20,7 +20,9 @@ class ContractForge:
     ADCM never directly mutates the canonical contract. It submits candidate values and
     receives the next set of requirements. Enrichment/default precedence is:
 
-      explicit user > LLM-extracted user fact > system enrichment > generic enrichment > schema default.
+      user > system enrichment > generic enrichment > schema default.
+
+    Deterministic and LLM extraction are ADCM concerns; both submit USER facts.
     """
 
     def __init__(self, schema: dict[str, Any], rules: dict[str, Any], deploy_env: str = "dev"):
@@ -49,15 +51,16 @@ class ContractForge:
     def submit_values(self, session_id: str, values: dict[str, Any], origin: Origin = Origin.USER) -> ForgeState:
         session = self._get(session_id)
         allowed = {r.path for r in self._pending(session)}
+        session.candidate_issues.clear()
         # The source-system gate is always permitted until selected.
         if session.source_system is None:
             allowed.add("metadata.sourceSystemGcpId")
 
         for path, value in values.items():
-            if path not in allowed:
-                # Safe path rule: ADCM/LLM may only answer what Forge currently requests.
+            if not self._candidate_path_allowed(session, path, origin, allowed):
+                session.candidate_issues.append(self._disallowed_path_issue(session, path))
                 continue
-            self._apply_explicit(session, path, value, origin)
+            session.candidate_issues.extend(self._apply_explicit(session, path, value, origin))
 
         self._advance(session)
         return self._state(session)
@@ -67,36 +70,82 @@ class ContractForge:
         self._advance(session)
         return self._state(session)
 
-    def _apply_explicit(self, session: SessionData, path: str, value: Any, origin: Origin) -> None:
+    def _candidate_path_allowed(
+        self,
+        session: SessionData,
+        path: str,
+        origin: Origin,
+        pending: set[str],
+    ) -> bool:
+        if path in pending:
+            return True
+        if origin != Origin.USER or not has_path(session.contract, path):
+            return False
+        if not self.navigator.path_exists_in_schema(path, session.contract):
+            return False
+        return session.origins.get(path) in {
+            Origin.USER,
+            Origin.SYSTEM_ENRICHMENT,
+            Origin.GENERIC_ENRICHMENT,
+            Origin.SCHEMA_DEFAULT,
+        }
+
+    def _disallowed_path_issue(self, session: SessionData, path: str) -> ValidationIssue:
+        if not self.navigator.path_exists_in_schema(path, session.contract):
+            return ValidationIssue(
+                path=path,
+                message="Candidate path does not exist in the active contract schema.",
+                validator="path",
+            )
+        return ValidationIssue(
+            path=path,
+            message="Candidate path is neither pending nor an overridable existing value.",
+            validator="candidate_path",
+        )
+
+    def _apply_explicit(
+        self,
+        session: SessionData,
+        path: str,
+        value: Any,
+        origin: Origin,
+    ) -> list[ValidationIssue]:
         if path == "metadata.sourceSystemGcpId":
             canonical = str(value).strip().lower()
             if canonical not in self.rule_engine.systems:
-                return
+                return [ValidationIssue(path=path, message="Unknown source system.", validator="enum")]
+            applied = write_value(session.contract, session.origins, path, canonical.upper(), origin)
+            if not applied:
+                return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
             session.source_system = canonical
-            set_path(session.contract, path, canonical.upper())
-            session.origins[path] = origin
-            session.applied.append(AppliedValue(path=path, value=canonical.upper(), origin=origin))
-            return
+            session.applied.append(applied)
+            return []
 
         if path == "source.sourceType":
             candidate = str(value).strip().lower()
             if candidate not in self._source_type_choices(session):
-                return
-            set_path(session.contract, path, candidate)
-            session.origins[path] = origin
-            session.applied.append(AppliedValue(path=path, value=candidate, origin=origin))
-            return
+                return [ValidationIssue(path=path, message="Unsupported source type.", validator="enum")]
+            applied = write_value(session.contract, session.origins, path, candidate, origin)
+            if not applied:
+                return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
+            session.applied.append(applied)
+            return []
 
         node = self.navigator.schema_at_path(path, session.contract)
         if node is None:
-            return
+            return [ValidationIssue(path=path, message="Candidate path does not exist in the active contract schema.", validator="path")]
         # Validate the candidate against its local schema before accepting it.
         local_errors = self.navigator.validate_value(node, value)
         if local_errors:
-            return
-        set_path(session.contract, path, deepcopy(value))
-        session.origins[path] = origin
-        session.applied.append(AppliedValue(path=path, value=deepcopy(value), origin=origin))
+            return [
+                issue.model_copy(update={"path": f"{path}.{issue.path}" if issue.path else path})
+                for issue in local_errors
+            ]
+        applied = write_value(session.contract, session.origins, path, deepcopy(value), origin)
+        if not applied:
+            return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
+        session.applied.append(applied)
+        return []
 
     def _advance(self, session: SessionData) -> None:
         if session.source_system is None:
@@ -120,8 +169,7 @@ class ContractForge:
             )
             session.applied.extend(applied)
 
-            for path, value in self.navigator.inject_defaults(session.contract, session.origins):
-                session.applied.append(AppliedValue(path=path, value=value, origin=Origin.SCHEMA_DEFAULT))
+            session.applied.extend(self.navigator.inject_defaults(session.contract, session.origins))
 
             self.navigator.ensure_required_containers(session.contract, session.origins)
             after = json.dumps(session.contract, sort_keys=True, default=str)
@@ -188,6 +236,7 @@ class ContractForge:
             status=status,
             pending=pending,
             validation_errors=validation_errors,
+            candidate_issues=deepcopy(session.candidate_issues),
             applied=deepcopy(session.applied[-100:]),
             rule_issues=rule_issues,
         )

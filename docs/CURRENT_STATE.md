@@ -55,6 +55,9 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
   `ux_rules_contract_v1.json`;
 - accepts only currently allowed/pending paths;
 - applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
+- applies every canonical value through one origin-precedence write function;
+- accepts a valid USER override for an existing schema-known USER/enrichment/default
+  value and reports rejected candidates separately from final contract validation;
 - discovers missing requirements from schema;
 - validates local candidate values and the final contract.
 
@@ -157,7 +160,7 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 22 passing tests in total: 13 ADCM tests and 9 Contract
+The two service suites have 30 passing tests in total: 13 ADCM tests and 17 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -174,6 +177,12 @@ does not contain a contract; Forge owns canonical `SessionData.contract`, does n
 contain conversation messages, and returns contract snapshots that cannot mutate its
 canonical state.
 
+Stage 01 adds focused coverage for USER overrides of system enrichment, lower-origin
+rejection, SYSTEM versus GENERIC, GENERIC versus SCHEMA_DEFAULT, USER-to-USER
+correction, invalid override preservation/diagnostics, and rejection of unknown
+schema paths. The ADCM regression also verifies that semantic extraction is submitted
+as `origin=USER`.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -184,11 +193,11 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Fix `source.columns` partial-input UX and add regression tests.
-2. Add Schema Explorer/repository duplicate-contract lookup after all schema-defined
-   core identifiers have been collected.
-3. Add a schema/rules compatibility gate/version check.
-4. Only then expand optional decisions.
+1. Implement Stage 02 USER fact memory without moving message recency into Forge.
+2. Implement Stage 03 stair-step reuse and exposure of overridable fields.
+3. Fix the `source.columns` partial-input UX in Stage 04.
+4. After the staged series, add Schema Explorer/repository lookup and a schema/rules
+   compatibility gate.
 
 ## 9. Do not accidentally regress
 
@@ -224,20 +233,50 @@ No production behavior changed in Stage 00. Known product limitations remain the
 partial `source.columns` UX, the absent `metadata.dataFieldId` in the current schema,
 and the planned repository duplicate lookup.
 
-## 11. Last change
+## 11. Stage 01 precedence implementation map
+
+Forge now uses one business-origin order:
 
 ```text
-Last change: completed user-priority/fact-store Stage 00 without production changes.
-Changed files: ADCM orchestrator regression tests, Forge ownership regression tests,
-  and this current-state snapshot.
-Behavior now: unchanged; the tests explicitly lock source-first progression, two
-  automatic history-driven submits, and the ADCM conversation/Forge contract state
-  boundary.
-Tests run/result: pre-change baseline ADCM 12 passed and Forge 8 passed; post-change
-  full-suite result ADCM 13 passed and Forge 9 passed. Forge retains one known,
-  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency.
+USER > SYSTEM_ENRICHMENT > GENERIC_ENRICHMENT > SCHEMA_DEFAULT > STRUCTURAL
+```
+
+- `contract_forge.models.can_replace()` is the single precedence decision;
+- `contract_forge.path_utils.write_value()` is the single canonical value/origin/
+  `AppliedValue` writer and supports paths through existing array items;
+- `RuleEngine`, source-type enrichment and `SchemaNavigator` defaults/structural
+  containers use that writer;
+- `ContractForge.submit_values()` still accepts pending paths and additionally permits
+  USER replacement only for an existing schema-known value whose current origin is
+  USER, SYSTEM_ENRICHMENT, GENERIC_ENRICHMENT or SCHEMA_DEFAULT;
+- invalid or disallowed submissions leave the canonical value intact and appear in
+  `ForgeState.candidate_issues`; they do not make a valid canonical contract invalid;
+- ADCM submits facts extracted deterministically or semantically as `origin=USER`.
+
+Forge does not compare user message sequence. ADCM does not yet have a UserFact store,
+and Forge does not yet expose an `overridable` collection to the orchestrator; those
+remain Stage 02 and Stage 03 respectively.
+
+## 12. Last change
+
+```text
+Last change: completed user-priority/fact-store Stage 01.
+Changed files/classes: Forge Origin/can_replace, central write_value, ContractForge
+  candidate handling, RuleEngine and SchemaNavigator writers, MCP response DTOs,
+  ADCM semantic candidate origin, precedence tests, and architecture/current docs.
+Behavior now: Forge enforces USER > SYSTEM_ENRICHMENT > GENERIC_ENRICHMENT >
+  SCHEMA_DEFAULT centrally; valid USER-to-enrichment/default and USER-to-USER
+  replacements are accepted, while invalid candidates preserve the current value and
+  return candidate_issues. LLM extraction remains controlled but uses origin USER.
+Tests run/result: pre-change baseline ADCM 13 passed and Forge 9 passed; post-change
+  full-suite result ADCM 13 passed and Forge 17 passed. Forge retains one known,
+  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency. A real MCP
+  Streamable HTTP Rocket smoke completed successfully after the wire-model change;
+  a transport-level precedence smoke also confirmed a valid USER override and an
+  invalid correction returned through `candidate_issues` without changing the value.
 Known issues remaining: source.columns partial-input UX; dataFieldId is not present
-  in the current contract schema; repository duplicate lookup is planned.
-Next concrete task: Stage 01 from docs/user_priority_and_fact_store, implemented
-  separately and without pulling in Stage 02 behavior.
+  in the current contract schema; ADCM has no latest USER fact store or overridable
+  field loop yet; repository duplicate lookup is planned.
+Next concrete task: Stage 02 from docs/user_priority_and_fact_store, implemented
+  separately and without pulling in Stage 03 behavior.
 ```

@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Any, Literal
 
 from .models import AppliedValue, Origin, RuleIssue
-from .path_utils import get_path, has_path, set_path
+from .path_utils import get_path, has_path, write_value
 from .schema import SchemaNavigator
 
 _MISSING = object()
@@ -39,11 +39,17 @@ class RuleEngine:
         system: str,
     ) -> list[AppliedValue]:
         source_types = self.source_types(system)
-        if len(source_types) != 1 or has_path(contract, "source.sourceType"):
+        if len(source_types) != 1:
             return []
-        set_path(contract, "source.sourceType", source_types[0])
-        origins["source.sourceType"] = Origin.SYSTEM_ENRICHMENT
-        return [AppliedValue(path="source.sourceType", value=source_types[0], origin=Origin.SYSTEM_ENRICHMENT, rule_id=f"{system}.source_type")]
+        applied = write_value(
+            contract,
+            origins,
+            "source.sourceType",
+            source_types[0],
+            Origin.SYSTEM_ENRICHMENT,
+            rule_id=f"{system}.source_type",
+        )
+        return [applied] if applied else []
 
     def apply_pass(
         self,
@@ -90,13 +96,9 @@ class RuleEngine:
                 return [], RuleIssue(rule_id=rule_id, path=path, reason="Target path does not exist in active contract schema")
 
         if action == "set_default":
-            if has_path(contract, path):
-                return [], None
             return self._set(contract, origins, path, deepcopy(rule.get("value")), scope, rule_id), None
 
         if action == "copy_value":
-            if has_path(contract, path):
-                return [], None
             source_path = rule.get("source_path")
             if not source_path or not has_path(contract, source_path):
                 fallback = rule.get("fallback_source_path")
@@ -108,8 +110,6 @@ class RuleEngine:
             return self._set(contract, origins, path, value, scope, rule_id), None
 
         if action == "format_value":
-            if has_path(contract, path):
-                return [], None
             source = None
             source_path = rule.get("source_path")
             if source_path and has_path(contract, source_path):
@@ -121,8 +121,6 @@ class RuleEngine:
             return self._set(contract, origins, path, value, scope, rule_id), None
 
         if action == "derive_target_columns":
-            if has_path(contract, path):
-                return [], None
             source_path = rule.get("source_path")
             if not source_path or not has_path(contract, source_path):
                 return [], None
@@ -178,6 +176,12 @@ class RuleEngine:
         scope: Origin,
         rule_id: str,
     ) -> list[AppliedValue]:
-        set_path(contract, path, value)
-        origins[path] = scope
-        return [AppliedValue(path=path, value=deepcopy(value), origin=scope, rule_id=rule_id)]
+        applied = write_value(
+            contract,
+            origins,
+            path,
+            value,
+            scope,
+            rule_id=rule_id,
+        )
+        return [applied] if applied else []

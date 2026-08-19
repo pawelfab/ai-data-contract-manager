@@ -9,7 +9,6 @@ class Origin(str, Enum):
     """Value provenance accepted by the Contract Forge MCP wire contract."""
 
     USER = "user"
-    LLM = "llm"
     SYSTEM_ENRICHMENT = "system_enrichment"
     GENERIC_ENRICHMENT = "generic_enrichment"
     SCHEMA_DEFAULT = "schema_default"
@@ -54,6 +53,7 @@ class ForgeState(BaseModel):
     status: Literal["needs_input", "complete", "invalid"] = "needs_input"
     pending: list[Requirement] = Field(default_factory=list)
     validation_errors: list[ValidationIssue] = Field(default_factory=list)
+    candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
 

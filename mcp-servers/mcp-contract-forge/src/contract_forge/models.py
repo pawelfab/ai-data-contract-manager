@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 
 class Origin(str, Enum):
     USER = "user"
-    LLM = "llm"
     SYSTEM_ENRICHMENT = "system_enrichment"
     GENERIC_ENRICHMENT = "generic_enrichment"
     SCHEMA_DEFAULT = "schema_default"
@@ -16,12 +15,22 @@ class Origin(str, Enum):
 
 ORIGIN_PRIORITY: dict[Origin, int] = {
     Origin.USER: 100,
-    Origin.LLM: 90,
     Origin.SYSTEM_ENRICHMENT: 70,
     Origin.GENERIC_ENRICHMENT: 60,
     Origin.SCHEMA_DEFAULT: 50,
     Origin.STRUCTURAL: 10,
 }
+
+
+def can_replace(current: Origin | None, candidate: Origin) -> bool:
+    """Return whether a candidate origin may replace the current value origin."""
+    if current is None:
+        return True
+    if current == candidate:
+        # A later USER submit represents the client's current intent. Forge does not
+        # compare message sequence; enrichment/default writes remain fill-only.
+        return candidate == Origin.USER
+    return ORIGIN_PRIORITY[candidate] > ORIGIN_PRIORITY[current]
 
 
 class Requirement(BaseModel):
@@ -60,6 +69,7 @@ class ForgeState(BaseModel):
     status: Literal["needs_input", "complete", "invalid"] = "needs_input"
     pending: list[Requirement] = Field(default_factory=list)
     validation_errors: list[ValidationIssue] = Field(default_factory=list)
+    candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
 
@@ -70,3 +80,4 @@ class SessionData(BaseModel):
     contract: dict[str, Any] = Field(default_factory=dict)
     origins: dict[str, Origin] = Field(default_factory=dict)
     applied: list[AppliedValue] = Field(default_factory=list)
+    candidate_issues: list[ValidationIssue] = Field(default_factory=list)
