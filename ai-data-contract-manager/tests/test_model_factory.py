@@ -7,8 +7,14 @@ pytest.importorskip("pydantic_ai")
 openai = pytest.importorskip("openai")
 
 from adcm.model_factory import build_pydantic_ai_model
-from adcm.models import ChatMessage, Requirement
-from adcm.semantic import PydanticAISemanticResolver
+from adcm.models import (
+    ChatMessage,
+    ExtractionMethod,
+    Origin,
+    Requirement,
+    UserFact,
+)
+from adcm.semantic import CandidateValue, ExtractionResult, PydanticAISemanticResolver
 from adcm.settings import ADCMSettings
 
 
@@ -35,10 +41,10 @@ async def test_openai_compatible_factory_uses_gateway_json_mode() -> None:
                                 {
                                     "values": [
                                         {
-                                            "path": "metadata.id",
-                                            "value": "customer_daily",
+                                            "path": "metadata.owner",
+                                            "value": "FinOps",
                                             "confidence": 0.99,
-                                            "evidence": "customer_daily",
+                                            "evidence": "Opiekunem jest FinOps.",
                                         }
                                     ]
                                 }
@@ -73,21 +79,63 @@ async def test_openai_compatible_factory_uses_gateway_json_mode() -> None:
         )
         model = build_pydantic_ai_model(settings, openai_client=openai_client)
         resolver = PydanticAISemanticResolver(model)
-        values = await resolver.extract_from_history(
+        result = await resolver.extract_from_history(
             session_id="gateway-test",
-            messages=[ChatMessage(role="user", content="Nazwa pipeline to customer_daily.")],
-            requirements=[
-                Requirement(
-                    path="metadata.id",
-                    question="Jak ma się nazywać pipeline?",
-                    value_schema={"type": "string"},
+            messages=[
+                ChatMessage(
+                    role="user",
+                    content="Opiekunem jest FinOps.",
+                    message_sequence=1,
                 )
             ],
-            contract={},
+            pending=[
+                Requirement(
+                    path="metadata.owner",
+                    question="Kto jest właścicielem?",
+                    value_schema={
+                        "type": "string",
+                        "description": "Zespół odpowiedzialny za pipeline.",
+                        "examples": ["FinOps"],
+                    },
+                )
+            ],
+            overridable=[
+                Requirement(
+                    path="orchestration.schedule",
+                    question="Podaj harmonogram.",
+                    value_schema={"type": "string", "description": "Linux cron."},
+                    current_value="0 0 * * *",
+                    current_origin=Origin.SYSTEM_ENRICHMENT,
+                )
+            ],
+            user_facts=[
+                UserFact(
+                    path="metadata.id",
+                    value="customer_daily",
+                    message_sequence=2,
+                    extraction_method=ExtractionMethod.DETERMINISTIC,
+                )
+            ],
         )
         await resolver.close()
 
-    assert values == {"metadata.id": "customer_daily"}
+    assert result == ExtractionResult(
+        values=[
+            CandidateValue(
+                path="metadata.owner",
+                value="FinOps",
+                confidence=0.99,
+                evidence="Opiekunem jest FinOps.",
+            )
+        ]
+    )
     assert captured_request["model"] == "auto"
     assert captured_request["response_format"] == {"type": "json_object"}
     assert "tool_choice" not in captured_request
+    request_text = json.dumps(captured_request["messages"], ensure_ascii=False)
+    assert "PENDING REQUIREMENTS" in request_text
+    assert "ALLOWED PATHS" in request_text
+    assert "orchestration.schedule" in request_text
+    assert "system_enrichment" in request_text
+    assert "EXISTING USER FACTS" in request_text
+    assert "CURRENT CONTRACT" not in request_text

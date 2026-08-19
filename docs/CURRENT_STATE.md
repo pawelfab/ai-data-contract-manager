@@ -48,7 +48,13 @@ entry points and virtual environments.
   `PartialFact` entries, merges later messages by item identity, and asks only for
   required item properties still missing;
 - detects no-progress, rejected/repeated candidates and the maximum step limit;
-- deliberately does not invoke the semantic resolver through Stage 04;
+- invokes the semantic resolver only after UserFacts, deterministic history scanning
+  and partial structured merging fail, and only for the semantic prefix exposed by
+  Forge before the next explicit gate;
+- accepts an LLM candidate only when its path is currently allowed, confidence meets
+  the configured threshold and evidence maps to exactly one sequenced user message;
+- stores an accepted semantic candidate as a latest-per-path `UserFact` with
+  `extraction_method=LLM`, while still submitting it to Forge as `origin=USER`;
 - presents the first remaining requirement or completion/validation state.
 
 ADCM has no import-time or packaging dependency on `contract_forge`. Its local
@@ -126,13 +132,13 @@ for local development, while process environment variables retain precedence for
 Cloud Run and other deployments. Enabled providers and model names are observable
 without exposing `OPENAI_API_KEY`.
 
-The runtime still defaults to `NoopSemanticResolver` and can construct the Pydantic
-AI resolver when configured. Stage 04 deliberately does not invoke either resolver;
-the configuration below remains available for resolver tests and the later controlled
-semantic-fallback stage:
+The runtime defaults to `NoopSemanticResolver` and constructs the Pydantic AI
+resolver when configured. The orchestrator now calls the configured resolver as a
+controlled fallback after deterministic resolution fails:
 
 ```text
 ADCM_LLM_MODE=pydantic
+ADCM_LLM_CONFIDENCE_THRESHOLD=0.80
 ```
 
 Provider selection is explicit through `ADCM_LLM_PROVIDER` (`auto`, `model`,
@@ -147,9 +153,12 @@ OPENAI_API_KEY=local-gateway
 
 `model_factory.build_pydantic_ai_model()` constructs an `OpenAIChatModel` with a
 gateway compatibility profile. The resolver component uses JSON object mode rather
-than `tool_choice=required`, which the verified gateway rejects. Its result is
-validated as `ExtractionResult` and filtered to Forge-exposed requirements, but the
-orchestrator does not consume it until the planned semantic-fallback stage.
+than `tool_choice=required`, which the verified gateway rejects. Its prompt contains
+only current semantic `pending`/`overridable` requirements, their public schema and
+question metadata, existing UserFacts and a bounded recent user-message window. It
+does not receive the whole contract. `ExtractionResult` remains structured Pydantic
+output; the orchestrator independently enforces allowed paths, confidence and an
+unambiguous evidence-to-message-sequence mapping before submission.
 
 Vertex remains supported through `ADCM_LLM_PROVIDER=vertex`, `ADCM_VERTEX_MODEL`,
 `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION`.
@@ -169,15 +178,14 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 51 passing tests in total: 32 ADCM tests and 19 Contract
+The two service suites have 57 passing tests in total: 38 ADCM tests and 19 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
 
-Through Stage 04 the semantic resolver remains disabled in the orchestrator. Resolver/model
-factory tests remain in place for the later semantic-fallback stage, while current
-orchestrator tests assert that no LLM call occurs.
+Stage 05 enables the semantic resolver in the orchestrator while keeping explicit
+gates deterministic and Forge in control of every canonical write.
 
 The Stage 00 baseline regression explicitly protects the source-system-first gate,
 the next requirement exposed by Forge, two automatic history-driven submissions,
@@ -195,8 +203,8 @@ as `origin=USER`.
 Stage 02 covers latest-user-fact replacement, rejection of an older fact, equal
 sequence replacement, fact extraction metadata/evidence, monotonic user-message
 sequence with a preserved transcript, and integration between deterministic
-orchestrator extraction and conversation memory. Semantic resolver results are
-deliberately not stored as facts yet.
+orchestrator extraction and conversation memory. At that stage semantic resolver
+results were deliberately not stored as facts.
 
 Stage 03 covers facts supplied before Forge reveals their requirements, latest USER
 fact selection, USER override of a system-enriched schedule, a single precise question
@@ -210,6 +218,13 @@ items, and a different test path to prevent `source.columns` hardcoding. A regre
 also prevents one pasted source structure from overriding a schema-compatible
 derived target array.
 
+Stage 05 covers deterministic short-circuiting, semantic extraction of an earlier
+message, rejection of paths outside the Forge-exposed semantic set, low-confidence
+clarification, evidence-based `message_sequence`, USER override of enrichment and
+reuse of a stored LLM UserFact without its raw source message. The mocked provider
+test also verifies pending/overridable/UserFact prompt context and the absence of the
+whole contract payload.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -220,8 +235,8 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Add the controlled LLM fallback only in its planned later stage.
-2. Continue the schema-driven requirements work from the staged plan.
+1. Continue with Stage 06 schema-driven requirements from the staged plan.
+2. Complete the staged E2E/cleanup pass.
 3. After the staged series, add Schema Explorer/repository lookup and a schema/rules
    compatibility gate.
 
@@ -298,8 +313,8 @@ ADCM conversation memory now owns USER message recency:
 
 Stage 03 reads these facts in the stair-step loop and consumes Forge `overridable`
 fields. Stage 04 adds a separate `partial_facts` store for incomplete structured
-values. Semantic results are still not stored because the LLM remains disabled;
-persistence remains later work.
+values. Stage 05 stores accepted semantic results in the same latest-per-path
+UserFact store with `extraction_method=LLM`.
 
 ## 13. Stage 03 stair-step resolution implementation map
 
@@ -330,23 +345,44 @@ persistence remains later work.
   current requirement (or an already-started partial), while scalar Stage 03
   overrides continue to use the full exposed field set.
 
-## 15. Last change
+## 15. Stage 05 semantic fallback implementation map
+
+- `SemanticResolver` receives separate semantic `pending` and `overridable` lists,
+  existing UserFacts and the conversation transcript; it returns `ExtractionResult`
+  with typed candidates instead of a path/value dictionary.
+- `PydanticAISemanticResolver` sends only a bounded recent user-message window and
+  structured requirement/fact context. It keeps no autonomous workflow or provider
+  conversation state and receives no full contract snapshot.
+- ADCM stops the semantic field list at the next `input_mode=explicit` gate and
+  locally rejects unknown paths, confidence below `ADCM_LLM_CONFIDENCE_THRESHOLD`
+  and evidence that does not identify exactly one user-message sequence.
+- A semantic fact is written to `ConversationMemory` only after Forge accepts the
+  USER candidate and canonical state progresses. Debug logs contain method, path and
+  confidence, but no values, transcripts or provider payloads.
+- UserFacts remain the durable in-memory structured context when an older raw message
+  falls outside the resolver prompt window; no summarization service or vector store
+  was added.
+
+## 16. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 04.
-Changed files/classes: Forge public schema projection and chained-ref handling;
-  ADCM PartialFact memory, generic structured parser/merger, partial clarification,
-  focused T1-T5/regression tests, D-013 and the real MCP smoke scenario.
-Behavior now: incomplete array/object input remains only in ADCM memory, receives a
-  precise missing-data question, and reaches Forge only after deterministic merging
-  produces a complete candidate. The LLM remains disabled.
-Tests run/result: ADCM 32 passed and Forge 19 passed. The real Streamable HTTP smoke
-  retained a fixed-width names-only partial, merged ranges/types, completed the
-  Rocket contract and preserved the derived target columns as generic enrichment.
-  Forge retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
+Last change: completed user-priority/fact-store Stage 05.
+Changed files/classes: SemanticResolver/ExtractionResult prompt contract;
+  ADCMOrchestrator controlled semantic fallback, evidence/sequence enforcement and
+  debug logging; ADCMSettings confidence threshold; focused T1-T6 and provider-prompt
+  tests. No Contract Forge production code changed and no new ADR was required.
+Behavior now: LLM extraction runs only after deterministic resolution fails and only
+  for Forge-exposed semantic fields before the next explicit gate. Accepted results
+  become sequenced LLM UserFacts and are submitted to Forge with origin USER; illegal,
+  ambiguous or low-confidence results are ignored and the user receives the normal
+  precise Forge question.
+Tests run/result: ADCM 38 passed and Forge 19 passed. The mocked OpenAI-compatible
+  transport still uses JSON object mode and verifies the constrained prompt. Forge
+  retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
   dependency.
 Known issues remaining: dataFieldId is not present in the current contract schema;
-  semantic fallback and repository duplicate lookup remain planned.
-Next concrete task: the next stage from docs/user_priority_and_fact_store, without
-  pulling in later unrelated behavior.
+  raw semantic transcript context remains a 20-user-message window, while UserFacts
+  preserve already extracted values; repository duplicate lookup remains planned.
+Next concrete task: Stage 06 from docs/user_priority_and_fact_store, without pulling
+  in later unrelated behavior.
 ```

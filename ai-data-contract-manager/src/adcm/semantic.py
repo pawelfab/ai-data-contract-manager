@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 import inspect
+import json
 from abc import ABC, abstractmethod
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .models import ChatMessage, Requirement
+from .models import ChatMessage, Requirement, UserFact
 
 
 class CandidateValue(BaseModel):
     path: str
     value: Any
     confidence: float = Field(ge=0, le=1)
-    evidence: str
+    evidence: str | None = None
 
 
 class ExtractionResult(BaseModel):
@@ -26,17 +27,25 @@ class SemanticResolver(ABC):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        requirements: list[Requirement],
-        contract: dict[str, Any],
-    ) -> dict[str, Any]: ...
+        pending: list[Requirement],
+        overridable: list[Requirement],
+        user_facts: list[UserFact],
+    ) -> ExtractionResult: ...
 
     async def close(self) -> None:
         """Release provider resources owned by this resolver, if any."""
 
 
 class NoopSemanticResolver(SemanticResolver):
-    async def extract_from_history(self, session_id, messages, requirements, contract) -> dict[str, Any]:
-        return {}
+    async def extract_from_history(
+        self,
+        session_id: str,
+        messages: list[ChatMessage],
+        pending: list[Requirement],
+        overridable: list[Requirement],
+        user_facts: list[UserFact],
+    ) -> ExtractionResult:
+        return ExtractionResult()
 
 
 class PydanticAISemanticResolver(SemanticResolver):
@@ -55,14 +64,14 @@ class PydanticAISemanticResolver(SemanticResolver):
             output_type=ExtractionResult,
             instructions=(
                 "You extract facts already stated by the user for a contract-building workflow. "
-                "Never invent a value. Return only paths present in CURRENT REQUIREMENTS. "
+                "Never invent a value. Return only paths present in ALLOWED PATHS. "
                 "Use conversation history to reuse information stated earlier when Contract Forge reveals a requirement later. "
                 "Correct obvious spelling/casing mistakes only when the intended value is unambiguous. "
                 "For pasted columns, normalize them to the schema requested by the requirement. "
-                "If evidence is insufficient, omit the value."
+                "For every value include a short, exact quote from one user message as evidence. "
+                "If evidence is insufficient or ambiguous, omit the value."
             ),
         )
-        self.histories: dict[str, list[Any]] = {}
 
     async def close(self) -> None:
         client = getattr(self.model, "client", None)
@@ -77,33 +86,38 @@ class PydanticAISemanticResolver(SemanticResolver):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        requirements: list[Requirement],
-        contract: dict[str, Any],
-    ) -> dict[str, Any]:
-        if not requirements or not messages:
-            return {}
+        pending: list[Requirement],
+        overridable: list[Requirement],
+        user_facts: list[UserFact],
+    ) -> ExtractionResult:
+        del session_id  # Session state is supplied explicitly; the model owns no workflow memory.
+        requirements = [*pending, *overridable]
+        user_messages = [message for message in messages if message.role == "user"][-20:]
+        if not requirements or not user_messages:
+            return ExtractionResult()
 
-        req_payload = [r.model_dump(mode="json") for r in requirements]
-        transcript = "\n".join(f"{m.role}: {m.content}" for m in messages[-20:])
-        prompt = (
-            "CURRENT REQUIREMENTS:\n"
-            f"{req_payload}\n\n"
-            "CURRENT CONTRACT (read-only context):\n"
-            f"{contract}\n\n"
-            "CONVERSATION:\n"
-            f"{transcript}\n\n"
-            "Return only values directly supported by the conversation."
+        allowed_paths = [requirement.path for requirement in requirements]
+        pending_payload = [requirement.model_dump(mode="json") for requirement in pending]
+        overridable_payload = [
+            requirement.model_dump(mode="json") for requirement in overridable
+        ]
+        facts_payload = [fact.model_dump(mode="json") for fact in user_facts]
+        transcript = "\n".join(
+            f"[user message_sequence={message.message_sequence}] {message.content}"
+            for message in user_messages
         )
-        history = self.histories.get(session_id)
-        result = await self.agent.run(prompt, message_history=history)
-        try:
-            self.histories[session_id] = result.all_messages()
-        except AttributeError:  # pragma: no cover - compatibility fallback
-            self.histories[session_id] = result.new_messages()
-
-        allowed = {r.path for r in requirements}
-        return {
-            item.path: item.value
-            for item in result.output.values
-            if item.path in allowed and item.confidence >= 0.80
-        }
+        prompt = (
+            "ALLOWED PATHS:\n"
+            f"{json.dumps(allowed_paths, ensure_ascii=False)}\n\n"
+            "PENDING REQUIREMENTS:\n"
+            f"{json.dumps(pending_payload, ensure_ascii=False, default=str)}\n\n"
+            "OVERRIDABLE VALUES:\n"
+            f"{json.dumps(overridable_payload, ensure_ascii=False, default=str)}\n\n"
+            "EXISTING USER FACTS:\n"
+            f"{json.dumps(facts_payload, ensure_ascii=False, default=str)}\n\n"
+            "RECENT USER MESSAGES:\n"
+            f"{transcript}\n\n"
+            "Return only values directly supported by an exact evidence quote from one user message."
+        )
+        result = await self.agent.run(prompt)
+        return result.output

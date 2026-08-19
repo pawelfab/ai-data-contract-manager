@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LLMMode = Literal["local", "pydantic"]
 LLMProvider = Literal["auto", "model", "openai_compatible", "vertex"]
+DEFAULT_LLM_CONFIDENCE_THRESHOLD = 0.80
 
 
 class ADCMSettings(BaseSettings):
@@ -28,6 +29,12 @@ class ADCMSettings(BaseSettings):
     vertex_model: str | None = Field(default=None, validation_alias="ADCM_VERTEX_MODEL")
     openai_base_url: str | None = Field(default=None, validation_alias="OPENAI_BASE_URL")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias="OPENAI_API_KEY")
+    llm_confidence_threshold: float = Field(
+        default=DEFAULT_LLM_CONFIDENCE_THRESHOLD,
+        ge=0,
+        le=1,
+        validation_alias="ADCM_LLM_CONFIDENCE_THRESHOLD",
+    )
 
     api_host: str = Field(default="127.0.0.1", validation_alias="ADCM_API_HOST")
     api_port: int = Field(default=8080, ge=1, le=65535, validation_alias="ADCM_API_PORT")

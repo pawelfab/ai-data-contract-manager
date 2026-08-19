@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from typing import Any
 
@@ -18,7 +19,11 @@ from .models import (
     UserFact,
     ValidationIssue,
 )
-from .semantic import NoopSemanticResolver, SemanticResolver
+from .semantic import ExtractionResult, NoopSemanticResolver, SemanticResolver
+from .settings import DEFAULT_LLM_CONFIDENCE_THRESHOLD
+
+
+logger = logging.getLogger(__name__)
 
 
 class ADCMOrchestrator:
@@ -30,13 +35,15 @@ class ADCMOrchestrator:
         semantic: SemanticResolver | None = None,
         heuristics: HeuristicResolver | None = None,
         max_auto_steps: int = 12,
+        semantic_confidence_threshold: float = DEFAULT_LLM_CONFIDENCE_THRESHOLD,
     ):
+        if not 0 <= semantic_confidence_threshold <= 1:
+            raise ValueError("semantic_confidence_threshold must be between 0 and 1")
         self.gateway = gateway
-        # The resolver remains a runtime dependency but Stage 03 deliberately does
-        # not call it. Deterministic extraction is exhausted and then the user is asked.
         self.semantic = semantic or NoopSemanticResolver()
         self.heuristics = heuristics or HeuristicResolver()
         self.max_auto_steps = max_auto_steps
+        self.semantic_confidence_threshold = semantic_confidence_threshold
         self.sessions: dict[str, ConversationMemory] = {}
 
     async def start(self) -> AssistantTurn:
@@ -124,9 +131,33 @@ class ADCMOrchestrator:
                 )
                 candidate = self._candidate_from_facts(memory, fields)
             if candidate is None:
-                break
+                semantic_fields = self._semantic_prefix(fields)
+                if semantic_fields:
+                    semantic_paths = {field.path for field in semantic_fields}
+                    result = await self.semantic.extract_from_history(
+                        session_id=memory.session_id,
+                        messages=memory.messages,
+                        pending=[
+                            field
+                            for field in state.pending
+                            if field.path in semantic_paths
+                        ],
+                        overridable=[
+                            field
+                            for field in state.overridable
+                            if field.path in semantic_paths
+                        ],
+                        user_facts=list(memory.facts.values()),
+                    )
+                    candidate = self._candidate_from_semantic(
+                        memory,
+                        semantic_fields,
+                        result,
+                    )
+                if candidate is None:
+                    break
 
-            path, value = candidate
+            path, value = candidate.path, candidate.value
             candidate_key = (path, json.dumps(value, sort_keys=True, default=str))
             if candidate_key in attempted:
                 state = self._with_candidate_issue(
@@ -159,7 +190,14 @@ class ADCMOrchestrator:
                     ),
                 )
                 break
+            memory.remember_fact(candidate)
             memory.clear_partial(path)
+            logger.debug(
+                "Resolved contract field: method=%s path=%s confidence=%.3f",
+                candidate.extraction_method.value,
+                candidate.path,
+                candidate.confidence,
+            )
             state = new_state
         else:
             state = self._with_candidate_issue(
@@ -269,12 +307,102 @@ class ADCMOrchestrator:
     def _candidate_from_facts(
         memory: ConversationMemory,
         fields: list[Requirement],
-    ) -> tuple[str, Any] | None:
+    ) -> UserFact | None:
         for field in fields:
             fact = memory.get_fact(field.path)
             if fact is not None:
-                return field.path, fact.value
+                return fact
         return None
+
+    @staticmethod
+    def _semantic_prefix(fields: list[Requirement]) -> list[Requirement]:
+        semantic: list[Requirement] = []
+        for field in fields:
+            if field.input_mode == "explicit":
+                break
+            semantic.append(field)
+        return semantic
+
+    def _candidate_from_semantic(
+        self,
+        memory: ConversationMemory,
+        fields: list[Requirement],
+        result: ExtractionResult,
+    ) -> UserFact | None:
+        validated = ExtractionResult.model_validate(result)
+        allowed_paths = {field.path for field in fields}
+        by_path: dict[str, UserFact] = {}
+
+        for extracted in validated.values:
+            if extracted.path not in allowed_paths:
+                logger.debug(
+                    "Ignored semantic candidate: reason=path_not_allowed path=%s confidence=%.3f",
+                    extracted.path,
+                    extracted.confidence,
+                )
+                continue
+            if extracted.confidence < self.semantic_confidence_threshold:
+                logger.debug(
+                    "Ignored semantic candidate: reason=low_confidence path=%s confidence=%.3f",
+                    extracted.path,
+                    extracted.confidence,
+                )
+                continue
+
+            sequence = self._evidence_message_sequence(memory, extracted.evidence)
+            if sequence is None:
+                logger.debug(
+                    "Ignored semantic candidate: reason=ambiguous_evidence path=%s confidence=%.3f",
+                    extracted.path,
+                    extracted.confidence,
+                )
+                continue
+
+            fact = UserFact(
+                path=extracted.path,
+                value=extracted.value,
+                message_sequence=sequence,
+                extraction_method=ExtractionMethod.LLM,
+                confidence=extracted.confidence,
+                evidence=extracted.evidence,
+            )
+            current = memory.get_fact(fact.path)
+            if current is not None and fact.message_sequence < current.message_sequence:
+                continue
+            selected = by_path.get(fact.path)
+            if selected is None or (
+                fact.message_sequence,
+                fact.confidence,
+            ) > (
+                selected.message_sequence,
+                selected.confidence,
+            ):
+                by_path[fact.path] = fact
+
+        for field in fields:
+            if field.path in by_path:
+                return by_path[field.path]
+        return None
+
+    @staticmethod
+    def _evidence_message_sequence(
+        memory: ConversationMemory,
+        evidence: str | None,
+    ) -> int | None:
+        if not evidence or not evidence.strip():
+            return None
+        normalized_evidence = " ".join(evidence.split()).casefold()
+        matches = {
+            message.message_sequence
+            for message in memory.messages
+            if message.role == "user"
+            and message.message_sequence is not None
+            and normalized_evidence
+            in " ".join(message.content.split()).casefold()
+        }
+        if len(matches) != 1:
+            return None
+        return next(iter(matches))
 
     @staticmethod
     def _state_signature(state: ForgeState) -> str:

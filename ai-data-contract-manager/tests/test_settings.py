@@ -13,6 +13,7 @@ OPENAI_ENV_KEYS = (
     "ADCM_VERTEX_MODEL",
     "OPENAI_BASE_URL",
     "OPENAI_API_KEY",
+    "ADCM_LLM_CONFIDENCE_THRESHOLD",
 )
 
 
@@ -35,6 +36,7 @@ def test_settings_load_project_style_env_file_without_exposing_secret(
                 "ADCM_MODEL=auto",
                 "OPENAI_BASE_URL=http://127.0.0.1:3030/v1",
                 "OPENAI_API_KEY=test-secret",
+                "ADCM_LLM_CONFIDENCE_THRESHOLD=0.91",
             )
         ),
         encoding="utf-8",
@@ -48,6 +50,7 @@ def test_settings_load_project_style_env_file_without_exposing_secret(
     assert settings.openai_base_url == "http://127.0.0.1:3030/v1"
     assert settings.openai_api_key is not None
     assert settings.openai_api_key.get_secret_value() == "test-secret"
+    assert settings.llm_confidence_threshold == 0.91
     assert "test-secret" not in repr(settings.public_runtime_summary())
 
 

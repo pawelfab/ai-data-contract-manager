@@ -35,6 +35,7 @@ Konfiguracja lokalnego gatewaya OpenAI-compatible:
 ADCM_LLM_MODE=pydantic
 ADCM_LLM_PROVIDER=openai_compatible
 ADCM_MODEL=auto
+ADCM_LLM_CONFIDENCE_THRESHOLD=0.80
 OPENAI_BASE_URL=http://127.0.0.1:3030/v1
 OPENAI_API_KEY=local-gateway
 ```

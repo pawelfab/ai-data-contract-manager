@@ -38,4 +38,5 @@ def build_orchestrator(
     return ADCMOrchestrator(
         build_gateway(settings=settings),
         semantic=build_semantic(settings),
+        semantic_confidence_threshold=settings.llm_confidence_threshold,
     )
