@@ -1,5 +1,5 @@
 ---
-last_verified: working-tree-2026-08-18
+last_verified: working-tree-2026-08-19
 ---
 
 # ADCM system context
@@ -15,7 +15,7 @@ Evidence: `readme.md`, `LLM_REPO_GUIDE.md`, `src/adcm/domain/models.py::Conversa
 - A caller/UI sends user text and a session UUID to `ChatService.handle_user_message`.
 - A `SemanticInterpreterPort` implementation extracts typed meaning; `PydanticAIInterpreter` is the optional model-backed adapter.
 - Stateless Contract Forge implements `ContractForgePort.evaluate_draft`, `validate_final`, and `render_yaml`.
-- Contract Forge consumes `contracts/contract.json` together with `contracts/ux_rules.json`; the reference package does not evaluate those artifacts inside ADCM.
+- Contract Forge owns the production schema and enrichment sources. ADCM can select a `mock`, `fixture`, or `remote` Forge configuration through `Settings`; local `contracts/contract.json` and `contracts/ux_rules.json` remain opaque migration/test fixtures and are never evaluated inside ADCM.
 - Future MCPs implement capability handlers and are selected by `CapabilityRouter`.
 
 ## Major runtime components
@@ -44,6 +44,10 @@ Evidence: `readme.md`, `LLM_REPO_GUIDE.md`, `src/adcm/domain/models.py::Conversa
 ## Runtime and commands
 
 - Python `>=3.11`; Hatchling build metadata is in `pyproject.toml`.
+- `src/adcm/config.py::Settings` defaults to `contract_forge_transport="mock"`.
+  `fixture` requires an opaque `contract_forge_source`; `remote` requires both that source
+  reference and `contract_forge_endpoint`. Configuration validates the selection without
+  opening, parsing, caching, or evaluating any Forge artifact.
 - Tests: `python -m pytest -q`.
 - Workflow validation: `python scripts/agent/validate_setup.py`.
 - Inventory: `python scripts/agent/repo_inventory.py`.
@@ -53,5 +57,5 @@ Evidence: `readme.md`, `LLM_REPO_GUIDE.md`, `src/adcm/domain/models.py::Conversa
 ## Known gaps
 
 - The repository is a reference package, not a deployed UI/service; no deployment manifest or database migration tree exists.
-- `contracts/contract.json` exposes the canonical `metadata.sourceSystemGcpId`, `converter`, and `preparator` paths used by the ROCKET/SAP UX rules; legacy rule annotations remain covered by the contract artifact test.
+- `contracts/contract.json` exposes the canonical `metadata.sourceSystemGcpId`, `converter`, and `preparator` paths used by the ROCKET/SAP UX rules; it is a repository migration fixture, not a production source. The production Forge endpoint/source and transport contract are absent, so Stage 3 remains `BLOCKED_INPUT`.
 - Ruff configuration exists in `pyproject.toml`, but Ruff is not installed by current project dependencies and is not a workflow gate.

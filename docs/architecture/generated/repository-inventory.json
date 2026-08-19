@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-19T06:26:27.418089+00:00",
+  "generated_at": "2026-08-19T06:50:56.505257+00:00",
   "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
   "files": [
     {
@@ -561,15 +561,21 @@
     {
       "path": "src/adcm/config.py",
       "language": "Python",
-      "bytes": 214,
-      "lines": 9,
-      "sha256": "7f84e6abe4f8b25ded40e4af565aba1c699520ac63a6a0baf9a7dd085d26a51e",
+      "bytes": 1915,
+      "lines": 48,
+      "sha256": "a6a8ffe3a03b20182e1e260a54f59db3db41984ff65f3ef7366f8c2cca161887",
       "symbols": [
         {
           "kind": "class",
           "name": "Settings",
-          "line": 4,
-          "methods": []
+          "line": 9,
+          "methods": [
+            {
+              "name": "validate_contract_forge_selection",
+              "line": 18,
+              "async": false
+            }
+          ]
         }
       ]
     },

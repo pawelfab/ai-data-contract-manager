@@ -1,13 +1,29 @@
 import json
 from pathlib import Path
 
+import pytest
 
 REPOSITORY_ROOT = Path(__file__).parents[1]
 RULES_PATH = REPOSITORY_ROOT / "contracts" / "ux_rules.json"
 
 
+class ArtifactFixtureError(ValueError):
+    """A local migration/reference artifact cannot be read as JSON."""
+
+
 def read_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ArtifactFixtureError(f"Cannot read JSON fixture {path}: {error}") from error
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as error:
+        raise ArtifactFixtureError(
+            f"Malformed JSON fixture {path}: {error.msg} "
+            f"(line {error.lineno}, column {error.colno})"
+        ) from error
 
 
 def all_rules(document: dict) -> list[dict]:
@@ -105,3 +121,14 @@ def test_sap_enrichment_defaults() -> None:
     assert rules["sap.preparator.disabled"]["value"] is False
     assert rules["sap.converter.enabled"]["value"] is True
     assert all(rule["when_value"] == "SAP" for rule in rules.values() if rule["id"].startswith("sap."))
+
+
+def test_malformed_ux_rules_fixture_identifies_its_path_and_reason(tmp_path: Path) -> None:
+    malformed_rules_path = tmp_path / "malformed-ux-rules.json"
+    malformed_rules_path.write_text('{"defaults": ', encoding="utf-8")
+
+    with pytest.raises(ArtifactFixtureError) as error:
+        read_json(malformed_rules_path)
+
+    assert str(malformed_rules_path) in str(error.value)
+    assert "Malformed JSON fixture" in str(error.value)

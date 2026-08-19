@@ -39,6 +39,10 @@ Forge resolves `{source}`-style enrichment placeholders but preserves `{{...}}` 
 ## Repository ownership
 Production `contract.json` and enrichment rules belong to Contract Forge. ADCM may keep fixtures for tests only.
 
+For migration tests, the repository-approved fixture is `contracts/contract.json`; the
+retired `contracts/data-contract.schema.json` filename must not be recreated. This path
+decision only selects a local test fixture and does not identify a production schema source.
+
 ## Stage-plan baseline (2026-08-19)
 
 `IMPLEMENTATION_PLAN.md` at the repository root is the canonical short roadmap. The former nine-item recommendation in `docs/IMPLEMENTATION_ROADMAP.md` is numbered as Stages 0–8; detailed contracts live under `docs/implementation/`.
@@ -46,6 +50,12 @@ Production `contract.json` and enrichment rules belong to Contract Forge. ADCM m
 The current `contracts/contract.json` is a migration/reference artifact, not evidence that ADCM owns the production schema. Its converter/preparator component definitions are now reachable from the root; several unrelated imported legacy rule definitions remain migration-only and are not part of the active root graph. No stage may claim production ownership for ADCM from the local copy.
 
 `contracts/ux_rules.json` now contains the owner-requested local enrichment definitions for ROCKET and SAP. It is still a Contract Forge input/fixture, not an ADCM evaluator or proof of production deployment. Contract Forge integration remains blocked until the production source location/endpoint and transport contract are identified. Documentation examples are not a license to reconstruct additional business rules.
+
+`Settings` can select `mock`, `fixture`, or `remote` Forge configuration. The default
+remains `mock`; fixture and remote selections retain opaque source references, and remote
+selection also requires an endpoint. Settings never open, parse, cache, or evaluate a
+schema or enrichment artifact. A configured remote target is not evidence that the missing
+production transport contract has been supplied, so Stage 3 remains `BLOCKED_INPUT`.
 
 Audit may contain explicit domain decisions and redacted boundary payloads. It must never claim to capture or persist hidden model reasoning/chain-of-thought, even when model I/O auditing is enabled.
 

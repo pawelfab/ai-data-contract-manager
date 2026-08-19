@@ -177,9 +177,9 @@ Update `docs/DESIGN_DECISIONS.md`, `docs/architecture/modules/contract-schema.md
 
 ## Completion checklist
 
-- [ ] Artifact inventory and ownership decision recorded.
-- [ ] Missing enrichment/Forge inputs explicitly reported or supplied by the owner.
-- [ ] Configuration boundary verified without an ADCM schema evaluator.
-- [ ] Schema-test path decision is explicit and covered by tests.
-- [ ] No application workflow or transport code added beyond the stated configuration boundary.
-- [ ] Documentation links and roadmap status reviewed.
+- [x] Artifact inventory and ownership decision recorded.
+- [x] Missing enrichment/Forge inputs explicitly reported: Stage 3 is `BLOCKED_INPUT`.
+- [x] Configuration boundary verified without an ADCM schema evaluator.
+- [x] Schema-test path decision is explicit and covered by tests.
+- [x] No application workflow or transport code added beyond the stated configuration boundary.
+- [x] Documentation links and roadmap status reviewed; Stage 0 is formally `READY`.

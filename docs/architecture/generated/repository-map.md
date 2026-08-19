@@ -1,6 +1,6 @@
 # Generated repository map
 
-Generated: `2026-08-19T06:26:27.418089+00:00`
+Generated: `2026-08-19T06:50:56.505257+00:00`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -209,9 +209,10 @@ Source files indexed: **37**
 
 ### `src/adcm/config.py`
 - Language: Python
-- Lines: 9
+- Lines: 48
 - Symbols:
-  - `class Settings` — line 4
+  - `class Settings` — line 9
+    - `validate_contract_forge_selection` — line 18
 
 ### `src/adcm/domain/__init__.py`
 - Language: Python

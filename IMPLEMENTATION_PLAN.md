@@ -20,6 +20,12 @@ The detailed implementation contracts live under `docs/implementation/`. Impleme
 | 7 | Read-only Web UI, draft/YAML read models, and artifact reuse | NOT_STARTED | [Stage 7](docs/implementation/stage-7-web-ui-and-read-models.md) |
 | 8 | Real-contract end-to-end hardening and release gates | NOT_STARTED | [Stage 8](docs/implementation/stage-8-end-to-end-hardening.md) |
 
+`READY` is the formal status for a completed stage whose acceptance evidence is verified
+and whose successor is not blocked by that stage. `BLOCKED_INPUT` means an external
+owner-supplied input is still required. Stage 0 is formally closed as `READY`; Stage 3
+remains `BLOCKED_INPUT` pending the production Forge source, endpoint, and transport
+contract.
+
 `BLOCKED_INPUT` on Stage 3 means the repository now contains the requested local `contracts/ux_rules.json` fixture, but still lacks an agreed source location/endpoint and transport contract for the production Contract Forge implementation. No production ownership is inferred from the local fixture.
 
 ## Dependency graph

@@ -4,20 +4,13 @@
 
 ## Documentation-relevant changed paths
 
-- `contracts/contract.json`
-- `contracts/ux_rules.json`
+- `src/adcm/config.py`
 
 ## Suggested curated documents
 
-- `docs/architecture/modules/contract-schema.md`
 - `docs/architecture/system-context.md`
 
 ## Mapping
 
-### `contracts/contract.json`
-- `docs/architecture/modules/contract-schema.md`
-- `docs/architecture/system-context.md`
-
-### `contracts/ux_rules.json`
-- `docs/architecture/modules/contract-schema.md`
+### `src/adcm/config.py`
 - `docs/architecture/system-context.md`
