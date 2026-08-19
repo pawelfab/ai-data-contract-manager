@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from adcm.orchestrator import ADCMOrchestrator
@@ -47,6 +49,16 @@ class FakeSemanticResolver:
         }
 
 
+class RecordingFakeForgeGateway(FakeForgeGateway):
+    def __init__(self):
+        super().__init__()
+        self.submissions = []
+
+    async def submit_values(self, session_id, values, origin):
+        self.submissions.append(deepcopy(values))
+        return await super().submit_values(session_id, values, origin)
+
+
 @pytest.mark.asyncio
 async def test_explicit_source_gate_never_calls_semantic_resolver():
     semantic = FakeSemanticResolver({"metadata.sourceSystemGcpId": "rocket"})
@@ -92,3 +104,47 @@ async def test_stair_step_loop_reuses_information_as_forge_reveals_requirements(
     assert all("metadata.id" not in call for call in semantic.calls)
     assert turn.contract["metadata"]["id"] == "customer_accounts_daily"
     assert turn.contract["source"]["uri"].startswith("gs://")
+
+
+@pytest.mark.asyncio
+async def test_baseline_stair_step_and_adcm_conversation_state_ownership():
+    gateway = RecordingFakeForgeGateway()
+    semantic = FakeSemanticResolver({
+        "source.columns": [
+            {"name": "account_id", "start": 0, "end": 8, "dataType": "STRING", "nullable": False},
+        ],
+    })
+    service = ADCMOrchestrator(gateway, semantic=semantic)
+
+    turn = await service.start()
+    assert turn.pending_path == "metadata.sourceSystemGcpId"
+
+    turn = await service.message(
+        turn.session_id,
+        "Rocket; plik gs://raw-zone/accounts/accounts.dat; mam definicje kolumn; "
+        "owner: data-platform@example.com",
+    )
+    assert turn.pending_path == "metadata.id"
+
+    turn = await service.message(turn.session_id, "pipeline: customer_accounts_daily")
+
+    # Direct source-system and metadata.id submits are interleaved with two automatic
+    # history-driven steps: deterministic owner/URI extraction and semantic columns.
+    assert [set(submission) for submission in gateway.submissions] == [
+        {"metadata.sourceSystemGcpId"},
+        {"metadata.owner", "source.uri"},
+        {"metadata.id"},
+        {"source.columns"},
+    ]
+    assert turn.status == "complete"
+
+    memory = service.sessions[turn.session_id]
+    assert [message.role for message in memory.messages] == [
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+    ]
+    assert "contract" not in type(memory).model_fields
+    assert not hasattr(gateway, "messages")

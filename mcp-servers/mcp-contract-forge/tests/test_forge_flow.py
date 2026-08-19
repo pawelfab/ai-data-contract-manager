@@ -77,3 +77,26 @@ def test_legacy_rules_are_reported_not_silently_remapped():
     assert state.rule_issues
     bad_paths = {issue.path for issue in state.rule_issues if issue.path}
     assert "bronzeTable.table.project" in bad_paths or "converter.source.fixedWidth.encoding" in bad_paths
+
+
+def test_forge_owns_canonical_contract_and_not_conversation_history():
+    forge = build_forge()
+    state = forge.start_session()
+    session_id = state.session_id
+    state = forge.submit_values(
+        session_id,
+        {"metadata.sourceSystemGcpId": "rocket"},
+        Origin.USER,
+    )
+    state = forge.submit_values(
+        session_id,
+        {"metadata.id": "customer_accounts_daily"},
+        Origin.USER,
+    )
+
+    state.contract["metadata"]["id"] = "mutated_snapshot"
+    fresh_state = forge.get_state(session_id)
+
+    assert fresh_state.contract["metadata"]["id"] == "customer_accounts_daily"
+    assert forge.sessions[session_id].contract["metadata"]["id"] == "customer_accounts_daily"
+    assert "messages" not in type(forge.sessions[session_id]).model_fields

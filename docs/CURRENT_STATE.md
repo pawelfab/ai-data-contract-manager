@@ -157,7 +157,7 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 20 passing tests in total: 12 ADCM tests and 8 Contract
+The two service suites have 22 passing tests in total: 13 ADCM tests and 9 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -166,6 +166,16 @@ UTF-8 and pass on Windows.
 Selective LLM routing is covered as well: source-system and `metadata.id` gates do
 not reach the semantic resolver, a source-type discriminator is explicit, and a
 future schema-defined `dataFieldId` receives its input mode from UX rules.
+
+The Stage 00 baseline regression explicitly protects the source-system-first gate,
+the next requirement exposed by Forge, two automatic history-driven submissions,
+and the state ownership boundary. ADCM `ConversationMemory` owns the transcript and
+does not contain a contract; Forge owns canonical `SessionData.contract`, does not
+contain conversation messages, and returns contract snapshots that cannot mutate its
+canonical state.
+
+The full Forge suite currently emits one non-fatal third-party
+`IncompleteFieldDefinitionWarning` while importing the MCP server.
 
 A live semantic extraction was also verified against
 `http://127.0.0.1:3030/v1` with model `auto`; it returned the expected candidate and
@@ -191,22 +201,43 @@ While fixing the above, preserve:
 - bounded stair-step reuse of historical facts;
 - terminal/API separation from contract semantics.
 
-## 10. Last change
+## 10. Stage 00 baseline implementation map
+
+The stage documents use shorthand paths such as `src/adcm/orchestrator.py` and
+`src/contract_forge/engine.py`. In the current monorepo the actual paths are under
+the independent service roots:
+
+- `ai-data-contract-manager/src/adcm/orchestrator.py` owns the deterministic
+  conversation and stair-step loop;
+- `ai-data-contract-manager/src/adcm/models.py` owns `ConversationMemory` and the
+  client-side Forge response DTOs;
+- `ai-data-contract-manager/src/adcm/heuristics.py` and `semantic.py` resolve only
+  currently exposed requirements;
+- `mcp-servers/mcp-contract-forge/src/contract_forge/engine.py` owns canonical
+  sessions, candidate submission, enrichment/default progression and state output;
+- `mcp-servers/mcp-contract-forge/src/contract_forge/schema.py` owns schema-based
+  requirement discovery and validation;
+- the regression tests are in each service's `tests/test_orchestrator.py` and
+  `tests/test_forge_flow.py`.
+
+No production behavior changed in Stage 00. Known product limitations remain the
+partial `source.columns` UX, the absent `metadata.dataFieldId` in the current schema,
+and the planned repository duplicate lookup.
+
+## 11. Last change
 
 ```text
-Last change: split the repository into independently installable ADCM and Contract
-  Forge services under a monorepo root.
-Changed files/classes: service manifests and lock snapshots, ADCM wire DTOs,
-  MCPForgeGateway-only runtime, official MCP server entry point, split tests/docs,
-  monorepo tooling paths.
-Behavior now: minimal execution always crosses MCP; --local-forge and all ADCM
-  imports of contract_forge are removed. contract.json, rules and contract artifacts
-  are owned by mcp-contract-forge.
-Tests run/result: ADCM 12 passed; Contract Forge 8 passed; live MCP complete-flow
-  smoke passed between separate processes.
+Last change: completed user-priority/fact-store Stage 00 without production changes.
+Changed files: ADCM orchestrator regression tests, Forge ownership regression tests,
+  and this current-state snapshot.
+Behavior now: unchanged; the tests explicitly lock source-first progression, two
+  automatic history-driven submits, and the ADCM conversation/Forge contract state
+  boundary.
+Tests run/result: pre-change baseline ADCM 12 passed and Forge 8 passed; post-change
+  full-suite result ADCM 13 passed and Forge 9 passed. Forge retains one known,
+  non-fatal IncompleteFieldDefinitionWarning from the MCP dependency.
 Known issues remaining: source.columns partial-input UX; dataFieldId is not present
-  in the current contract schema; repository duplicate lookup is planned. The official
-  MCP package emits a non-fatal IncompleteFieldDefinitionWarning during server import.
-Next concrete task: fix partial source.columns facts or add the Schema Explorer lookup
-  once the contract owner defines the complete core identifier set.
+  in the current contract schema; repository duplicate lookup is planned.
+Next concrete task: Stage 01 from docs/user_priority_and_fact_store, implemented
+  separately and without pulling in Stage 02 behavior.
 ```
