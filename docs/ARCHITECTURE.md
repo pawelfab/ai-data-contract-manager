@@ -163,6 +163,14 @@ Forge should expose origins for debugging and later UI explanations such as:
 
 > `targets.bronze.table.dataset` was filled by SAP system enrichment rule `sap.bronze.dataset`.
 
+`ForgeState.overridable` is also the controlled edit surface. It contains lower-origin
+values and existing semantic scalar USER values that may receive a later USER
+correction, but excludes explicit workflow gates. Structured USER values stay on the
+pending/partial protocol because canonical items may contain nested defaults or
+enrichments. ADCM compares `current_value` with its latest UserFact before submitting,
+so an unchanged USER value is not replayed. Forge still validates the candidate and
+owns the canonical write; it does not compare message sequence.
+
 ## 5. Schema navigation
 
 The generic Forge schema layer should support as much as practical through standard JSON Schema 2020-12:

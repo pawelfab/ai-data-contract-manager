@@ -50,4 +50,8 @@ ai-data-contract-manager\.venv\Scripts\python.exe -m pytest ai-data-contract-man
 mcp-servers\mcp-contract-forge\.venv\Scripts\python.exe -m pytest mcp-servers\mcp-contract-forge\tests -q
 ```
 
+Pełny zestaw ADCM zawiera testy integracyjne Stage 07. Uruchamiają one Contract Forge
+jako osobny proces z `mcp-servers\mcp-contract-forge\.venv` i sprawdzają MCP Streamable
+HTTP, API oraz CLI bez łamania granicy pakietów.
+
 Dokumentacja architektury całego systemu znajduje się w [docs](docs/).

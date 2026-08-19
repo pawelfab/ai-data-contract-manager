@@ -54,7 +54,7 @@ def test_user_overrides_system_enrichment_and_keeps_provenance():
     assert schedule_write.rule_id is None
 
 
-def test_state_exposes_schema_descriptions_for_lower_origin_overrides_only():
+def test_state_exposes_schema_descriptions_for_editable_existing_values():
     forge, session_id = start_rocket()
     initial = forge.get_state(session_id)
     overridable = {field.path: field for field in initial.overridable}
@@ -73,8 +73,25 @@ def test_state_exposes_schema_descriptions_for_lower_origin_overrides_only():
         Origin.USER,
     )
 
-    assert "orchestration.schedule" not in {
-        field.path for field in updated.overridable
+    updated_schedule = {
+        field.path: field for field in updated.overridable
+    }["orchestration.schedule"]
+    assert updated_schedule.current_value == "0 6 * * *"
+    assert updated_schedule.current_origin == Origin.USER
+
+
+def test_user_value_is_exposed_for_a_later_controlled_correction():
+    forge, session_id = start_rocket()
+    forge.submit_values(session_id, {"metadata.id": "customer_daily"}, Origin.USER)
+    state = forge.submit_values(session_id, {"metadata.owner": "team_a"}, Origin.USER)
+
+    owner = {field.path: field for field in state.overridable}["metadata.owner"]
+
+    assert owner.current_value == "team_a"
+    assert owner.current_origin == Origin.USER
+    assert "metadata.id" not in {field.path for field in state.overridable}
+    assert "metadata.sourceSystemGcpId" not in {
+        field.path for field in state.overridable
     }
 
 

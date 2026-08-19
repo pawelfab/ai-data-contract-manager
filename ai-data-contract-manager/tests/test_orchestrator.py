@@ -716,3 +716,46 @@ async def test_stage06_t4_unsupported_schema_neither_guesses_nor_calls_llm():
 
     assert turn.status == "complete"
     assert gateway.contract["custom"]["deliveryMode"] == "batch"
+
+
+@pytest.mark.asyncio
+async def test_stage07_max_auto_steps_stops_a_progressing_chain():
+    gateway = SchemaDrivenFakeForgeGateway(
+        [
+            Requirement(
+                path="custom.first",
+                question="first",
+                value_schema={"type": "string", "enum": ["A"]},
+            ),
+            Requirement(
+                path="custom.second",
+                question="second",
+                value_schema={"type": "string", "enum": ["B"]},
+            ),
+        ]
+    )
+    service = ADCMOrchestrator(gateway, max_auto_steps=1)
+    turn = await service.start()
+    memory = service.sessions[turn.session_id]
+    memory.remember_fact(
+        UserFact(
+            path="custom.first",
+            value="A",
+            message_sequence=1,
+            extraction_method=ExtractionMethod.DETERMINISTIC,
+        )
+    )
+    memory.remember_fact(
+        UserFact(
+            path="custom.second",
+            value="B",
+            message_sequence=1,
+            extraction_method=ExtractionMethod.DETERMINISTIC,
+        )
+    )
+
+    turn = await service.message(turn.session_id, "unknown")
+
+    assert gateway.submissions == [{"custom.first": "A"}]
+    assert turn.pending_path == "custom.second"
+    assert turn.candidate_issues[-1]["validator"] == "max_auto_steps"

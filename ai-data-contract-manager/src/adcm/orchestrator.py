@@ -128,6 +128,11 @@ class ADCMOrchestrator:
                 )
                 candidate = self._candidate_from_facts(memory, fields)
             if candidate is None:
+                # Once required fields are complete, deterministic current-message
+                # corrections may still use Forge-exposed editable values, but do
+                # not spend an LLM call searching for unsolicited overrides.
+                if not state.pending:
+                    break
                 semantic_fields = self._semantic_prefix(fields)
                 if semantic_fields:
                     semantic_paths = {field.path for field in semantic_fields}
@@ -304,13 +309,21 @@ class ADCMOrchestrator:
     ) -> UserFact | None:
         for field in fields:
             fact = memory.get_fact(field.path)
-            if fact is not None:
-                return fact
+            if fact is None:
+                continue
+            if (
+                field.current_origin == Origin.USER
+                and field.current_value == fact.value
+            ):
+                continue
+            return fact
         return None
 
     def _semantic_prefix(self, fields: list[Requirement]) -> list[Requirement]:
         semantic: list[Requirement] = []
         for field in fields:
+            if field.current_origin == Origin.USER:
+                continue
             if field.input_mode == "explicit" or not self.heuristics.supports(field):
                 break
             semantic.append(field)

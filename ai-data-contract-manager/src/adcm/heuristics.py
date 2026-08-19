@@ -62,11 +62,17 @@ class LabeledContractFieldResolver:
     ) -> Any | None:
         del allow_plain_fallback
         stripped = text.strip()
+        label_text = re.sub(
+            r"\b[A-Za-z][A-Za-z0-9+.-]*://\S+",
+            "",
+            stripped,
+        )
 
         if requirement.path == "metadata.id":
             match = re.search(
-                r"(?:pipeline|id|nazwa)\s*[:=]?\s*([A-Za-z0-9_-]{3,})",
-                stripped,
+                r"(?<!\w)(?:pipeline|id|nazwa)(?!\w)[ \t]*[:=]?[ \t]*"
+                r"([A-Za-z0-9_-]{3,})",
+                label_text,
                 re.I,
             )
             if match:
@@ -80,9 +86,11 @@ class LabeledContractFieldResolver:
             if email:
                 return email.group(0)
             match = re.search(
-                r"(?:owner|właściciel|wlasciciel|zespół|zespol)\s*[:=]?\s*(.+)$",
-                stripped,
-                re.I,
+                r"(?<!\w)(?:owner|właściciel|wlasciciel|zespół|zespol)(?!\w)"
+                r"[ \t]*[:=]?[ \t]*"
+                r"(?:(?:jednak|actually)\s+)?(.+)$",
+                label_text,
+                re.I | re.M,
             )
             if match:
                 return match.group(1).strip()
@@ -346,8 +354,14 @@ class HeuristicResolver:
                 normalized = slugify_identifier(value)
                 if normalized and normalized != value:
                     candidates.append(normalized)
-            elif not self._unambiguous_pattern_value(requirement, value):
-                return None
+            else:
+                historical_candidate = self._unambiguous_pattern_candidate(
+                    requirement,
+                    value,
+                )
+                if historical_candidate is None:
+                    return None
+                candidates = [historical_candidate]
             for candidate in candidates:
                 if self._valid_string(candidate, schema):
                     return candidate
@@ -443,6 +457,10 @@ class HeuristicResolver:
                 record["nullable"] = True
 
         evaluated = self._evaluate_records([record], item_schema)
+        if ":" in line and not evaluated.complete:
+            # Labelled scalar facts in a mixed message are not partial array rows.
+            # Complete ``name: TYPE`` records still pass through this shape parser.
+            return None
         unused = [token for index, token in enumerate(tokens) if index not in used]
         invalid = list(evaluated.invalid)
         if unused:
@@ -618,15 +636,25 @@ class HeuristicResolver:
         return list(dict.fromkeys(values))
 
     @staticmethod
-    def _unambiguous_pattern_value(req: Requirement, value: str) -> bool:
+    def _unambiguous_pattern_candidate(
+        req: Requirement,
+        value: str,
+    ) -> str | None:
         description = _ascii(str(req.value_schema.get("description", ""))).lower()
         if "cron" in description:
-            # A permissive five-token schema pattern also matches ordinary sentences.
-            return all(
-                re.fullmatch(r"[0-9*/?,\-]+", token) is not None
-                for token in value.split()
+            # A permissive five-token schema pattern also matches ordinary sentences,
+            # so history extraction accepts exactly one cron-shaped fragment.
+            matches = list(
+                dict.fromkeys(
+                    match.group(1)
+                    for match in re.finditer(
+                        r"(?<!\S)([0-9*/?,\-]+(?:[ \t]+[0-9*/?,\-]+){4})(?!\S)",
+                        value,
+                    )
+                )
             )
-        return False
+            return matches[0] if len(matches) == 1 else None
+        return None
 
     @staticmethod
     def _fuzzy_choice(value: str, choices: list[Any]) -> Any | None:

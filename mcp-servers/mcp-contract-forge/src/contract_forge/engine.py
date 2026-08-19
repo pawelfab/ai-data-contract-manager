@@ -218,18 +218,34 @@ class ContractForge:
         return self.navigator.source_type_values()
 
     def _overridable(self, session: SessionData) -> list[Requirement]:
-        """Expose lower-precedence values the user may replace through Forge."""
+        """Expose existing values the user may replace through Forge."""
         fields: list[Requirement] = []
         for path, origin in sorted(session.origins.items()):
-            if origin not in OVERRIDABLE_ORIGINS or not has_path(session.contract, path):
+            if (
+                origin not in OVERRIDABLE_ORIGINS | {Origin.USER}
+                or path == "metadata.sourceSystemGcpId"
+                or not has_path(session.contract, path)
+            ):
                 continue
             requirement = self.navigator.requirement_at_path(path, session.contract)
             if requirement is None:
                 continue
+            input_mode = self.rule_engine.input_mode(path)
+            if (
+                origin == Origin.USER
+                and (
+                    input_mode == "explicit"
+                    or requirement.value_schema.get("type") in {"array", "object"}
+                )
+            ):
+                # Explicit gates require their dedicated confirmation flow. Canonical
+                # structures may contain nested defaults/enrichments that are not
+                # part of the user's raw fact and stay on the pending/partial flow.
+                continue
             fields.append(
                 requirement.model_copy(
                     update={
-                        "input_mode": self.rule_engine.input_mode(path),
+                        "input_mode": input_mode,
                         "current_value": deepcopy(get_path(session.contract, path)),
                         "current_origin": origin,
                     }

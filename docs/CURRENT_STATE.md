@@ -41,6 +41,8 @@ entry points and virtual environments.
   transcript;
 - on each user message tries deterministic extraction against current `pending` and
   Forge-exposed `overridable` paths;
+- treats an existing USER value as already resolved when its remembered UserFact is
+  identical, while allowing a newer deterministic correction to be submitted once;
 - selects deterministic enum/const, boolean, numeric, constrained string,
   URI/date-format and `array<object>` handlers from Requirement schema metadata;
 - keeps only the `pipeline`/`id` and owner/team language aliases in an isolated,
@@ -55,6 +57,8 @@ entry points and virtual environments.
 - invokes the semantic resolver only after UserFacts, deterministic history scanning
   and partial structured merging fail, and only for the semantic prefix exposed by
   Forge before the next explicit gate;
+- does not invoke the semantic resolver merely to search for unsolicited overrides
+  after Forge has no pending requirements;
 - accepts an LLM candidate only when its path is currently allowed, confidence meets
   the configured threshold and evidence maps to exactly one sequenced user message;
 - does not invoke semantic fallback for Requirement fragments that Forge marks as
@@ -76,8 +80,9 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
 - accepts only currently allowed/pending paths;
 - applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
 - applies every canonical value through one origin-precedence write function;
-- exposes schema-described `overridable` fields whose current origin is system
-  enrichment, generic enrichment or schema default;
+- exposes schema-described `overridable` fields whose current value may be replaced
+  by USER: lower-origin values and existing scalar USER values for correction,
+  excluding explicit workflow gates;
 - exposes resolved `items/properties/required` metadata for array-of-object
   requirements without exposing or interpreting a second full schema engine;
 - projects the supported Requirement subset (`type`, enum/const, constraints,
@@ -188,7 +193,7 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 67 passing tests in total: 46 ADCM tests and 21 Contract
+The two service suites have 80 passing tests in total: 58 ADCM tests and 22 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -242,6 +247,14 @@ and a controlled unsupported-`anyOf` flow that neither guesses nor invokes the L
 Forge tests verify that new schema fields are discovered, projected and still
 validated authoritatively.
 
+Stage 07 adds real-service E2E coverage for the complete A-E matrix: a rich first SAP
+message, latest-owner correction before and after the first Forge submit, partial
+column merging, deterministic-before-LLM behavior, illegal semantic-path rejection
+and a new required schema field. The integration suite launches Contract Forge in its
+own virtual environment and talks through MCP Streamable HTTP; separate assertions
+exercise the FastAPI and terminal boundaries. A loop-guard regression covers
+`max_auto_steps`.
+
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
 
@@ -252,9 +265,8 @@ the two independently installed services, including a complete Rocket contract f
 
 ## 8. Immediate recommended work order
 
-1. Complete Stage 07 E2E and cleanup from the staged plan.
-2. After the staged series, add Schema Explorer/repository lookup and a schema/rules
-   compatibility gate.
+1. Add Schema Explorer/repository duplicate lookup as a separate MCP integration.
+2. Add the explicit schema/rules compatibility gate described by open decision O-003.
 
 ## 9. Do not accidentally regress
 
@@ -311,7 +323,9 @@ USER > SYSTEM_ENRICHMENT > GENERIC_ENRICHMENT > SCHEMA_DEFAULT > STRUCTURAL
 - ADCM submits facts extracted deterministically or semantically as `origin=USER`.
 
 Forge does not compare user message sequence. ADCM owns the UserFact store and Forge
-exposes lower-origin values through `ForgeState.overridable` for the Stage 03 loop.
+exposes schema-known editable values through `ForgeState.overridable`. Stage 07 adds
+existing scalar USER values to that list for controlled correction while excluding
+explicit workflow gates; ADCM skips values already equal to the canonical USER value.
 
 ## 12. Stage 02 user-fact memory implementation map
 
@@ -399,24 +413,47 @@ UserFact store with `extraction_method=LLM`.
   clients. The CLI chooses multiline entry from the `array<object>` shape instead of
   checking `source.columns`.
 
-## 17. Last change
+## 17. Stage 07 E2E and cleanup implementation map
+
+- `tests/integration/test_stage07_real_mcp.py` starts Contract Forge as a separate
+  process from its own `.venv`; ADCM never imports the Forge package. It covers the
+  required scenarios A-E plus real API and CLI smoke tests.
+- Mixed rich messages now extract exactly one cron-shaped fragment from history and
+  ignore incomplete labelled scalar lines while parsing an `array<object>` block.
+- Label-specific `metadata.id`/`metadata.owner` aliases require token boundaries and
+  ignore URI contents. `owner jednak team_b` records `team_b`, not the correction word.
+- Forge exposes an existing semantic scalar USER field as editable after validation.
+  Explicit gates require their dedicated flow, while structured corrections stay on
+  the pending/partial protocol because canonical items may contain nested defaults.
+  ADCM compares the latest UserFact with `current_value`, so it submits only a changed
+  USER candidate.
+- Semantic fallback stops when required fields are complete. Deterministic corrections
+  remain possible through Forge metadata, and `max_auto_steps`, no-progress and
+  repeated-candidate guards remain independent.
+- The model audit found one `CandidateValue` and `UserFact` in ADCM and one precedence
+  table/write path in Forge. Requirement/Origin DTOs exist once per independently
+  deployed service by design; no cross-service Python import was introduced.
+
+## 18. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 06.
-Changed files/classes: Forge Requirement/schema projection and URI annotations;
-  ADCM schema-driven HeuristicResolver handlers, isolated labeled-field specialization,
-  unsupported-schema clarification, AssistantTurn pending metadata and dynamic CLI
-  multiline selection; focused T1-T4 and regression tests. No new ADR was required.
-Behavior now: ordinary new required scalar/enum fields and array/object shapes are
-  handled from Forge Requirement metadata without orchestrator path changes. Complex
-  unsupported constructs are reported instead of interpreted, and only explicit JSON
-  can reach Forge for final validation. UserFact recency and origin precedence are
-  unchanged.
-Tests run/result: ADCM 46 passed and Forge 21 passed. Forge
+Last change: completed user-priority/fact-store Stage 07.
+Changed files/classes: ADCM mixed-message heuristics, USER correction/no-op handling,
+  completed-state semantic guard and max-step regression; Forge editable USER
+  Requirement exposure; real-MCP A-E/API/CLI integration tests and test documentation.
+  No new ADR was required because D-002, D-004, D-005 and D-012 already define these
+  boundaries.
+Behavior now: all staged scenarios run through the deterministic ADCM loop and Forge
+  validation. Rich first messages, latest-owner correction, partial arrays, bounded
+  semantic fallback and new schema fields work without ADCM canonical mutation or an
+  LLM-controlled MCP loop.
+Tests run/result: ADCM 58 passed and Forge 22 passed through the repository pre-push
+  quality gate. Forge
   retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
   dependency.
 Known issues remaining: dataFieldId is not present in the current contract schema;
   raw semantic transcript context remains a 20-user-message window, while UserFacts
   preserve already extracted values; repository duplicate lookup remains planned.
-Next concrete task: Stage 07 E2E/cleanup, without pulling in later unrelated behavior.
+Next concrete task: Schema Explorer/repository lookup or the schema/rules compatibility
+  gate, kept outside the completed staged series.
 ```

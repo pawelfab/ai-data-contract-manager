@@ -60,4 +60,6 @@ Endpoint MCP można zmienić przez `ADCM_MCP_URL`. Tryb in-process
 ```
 
 Testy używają fałszywego gatewaya na granicy MCP; nie instalują ani nie importują
-implementacji Contract Forge.
+implementacji Contract Forge. Testy w `tests/integration/` dodatkowo uruchamiają
+siostrzany serwis z jego własnego `.venv` i weryfikują prawdziwy transport MCP oraz
+smoke API/CLI, nadal bez importowania pakietu Forge do ADCM.

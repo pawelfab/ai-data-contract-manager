@@ -159,6 +159,46 @@ def test_strict_history_accepts_unambiguous_cron_but_not_generic_pattern_matches
     ) == {}
 
 
+def test_history_extracts_one_cron_fragment_from_a_larger_message():
+    resolver = HeuristicResolver(specialized_resolvers=())
+    requirement = Requirement(
+        path="custom.schedule",
+        question="schedule",
+        value_schema={
+            "type": "string",
+            "pattern": r"^\S+(?:\s+\S+){4}$",
+            "description": "Harmonogram w formacie Linux cron.",
+        },
+    )
+
+    assert resolver.extract(
+        "owner: team-a\nschedule: 0 6 * * *\nuri: gs://raw/orders.csv",
+        [requirement],
+        allow_plain_fallback=False,
+    ) == {"custom.schedule": "0 6 * * *"}
+
+
+def test_array_parser_ignores_incomplete_label_lines_in_a_mixed_message():
+    resolver = HeuristicResolver(specialized_resolvers=())
+    requirement = array_object_requirement()
+
+    parsed = resolver.parse_structured(
+        "source system: SAP\n"
+        "pipeline: sap_orders\n"
+        "owner: team-a@example.com\n"
+        "order_id STRING\n"
+        "amount NUMERIC",
+        requirement,
+    )
+
+    assert parsed is not None
+    assert parsed.complete
+    assert parsed.value == [
+        {"name": "order_id", "dataType": "STRING"},
+        {"name": "amount", "dataType": "NUMERIC"},
+    ]
+
+
 def test_schema_driven_scalar_handlers_do_not_depend_on_paths():
     resolver = HeuristicResolver(specialized_resolvers=())
     requirements = [
@@ -198,6 +238,31 @@ def test_schema_driven_scalar_handlers_do_not_depend_on_paths():
         "8",
         requirements[2:],
         allow_plain_fallback=True,
+    ) == {}
+
+
+def test_labeled_owner_correction_does_not_keep_the_correction_word():
+    resolver = HeuristicResolver()
+    requirement = Requirement(
+        path="metadata.owner",
+        question="owner",
+        value_schema={"type": "string"},
+    )
+
+    assert resolver.extract(
+        "owner jednak team_b",
+        [requirement],
+        allow_plain_fallback=False,
+    ) == {"metadata.owner": "team_b"}
+    assert resolver.extract(
+        "gs://raw-zone/sap/owner.csv",
+        [requirement],
+        allow_plain_fallback=False,
+    ) == {}
+    assert resolver.extract(
+        "stage07_owner_correction",
+        [requirement],
+        allow_plain_fallback=False,
     ) == {}
 
 
