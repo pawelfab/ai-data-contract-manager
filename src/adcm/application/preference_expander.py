@@ -1,3 +1,4 @@
+from adcm.domain.contract_path import ContractPath
 from adcm.domain.models import AllowedPath, CandidateScope, Preference, ValueCandidate
 
 
@@ -14,6 +15,10 @@ class PreferenceExpander:
             if not preference.active:
                 continue
             for allowed in allowed_paths:
+                try:
+                    ContractPath.parse(allowed.path)
+                except ValueError:
+                    continue
                 if preference.concept in allowed.concepts:
                     result.append(
                         ValueCandidate(

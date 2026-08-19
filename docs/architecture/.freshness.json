@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "marked_at": "2026-08-19T06:37:42.539465+00:00",
-  "reason": "implemented Stage 0 Forge transport selection and artifact ownership baseline",
-  "commit": "75d739cff528a7fee8b4c47fd2f09edda639eb0e",
+  "marked_at": "2026-08-19T10:50:56.974075+00:00",
+  "reason": "closed Stage 1 atomic candidate resolution and strict canonical provenance equality",
+  "commit": "035f9deaca2f0b3dca4bf89e643ba2aa9a20d7ee",
   "branch": "enrichment",
   "working_tree_dirty": true,
   "no_doc_change_exception": false,
@@ -10,22 +10,30 @@
     "added": [],
     "deleted": [],
     "modified": [
-      "src/adcm/config.py"
+      "src/adcm/application/candidate_resolver.py",
+      "src/adcm/domain/models.py"
     ],
     "changed": [
-      "src/adcm/config.py"
+      "src/adcm/application/candidate_resolver.py",
+      "src/adcm/domain/models.py"
     ]
   },
   "curated_doc_delta_at_mark": {
     "added": [],
     "deleted": [],
     "modified": [
-      "docs/architecture/modules/contract-schema.md",
-      "docs/architecture/system-context.md"
+      "docs/architecture/flows/turn-lifecycle.md",
+      "docs/architecture/modules/application.md",
+      "docs/architecture/modules/domain.md",
+      "docs/architecture/symbols/application.md",
+      "docs/architecture/symbols/domain.md"
     ],
     "changed": [
-      "docs/architecture/modules/contract-schema.md",
-      "docs/architecture/system-context.md"
+      "docs/architecture/flows/turn-lifecycle.md",
+      "docs/architecture/modules/application.md",
+      "docs/architecture/modules/domain.md",
+      "docs/architecture/symbols/application.md",
+      "docs/architecture/symbols/domain.md"
     ]
   },
   "source_hashes": {
@@ -46,20 +54,20 @@
     "src/adcm/adapters/persistence/memory.py": "2222f4659df65d41283ecb017aaaae1ebb1b8889ceb901f984fc17e6d94fadf5",
     "src/adcm/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "src/adcm/application/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "src/adcm/application/candidate_resolver.py": "5c62cccf0ac34e560ffbc48150060ae4532f1c1cacc1da6308c8611cc3b0884f",
+    "src/adcm/application/candidate_resolver.py": "7031a653fdadc06e965a868c98dde49bd91e31fe7a878ac774288eb4b878576a",
     "src/adcm/application/capability_router.py": "daef4793641ccb0e02dbd79bd791bc407a6bc3aa9052070288649898e194541e",
     "src/adcm/application/chat_service.py": "eee06e57b959384bf19fd5255587e5f6d58811dc4b27c4543b006ae65198a802",
     "src/adcm/application/context_builder.py": "c9e3431cbedc665d3466b76ebc4602018a817701330f4a28b38622b492551c9a",
     "src/adcm/application/draft_projector.py": "a2c0c801c15389b9f4901fbd0905262ce4744fbaeaac37f842b9b96b09e26549",
-    "src/adcm/application/preference_expander.py": "3987f6e65bc13d8465a99edf1f184a5c7d011b754b7f71851d5b74e4cb4c804c",
+    "src/adcm/application/preference_expander.py": "95d0e2fea0c400bfaeeafb65a722da83bb9a00cf38e866489beb74467e993175",
     "src/adcm/application/render_service.py": "d2123b18df407c96a984d1dce630f451c18b487284f5605983fd652dbca0a45f",
-    "src/adcm/application/signal_binder.py": "46460d82f5fc24ae7cf71f79fa290b24239cb6dca8fb9823b9b7179c4cc725bf",
+    "src/adcm/application/signal_binder.py": "76f2adf37d6de2e84ca56b51ec1dedd6fef3e359af079a8ed253f5088193c60a",
     "src/adcm/application/turn_processor.py": "83929f6a465e1bead87bfd8fc837474a13db9345625b44360d7e7261c7f38538",
     "src/adcm/application/workflow_runner.py": "690bb4230a5255e08c73da444b5ac9ce3262ec4aebe67fe470c1038b06f1028d",
     "src/adcm/config.py": "a6a8ffe3a03b20182e1e260a54f59db3db41984ff65f3ef7366f8c2cca161887",
     "src/adcm/domain/__init__.py": "84c159b9388b9c89f0c4c6cfbdee2e438f4121ac0bb306b2a74f1c80eae0f973",
-    "src/adcm/domain/contract_path.py": "e1eed48468877b495828ec5e9eb831fda81204d59cf6f0b104e1d25dc7cb9a15",
-    "src/adcm/domain/models.py": "17051b02d70db0c0b013ccb5c0b8028030ac1a331736752efcd54d9f890444f7",
+    "src/adcm/domain/contract_path.py": "338678b7396f6b21669b172ff34cfc566f2a0a62cd7a6a7f6073f4d141891b86",
+    "src/adcm/domain/models.py": "d04c767453b602d383e6288b127acf77eb1607840bd3a9e01c8bd72939b27d5d",
     "src/adcm/ports/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "src/adcm/ports/audit_sink.py": "45a675dbbca3344687f6d6069bf02202cf8a016dca1828f2ca1a806ff05182ea",
     "src/adcm/ports/capability.py": "4bcc28e1363057889f82d3e2255d3b05d43b342864d6a43f3b50b6eebd774d6f",
@@ -71,18 +79,18 @@
     "docs/architecture/README.md": "358b3a6b8f5764c9d32e1d6f5aee36498fda93d72d5f1cfe872eb0c1e11cdabb",
     "docs/architecture/flows/agent-change-workflow.md": "6178f6a9c578cbbb0bcf5a16146182a1bc4398a663ee08d0922848596692d83d",
     "docs/architecture/flows/contract-forge-workflow.md": "60ffef87c43347a4adca48e39880eeade864d150b012dcc69c460a0caec687be",
-    "docs/architecture/flows/turn-lifecycle.md": "3f9e6f74b1197997c1792a1c1d34779fbba3959ff1ce1cc4770a44c83b6dd6dd",
+    "docs/architecture/flows/turn-lifecycle.md": "ac2c7b1b783aa5a248a7e4c72c0bb66341cb750c634d399b478267f203d1d3df",
     "docs/architecture/modules/adapters.md": "da2223e8f4b72f95e3277ed95382be0b97c9eaf3037c76f175b20ca23ef09b37",
     "docs/architecture/modules/agent-workflow.md": "3b07b75fb7f13f715303ba5f96aae1f482ad87462019ffd54ddb4cb6bf23c44c",
-    "docs/architecture/modules/application.md": "bd6c295105b6ecd2492c46a751be762c0db343b20b2197fece193d797b188ce8",
-    "docs/architecture/modules/contract-schema.md": "f0ae0805e1bd974b7a7086d4bc46f4346a5cad12f195bba21e0b3db3908093b3",
-    "docs/architecture/modules/domain.md": "0102578cd4565ae30c441563f3c9ec04bb39f355f90925c0bf4f440eeac75e52",
+    "docs/architecture/modules/application.md": "c7d53a9ac773f87e7c7b75879fd22b736e62e8472dcceb30bef52d4a4e4da618",
+    "docs/architecture/modules/contract-schema.md": "b597027761711e112ed23acc1fd7535a63c4e288e01114912fc1ff372442ab5a",
+    "docs/architecture/modules/domain.md": "97ea33da5a679e94a36b2ee09a66d90b24ad408578f538df49c604a43b33402e",
     "docs/architecture/modules/ports.md": "4c81f7878961d9c9e44c4a69e26087c8aa62be10ec044c4dda8e206f0e37b363",
     "docs/architecture/symbols/adapters.md": "b2c00e206f084f07b792c463f6af6d8c1eee9a48cc8813216b0e66a9c05c7e8f",
     "docs/architecture/symbols/agent-workflow.md": "432c2556fa34365cab9da07cd61957d9b75186eedb150784542d9748cbd49c79",
-    "docs/architecture/symbols/application.md": "8aea9743c535326e3ea9574960155012e8c5bd10763b19ce2cb5e094faa6a2d3",
-    "docs/architecture/symbols/domain.md": "0cebbf5b386f39747af343d431ab227f1b6df502ee1549f4cdc6264963cf96ec",
+    "docs/architecture/symbols/application.md": "5caaf18f38581e18ff8ef6513255de55a00ca7349ee0c60b1f777f0924a88573",
+    "docs/architecture/symbols/domain.md": "c68d70c9e658a6528baaf7d47c30aa7a27b1d0a0fb7f15dd03210961fea9869d",
     "docs/architecture/symbols/ports.md": "dfa26e467adfa55e04d80f082e283331da7210d8f15bfeadcb85302bc518109d",
-    "docs/architecture/system-context.md": "74cac0d8f3e047a1d434bffb9da5a2f4a3811aabb891b575967ca2b6a3a8c87a"
+    "docs/architecture/system-context.md": "1ffdc3bd67a2dd3e0b45b1f26f9096eda1852b8d77055a22625786938dfba6df"
   }
 }

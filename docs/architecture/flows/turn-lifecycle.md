@@ -2,7 +2,7 @@
 flow: user-turn-lifecycle
 entry_points:
   - src/adcm/application/chat_service.py::ChatService.handle_user_message
-last_verified: working-tree-2026-08-18
+last_verified: working-tree-2026-08-19
 ---
 
 # User turn lifecycle
@@ -27,9 +27,8 @@ State mutation occurs in memory before a single repository save. There is no dat
 
 ## Idempotency and concurrency
 
-Candidate keys suppress exact semantic duplicates inside a state; candidate sequence provides deterministic tie-breaking. The session repository protocol exposes no compare-and-swap or locking, so concurrent writes to one session are not coordinated by the application layer.
+Candidate keys suppress exact semantic duplicates inside a state. Binders skip wildcard schema patterns and reset signals to `unbound` when a replacement view no longer offers exactly one concrete match. Resolution preflights the complete candidate set, computes every winner, builds every resolution, and only then commits statuses. Duplicate IDs, non-finite confidence, or a policy-rank tie therefore leave all input statuses unchanged. The session repository protocol exposes no compare-and-swap or locking, so concurrent writes to one session are not coordinated by the application layer.
 
 ## Tests
 
 `tests/test_workflow.py`, `tests/test_revisions.py`, `tests/test_signal_binding.py`, and `tests/test_rule_based_interpreter.py` prove the deterministic stages used by the turn.
-

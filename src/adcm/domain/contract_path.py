@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-_TOKEN_RE = re.compile(r"([^\.\[\]]+)|\[(\d+)\]")
+_TOKEN_RE = re.compile(r"(?P<key>[^.\[\]]+)|\[(?P<index>0|[1-9]\d*)\]")
 
 
 @dataclass(frozen=True)
@@ -18,12 +18,32 @@ class ContractPath:
 
     @staticmethod
     def parse(path: str) -> list[PathToken]:
-        tokens: list[PathToken] = []
-        for match in _TOKEN_RE.finditer(path):
-            key, index = match.groups()
-            tokens.append(PathToken(key=key) if key is not None else PathToken(index=int(index)))
-        if not tokens:
+        if not isinstance(path, str) or not path or path.startswith("["):
             raise ValueError(f"Invalid contract path: {path!r}")
+
+        tokens: list[PathToken] = []
+        position = 0
+        require_key = False
+        while position < len(path):
+            match = _TOKEN_RE.match(path, position)
+            if match is None or (require_key and match.group("key") is None):
+                raise ValueError(f"Invalid contract path: {path!r}")
+
+            key = match.group("key")
+            index = match.group("index")
+            tokens.append(PathToken(key=key) if key is not None else PathToken(index=int(index)))
+            position = match.end()
+            require_key = False
+
+            if position == len(path):
+                break
+            if path[position] == ".":
+                position += 1
+                if position == len(path):
+                    raise ValueError(f"Invalid contract path: {path!r}")
+                require_key = True
+            elif path[position] != "[":
+                raise ValueError(f"Invalid contract path: {path!r}")
         return tokens
 
     @classmethod
@@ -50,9 +70,13 @@ class ContractPath:
                 raise TypeError(f"Expected list while writing {path!r}")
             assert token.index is not None
             while len(current) <= token.index:
-                # For an intermediate element of a list of objects, {} is intentional padding.
-                # A schema-aware writer can later specialize scalar-list padding if needed.
-                current.append({} if not last else None)
+                if last:
+                    current.append(None)
+                elif next_token and next_token.index is not None:
+                    current.append([])
+                else:
+                    # For an intermediate element of a list of objects, {} is intentional padding.
+                    current.append({})
             if last:
                 current[token.index] = value
                 return

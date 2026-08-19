@@ -1,6 +1,6 @@
 # Generated repository map
 
-Generated: `2026-08-19T06:50:56.505257+00:00`
+Generated: `2026-08-19T10:50:56.485088+00:00`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -126,11 +126,12 @@ Source files indexed: **37**
 
 ### `src/adcm/application/candidate_resolver.py`
 - Language: Python
-- Lines: 39
+- Lines: 73
 - Symbols:
-  - `class CandidateResolver` — line 6
-    - `_rank` — line 10
-    - `resolve` — line 20
+  - `class CandidateResolver` — line 7
+    - `_preflight` — line 11
+    - `_rank` — line 22
+    - `resolve` — line 35
 
 ### `src/adcm/application/capability_router.py`
 - Language: Python
@@ -166,10 +167,10 @@ Source files indexed: **37**
 
 ### `src/adcm/application/preference_expander.py`
 - Language: Python
-- Lines: 31
+- Lines: 36
 - Symbols:
-  - `class PreferenceExpander` — line 4
-    - `expand` — line 7
+  - `class PreferenceExpander` — line 5
+    - `expand` — line 8
 
 ### `src/adcm/application/render_service.py`
 - Language: Python
@@ -182,10 +183,10 @@ Source files indexed: **37**
 
 ### `src/adcm/application/signal_binder.py`
 - Language: Python
-- Lines: 36
+- Lines: 42
 - Symbols:
-  - `class SignalBinder` — line 4
-    - `bind` — line 7
+  - `class SignalBinder` — line 5
+    - `bind` — line 8
 
 ### `src/adcm/application/turn_processor.py`
 - Language: Python
@@ -221,72 +222,74 @@ Source files indexed: **37**
 
 ### `src/adcm/domain/contract_path.py`
 - Language: Python
-- Lines: 76
+- Lines: 100
 - Symbols:
   - `class PathToken` — line 11
   - `class ContractPath` — line 16
     - `parse` — line 20
-    - `write` — line 30
-    - `read` — line 64
+    - `write` — line 50
+    - `read` — line 88
 
 ### `src/adcm/domain/models.py`
 - Language: Python
-- Lines: 432
+- Lines: 498
 - Symbols:
-  - `function utcnow` — line 13
-  - `class EvidenceKind` — line 17
-  - `class ValueOrigin` — line 29
-  - `class CandidateScope` — line 54
-  - `class Evidence` — line 63
-  - `class Signal` — line 73
-    - `require_user_evidence` — line 85
-  - `class Preference` — line 91
-    - `require_user_evidence` — line 102
-  - `class ValueCandidate` — line 108
-    - `require_user_evidence` — line 126
-    - `effective_priority` — line 131
-  - `class ResolvedValue` — line 135
-  - `class ContractDraft` — line 143
-    - `canonical_hash` — line 147
-  - `class AllowedPath` — line 152
-  - `class Requirement` — line 159
-  - `class CapabilityStatus` — line 165
-  - `class CapabilityRequest` — line 171
-  - `class CapabilityResult` — line 178
-  - `class ValidationFindingStatus` — line 186
-  - `class DependencyType` — line 192
-  - `class ValidationDependency` — line 198
-  - `class ValidationFinding` — line 205
-  - `class ExternalCandidate` — line 212
-  - `class EvaluationStatus` — line 223
-  - `class FinalValidationStatus` — line 229
-  - `class RenderMode` — line 235
-  - `class CurrentSchemaView` — line 240
-    - `allowed_path_set` — line 246
-    - `_schema_pattern` — line 250
-    - `is_path_allowed` — line 255
-  - `class ContractInput` — line 261
-  - `class ContractEvaluationResult` — line 267
-  - `class FinalValidationResult` — line 276
-  - `class FinalValidationReceipt` — line 283
-  - `class RenderRequest` — line 289
-  - `class RenderedContract` — line 295
-  - `class WorkflowOutcomeStatus` — line 301
-  - `class WorkflowOutcome` — line 309
-  - `class WorkflowState` — line 319
-  - `class ValueChange` — line 327
-  - `class Revision` — line 335
-  - `class AuditEvent` — line 342
-  - `class ChatMessage` — line 351
-  - `class ExtractedSignal` — line 358
-  - `class ExtractedPreference` — line 365
-  - `class CorrectionIntent` — line 372
-  - `class PossibleTypo` — line 379
-  - `class TurnInterpretation` — line 386
-  - `class ConversationState` — line 394
-  - `class SignalView` — line 410
-  - `class PreferenceView` — line 417
-  - `class AgentContext` — line 424
+  - `function utcnow` — line 15
+  - `function _canonical_json` — line 19
+  - `class EvidenceKind` — line 29
+  - `class ValueOrigin` — line 41
+  - `class CandidateScope` — line 66
+  - `class Evidence` — line 75
+  - `class Signal` — line 85
+    - `require_user_evidence` — line 97
+  - `class Preference` — line 103
+    - `require_user_evidence` — line 114
+  - `class ValueCandidate` — line 120
+    - `require_user_evidence` — line 138
+    - `effective_priority` — line 146
+  - `class ResolvedValue` — line 150
+  - `class ContractDraft` — line 158
+    - `canonical_hash` — line 162
+  - `class AllowedPath` — line 167
+  - `class Requirement` — line 174
+  - `class CapabilityStatus` — line 180
+  - `class CapabilityRequest` — line 186
+  - `class CapabilityResult` — line 193
+  - `class ValidationFindingStatus` — line 201
+  - `class DependencyType` — line 207
+  - `class ValidationDependency` — line 213
+  - `class ValidationFinding` — line 220
+  - `class ExternalCandidate` — line 227
+  - `class EvaluationStatus` — line 238
+  - `class FinalValidationStatus` — line 244
+  - `class RenderMode` — line 250
+  - `class CurrentSchemaView` — line 255
+    - `allowed_path_set` — line 261
+    - `_schema_pattern` — line 265
+    - `is_path_allowed` — line 270
+  - `class ContractInput` — line 280
+  - `class ContractEvaluationResult` — line 286
+  - `class FinalValidationResult` — line 295
+  - `class FinalValidationReceipt` — line 302
+  - `class RenderRequest` — line 308
+  - `class RenderedContract` — line 314
+  - `class WorkflowOutcomeStatus` — line 320
+  - `class WorkflowOutcome` — line 328
+  - `class WorkflowState` — line 338
+  - `class ValueChange` — line 346
+  - `class Revision` — line 354
+  - `class AuditEvent` — line 361
+  - `class ChatMessage` — line 370
+  - `class ExtractedSignal` — line 377
+  - `class ExtractedPreference` — line 384
+  - `class CorrectionIntent` — line 391
+  - `class PossibleTypo` — line 398
+  - `class TurnInterpretation` — line 405
+  - `class ConversationState` — line 413
+    - `resolved_values_reference_known_candidates` — line 429
+  - `class SignalView` — line 476
+  - `class PreferenceView` — line 483
+  - `class AgentContext` — line 490
 
 ### `src/adcm/ports/__init__.py`
 - Language: Python

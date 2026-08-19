@@ -11,7 +11,7 @@ The detailed implementation contracts live under `docs/implementation/`. Impleme
 | Stage | Capability | Status | Specification |
 |---|---|---|---|
 | 0 | Repository baseline, configuration, and Contract Forge artifact ownership | READY | [Stage 0](docs/implementation/stage-0-repository-and-contract-ownership.md) |
-| 1 | Domain model, provenance, deterministic resolution, paths, and projection | NOT_STARTED | [Stage 1](docs/implementation/stage-1-domain-model-and-deterministic-projection.md) |
+| 1 | Domain model, provenance, deterministic resolution, paths, and projection | READY | [Stage 1](docs/implementation/stage-1-domain-model-and-deterministic-projection.md) |
 | 2 | Fast-forward workflow, schema-view replacement, corrections, and capabilities | NOT_STARTED | [Stage 2](docs/implementation/stage-2-workflow-fast-forward-and-capabilities.md) |
 | 3 | Real stateless Contract Forge transport and provider conformance | BLOCKED_INPUT | [Stage 3](docs/implementation/stage-3-stateless-contract-forge-integration.md) |
 | 4 | Pydantic AI semantic interpretation and response composition | NOT_STARTED | [Stage 4](docs/implementation/stage-4-pydantic-ai-semantic-layer.md) |

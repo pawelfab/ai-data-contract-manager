@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-19T06:50:56.505257+00:00",
+  "generated_at": "2026-08-19T10:50:56.485088+00:00",
   "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
   "files": [
     {
@@ -285,23 +285,28 @@
     {
       "path": "src/adcm/application/candidate_resolver.py",
       "language": "Python",
-      "bytes": 1547,
-      "lines": 39,
-      "sha256": "5c62cccf0ac34e560ffbc48150060ae4532f1c1cacc1da6308c8611cc3b0884f",
+      "bytes": 2928,
+      "lines": 73,
+      "sha256": "7031a653fdadc06e965a868c98dde49bd91e31fe7a878ac774288eb4b878576a",
       "symbols": [
         {
           "kind": "class",
           "name": "CandidateResolver",
-          "line": 6,
+          "line": 7,
           "methods": [
             {
+              "name": "_preflight",
+              "line": 11,
+              "async": false
+            },
+            {
               "name": "_rank",
-              "line": 10,
+              "line": 22,
               "async": false
             },
             {
               "name": "resolve",
-              "line": 20,
+              "line": 35,
               "async": false
             }
           ]
@@ -415,18 +420,18 @@
     {
       "path": "src/adcm/application/preference_expander.py",
       "language": "Python",
-      "bytes": 1228,
-      "lines": 31,
-      "sha256": "3987f6e65bc13d8465a99edf1f184a5c7d011b754b7f71851d5b74e4cb4c804c",
+      "bytes": 1417,
+      "lines": 36,
+      "sha256": "95d0e2fea0c400bfaeeafb65a722da83bb9a00cf38e866489beb74467e993175",
       "symbols": [
         {
           "kind": "class",
           "name": "PreferenceExpander",
-          "line": 4,
+          "line": 5,
           "methods": [
             {
               "name": "expand",
-              "line": 7,
+              "line": 8,
               "async": false
             }
           ]
@@ -468,18 +473,18 @@
     {
       "path": "src/adcm/application/signal_binder.py",
       "language": "Python",
-      "bytes": 1414,
-      "lines": 36,
-      "sha256": "46460d82f5fc24ae7cf71f79fa290b24239cb6dca8fb9823b9b7179c4cc725bf",
+      "bytes": 1629,
+      "lines": 42,
+      "sha256": "76f2adf37d6de2e84ca56b51ec1dedd6fef3e359af079a8ed253f5088193c60a",
       "symbols": [
         {
           "kind": "class",
           "name": "SignalBinder",
-          "line": 4,
+          "line": 5,
           "methods": [
             {
               "name": "bind",
-              "line": 7,
+              "line": 8,
               "async": false
             }
           ]
@@ -590,9 +595,9 @@
     {
       "path": "src/adcm/domain/contract_path.py",
       "language": "Python",
-      "bytes": 2816,
-      "lines": 76,
-      "sha256": "e1eed48468877b495828ec5e9eb831fda81204d59cf6f0b104e1d25dc7cb9a15",
+      "bytes": 3708,
+      "lines": 100,
+      "sha256": "338678b7396f6b21669b172ff34cfc566f2a0a62cd7a6a7f6073f4d141891b86",
       "symbols": [
         {
           "kind": "class",
@@ -612,12 +617,12 @@
             },
             {
               "name": "write",
-              "line": 30,
+              "line": 50,
               "async": false
             },
             {
               "name": "read",
-              "line": 64,
+              "line": 88,
               "async": false
             }
           ]
@@ -627,47 +632,52 @@
     {
       "path": "src/adcm/domain/models.py",
       "language": "Python",
-      "bytes": 12093,
-      "lines": 432,
-      "sha256": "17051b02d70db0c0b013ccb5c0b8028030ac1a331736752efcd54d9f890444f7",
+      "bytes": 14777,
+      "lines": 498,
+      "sha256": "d04c767453b602d383e6288b127acf77eb1607840bd3a9e01c8bd72939b27d5d",
       "symbols": [
         {
           "kind": "function",
           "name": "utcnow",
-          "line": 13
+          "line": 15
+        },
+        {
+          "kind": "function",
+          "name": "_canonical_json",
+          "line": 19
         },
         {
           "kind": "class",
           "name": "EvidenceKind",
-          "line": 17,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "ValueOrigin",
           "line": 29,
           "methods": []
         },
         {
           "kind": "class",
+          "name": "ValueOrigin",
+          "line": 41,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "CandidateScope",
-          "line": 54,
+          "line": 66,
           "methods": []
         },
         {
           "kind": "class",
           "name": "Evidence",
-          "line": 63,
+          "line": 75,
           "methods": []
         },
         {
           "kind": "class",
           "name": "Signal",
-          "line": 73,
+          "line": 85,
           "methods": [
             {
               "name": "require_user_evidence",
-              "line": 85,
+              "line": 97,
               "async": false
             }
           ]
@@ -675,11 +685,11 @@
         {
           "kind": "class",
           "name": "Preference",
-          "line": 91,
+          "line": 103,
           "methods": [
             {
               "name": "require_user_evidence",
-              "line": 102,
+              "line": 114,
               "async": false
             }
           ]
@@ -687,16 +697,16 @@
         {
           "kind": "class",
           "name": "ValueCandidate",
-          "line": 108,
+          "line": 120,
           "methods": [
             {
               "name": "require_user_evidence",
-              "line": 126,
+              "line": 138,
               "async": false
             },
             {
               "name": "effective_priority",
-              "line": 131,
+              "line": 146,
               "async": false
             }
           ]
@@ -704,17 +714,17 @@
         {
           "kind": "class",
           "name": "ResolvedValue",
-          "line": 135,
+          "line": 150,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ContractDraft",
-          "line": 143,
+          "line": 158,
           "methods": [
             {
               "name": "canonical_hash",
-              "line": 147,
+              "line": 162,
               "async": false
             }
           ]
@@ -722,99 +732,99 @@
         {
           "kind": "class",
           "name": "AllowedPath",
-          "line": 152,
+          "line": 167,
           "methods": []
         },
         {
           "kind": "class",
           "name": "Requirement",
-          "line": 159,
+          "line": 174,
           "methods": []
         },
         {
           "kind": "class",
           "name": "CapabilityStatus",
-          "line": 165,
+          "line": 180,
           "methods": []
         },
         {
           "kind": "class",
           "name": "CapabilityRequest",
-          "line": 171,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "CapabilityResult",
-          "line": 178,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "ValidationFindingStatus",
           "line": 186,
           "methods": []
         },
         {
           "kind": "class",
+          "name": "CapabilityResult",
+          "line": 193,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationFindingStatus",
+          "line": 201,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "DependencyType",
-          "line": 192,
+          "line": 207,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ValidationDependency",
-          "line": 198,
+          "line": 213,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ValidationFinding",
-          "line": 205,
+          "line": 220,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ExternalCandidate",
-          "line": 212,
+          "line": 227,
           "methods": []
         },
         {
           "kind": "class",
           "name": "EvaluationStatus",
-          "line": 223,
+          "line": 238,
           "methods": []
         },
         {
           "kind": "class",
           "name": "FinalValidationStatus",
-          "line": 229,
+          "line": 244,
           "methods": []
         },
         {
           "kind": "class",
           "name": "RenderMode",
-          "line": 235,
+          "line": 250,
           "methods": []
         },
         {
           "kind": "class",
           "name": "CurrentSchemaView",
-          "line": 240,
+          "line": 255,
           "methods": [
             {
               "name": "allowed_path_set",
-              "line": 246,
+              "line": 261,
               "async": false
             },
             {
               "name": "_schema_pattern",
-              "line": 250,
+              "line": 265,
               "async": false
             },
             {
               "name": "is_path_allowed",
-              "line": 255,
+              "line": 270,
               "async": false
             }
           ]
@@ -822,133 +832,139 @@
         {
           "kind": "class",
           "name": "ContractInput",
-          "line": 261,
+          "line": 280,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ContractEvaluationResult",
-          "line": 267,
+          "line": 286,
           "methods": []
         },
         {
           "kind": "class",
           "name": "FinalValidationResult",
-          "line": 276,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "FinalValidationReceipt",
-          "line": 283,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "RenderRequest",
-          "line": 289,
-          "methods": []
-        },
-        {
-          "kind": "class",
-          "name": "RenderedContract",
           "line": 295,
           "methods": []
         },
         {
           "kind": "class",
+          "name": "FinalValidationReceipt",
+          "line": 302,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RenderRequest",
+          "line": 308,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RenderedContract",
+          "line": 314,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "WorkflowOutcomeStatus",
-          "line": 301,
+          "line": 320,
           "methods": []
         },
         {
           "kind": "class",
           "name": "WorkflowOutcome",
-          "line": 309,
+          "line": 328,
           "methods": []
         },
         {
           "kind": "class",
           "name": "WorkflowState",
-          "line": 319,
+          "line": 338,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ValueChange",
-          "line": 327,
+          "line": 346,
           "methods": []
         },
         {
           "kind": "class",
           "name": "Revision",
-          "line": 335,
+          "line": 354,
           "methods": []
         },
         {
           "kind": "class",
           "name": "AuditEvent",
-          "line": 342,
+          "line": 361,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ChatMessage",
-          "line": 351,
+          "line": 370,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ExtractedSignal",
-          "line": 358,
+          "line": 377,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ExtractedPreference",
-          "line": 365,
+          "line": 384,
           "methods": []
         },
         {
           "kind": "class",
           "name": "CorrectionIntent",
-          "line": 372,
+          "line": 391,
           "methods": []
         },
         {
           "kind": "class",
           "name": "PossibleTypo",
-          "line": 379,
+          "line": 398,
           "methods": []
         },
         {
           "kind": "class",
           "name": "TurnInterpretation",
-          "line": 386,
+          "line": 405,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ConversationState",
-          "line": 394,
-          "methods": []
+          "line": 413,
+          "methods": [
+            {
+              "name": "resolved_values_reference_known_candidates",
+              "line": 429,
+              "async": false
+            }
+          ]
         },
         {
           "kind": "class",
           "name": "SignalView",
-          "line": 410,
+          "line": 476,
           "methods": []
         },
         {
           "kind": "class",
           "name": "PreferenceView",
-          "line": 417,
+          "line": 483,
           "methods": []
         },
         {
           "kind": "class",
           "name": "AgentContext",
-          "line": 424,
+          "line": 490,
           "methods": []
         }
       ]

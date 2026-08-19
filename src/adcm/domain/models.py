@@ -7,11 +7,23 @@ from enum import StrEnum
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, FiniteFloat, model_validator
+
+from adcm.domain.contract_path import ContractPath
 
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
 
 
 class EvidenceKind(StrEnum):
@@ -112,7 +124,7 @@ class ValueCandidate(BaseModel):
     origin: ValueOrigin
     evidence_ids: list[UUID] = Field(default_factory=list)
     priority: int | None = None
-    confidence: float | None = None
+    confidence: FiniteFloat | None = None
     scope: CandidateScope | None = None
     rule_id: str | None = None
     source_signal_id: UUID | None = None
@@ -124,7 +136,10 @@ class ValueCandidate(BaseModel):
 
     @model_validator(mode="after")
     def require_user_evidence(self) -> "ValueCandidate":
-        if self.origin in {ValueOrigin.USER_EXPLICIT, ValueOrigin.USER_PREFERENCE} and not self.evidence_ids:
+        if (
+            self.origin in {ValueOrigin.USER_EXPLICIT, ValueOrigin.USER_PREFERENCE}
+            and not self.evidence_ids
+        ):
             raise ValueError(f"{self.origin.value} candidate requires evidence")
         return self
 
@@ -145,7 +160,7 @@ class ContractDraft(BaseModel):
     revision: int = 0
 
     def canonical_hash(self) -> str:
-        payload = json.dumps(self.values, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        payload = _canonical_json(self.values)
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -253,6 +268,10 @@ class CurrentSchemaView(BaseModel):
         return re.sub(r"\[\d+\]", "[*]", instance_path)
 
     def is_path_allowed(self, path: str) -> bool:
+        try:
+            ContractPath.parse(path)
+        except ValueError:
+            return False
         if path in self.allowed_path_set:
             return True
         return self._schema_pattern(path) in self.allowed_path_set
@@ -405,6 +424,53 @@ class ConversationState(BaseModel):
     evidence: list[Evidence] = Field(default_factory=list)
     revisions: list[Revision] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def resolved_values_reference_known_candidates(self) -> "ConversationState":
+        candidate_ids = [candidate.id for candidate in self.value_candidates]
+        if len(candidate_ids) != len(set(candidate_ids)):
+            raise ValueError("Value candidate IDs must be unique")
+
+        selected_paths: set[str] = set()
+        for candidate in self.value_candidates:
+            if candidate.status != "selected":
+                continue
+            if candidate.path in selected_paths:
+                raise ValueError(
+                    f"Only one selected candidate is allowed for {candidate.path!r}"
+                )
+            selected_paths.add(candidate.path)
+
+        candidates_by_id = {candidate.id: candidate for candidate in self.value_candidates}
+        for path, resolved in self.resolved_values.items():
+            candidate = candidates_by_id.get(resolved.selected_candidate_id)
+            if candidate is None:
+                raise ValueError(
+                    f"Resolved value for {path!r} references an unknown selected candidate"
+                )
+            if resolved.path != path or candidate.path != path:
+                raise ValueError(
+                    f"Resolved value and selected candidate paths must match {path!r}"
+                )
+            if candidate.status != "selected":
+                raise ValueError(f"Selected candidate for {path!r} must have selected status")
+            try:
+                values_match = _canonical_json(resolved.value) == _canonical_json(candidate.value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"Resolved and candidate values for {path!r} must be canonical JSON"
+                ) from exc
+            if not values_match:
+                raise ValueError(
+                    f"Resolved value must canonically match selected candidate for {path!r}"
+                )
+            if resolved.origin != candidate.origin:
+                raise ValueError(f"Resolved origin must match selected candidate for {path!r}")
+            if resolved.evidence_ids != candidate.evidence_ids:
+                raise ValueError(
+                    f"Resolved evidence IDs must match selected candidate for {path!r}"
+                )
+        return self
 
 
 class SignalView(BaseModel):

@@ -21,6 +21,32 @@ USER_EXPLICIT signals and candidates require evidence. SignalBinder never fabric
 ## Forge vs ADCM precedence
 ADCM resolves origins (user, preference, external, MCP enrichment/default). Forge owns conflicts among Forge rules and should return explicit priority/specificity metadata.
 
+ADCM origin precedence is applied before Forge rule priority, so a Forge rule cannot override a
+user-origin candidate by declaring a larger number. Within one origin, rule priority is followed
+by correction revision and sequence; UUIDs are never used to choose a value. A complete
+policy-rank collision after confidence is rejected as ambiguous, because selecting either candidate's evidence
+would otherwise make the result depend on input order.
+
+Candidate confidence must be finite; the model rejects NaN and infinity, and the resolver repeats
+the guard for mutated or otherwise bypassed model instances. Candidate UUIDs are identifiers only:
+duplicates are invalid and are rejected before any selection status changes. Aggregate state permits
+at most one `selected` candidate per concrete path.
+
+Resolver execution has a preflight/commit boundary. It validates every candidate and computes every
+per-path winner before constructing resolutions and changing statuses. Therefore an invalid candidate
+or tie on a later path cannot leave earlier paths partially selected.
+
+Resolved/candidate values are compared through the same strict canonical JSON representation used
+for draft hashing. Python equality is insufficient because booleans compare equal to integers and
+integer/float equality can hide distinct canonical JSON content.
+
+## Concrete projection paths
+`AllowedPath` may contain a schema wildcard (`[*]`), but candidate binding and projection use
+only concrete paths accepted by `ContractPath.parse`. The wildcard pattern authorizes indexed
+instances; it is never passed to the nested draft writer. A changed schema view can therefore
+return a previously bound signal to `unbound` without removing its history. The dict-backed draft
+does not support a root-list path such as `[0].name`.
+
 ## Status ownership
 Forge describes contract state. ADCM describes orchestration state. Therefore Forge never returns WAITING_FOR_USER/BLOCKED_EXTERNAL.
 

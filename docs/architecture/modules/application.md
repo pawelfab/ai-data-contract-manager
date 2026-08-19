@@ -2,7 +2,7 @@
 module: application
 source_roots:
   - src/adcm/application
-last_verified: working-tree-2026-08-18
+last_verified: working-tree-2026-08-19
 owners: []
 ---
 
@@ -23,7 +23,7 @@ Coordinate semantic interpretation, state mutation, candidate generation/resolut
 
 ## Internal flow and side effects
 
-`TurnProcessor` appends message evidence and revisions but never edits the draft. `SignalBinder` and `PreferenceExpander` produce candidates only for paths in the current schema view. `CandidateResolver` selects a winner per path. `DraftProjector` rebuilds the nested draft. `WorkflowRunner` stores capability results and Forge evidence. `ChatService` owns session persistence.
+`TurnProcessor` appends message evidence and revisions but never edits the draft. `SignalBinder` and `PreferenceExpander` produce candidates only for concrete paths in the current schema view; an absent or ambiguous current binding resets a signal to `unbound`. `CandidateResolver` preflights every ID and confidence value, computes every per-path winner, and builds all resolutions before committing candidate statuses. Ranking uses origin precedence, same-origin Forge priority, correction revision/sequence, and confidence without UUID ordering; a policy-rank tie after confidence is rejected without partial status mutation. `DraftProjector` rebuilds the nested draft. `WorkflowRunner` stores capability results and Forge evidence. `ChatService` owns session persistence.
 
 ## Error and stability behavior
 
@@ -38,4 +38,3 @@ Coordinate semantic interpretation, state mutation, candidate generation/resolut
 - `tests/test_revisions.py` — correction history.
 - `tests/test_render_service.py` — render cache key and final receipt checks.
 - `tests/test_draft_projector.py`, `test_candidate_resolver.py`, and `test_signal_binding.py` — internal deterministic stages.
-

@@ -43,14 +43,15 @@ The current domain already contains most of these models, but the invariants are
 
 ## Invariants
 
-- No `ResolvedValue` exists without a selected `ValueCandidate`.
+- No `ResolvedValue` exists without a selected `ValueCandidate` with the same path, value, origin, and evidence IDs.
 - Every `ValueCandidate` has an origin; USER_EXPLICIT and USER_PREFERENCE candidates require evidence.
+- Every candidate ID is unique within aggregate state, and optional confidence is finite.
 - USER_EXPLICIT `Signal` and USER_PREFERENCE `Preference` require evidence; a signal may remain unbound and pathless.
 - Preferences may expand to zero, one, or many currently legal paths.
 - Corrections supersede old records without deleting them.
 - `CurrentSchemaView` is a replaceable snapshot, not an accumulating set.
 - `ContractDraft` stores nested data and supports arrays; schema paths and instance paths remain distinct.
-- Candidate tie-breaking is deterministic and never uses UUID ordering.
+- Candidate tie-breaking is deterministic and never uses UUID ordering; duplicate IDs and non-finite confidence are invalid, and a policy-rank tie after confidence is rejected rather than resolved by candidate metadata.
 
 ## Files affected
 
@@ -113,8 +114,8 @@ CurrentSchemaView + ResolvedValue map
 1. Reject user-origin signals, preferences, and candidates that lack evidence IDs at model validation time.
 2. Permit pre-path signals to remain `unbound`; bind only when exactly one current allowed path advertises the concept. Ambiguous or absent matches remain unbound and do not create a candidate.
 3. Copy evidence IDs and source identifiers from a signal/preference into its candidate. The binder/expander must never invent Evidence or change origin.
-4. Preserve all non-rejected/non-superseded candidates, select one per concrete path, and expose the winner through `selected_candidate_id`.
-5. Rank explicit Forge priority and ADCM origin precedence deterministically; use `created_revision` and `sequence` for same-origin corrections. Candidate order and UUID values must not change the winner.
+4. Preserve all non-rejected/non-superseded candidates, select one per concrete path, and expose the winner through `selected_candidate_id`. Preflight and compute every winner before changing statuses so any error leaves all candidates unchanged.
+5. Rank explicit Forge priority and ADCM origin precedence deterministically; use `created_revision` and `sequence` for same-origin corrections, with confidence as the final policy tie-break. Candidate order, UUID values, value content, scope, rule ID, and reason must not change the winner; a tie after confidence is rejected as invalid candidate state.
 6. Rebuild a fresh document on every projection. Write only paths accepted by `CurrentSchemaView`; use concrete indices for arrays and preserve `{}` padding when an intermediate list of objects skips indices.
 7. `ContractDraft.canonical_hash()` hashes only canonical nested content. `schema_revision` is tracked separately and is never inserted into the hash.
 
@@ -133,6 +134,9 @@ CurrentSchemaView + ResolvedValue map
 - `ContractPath` raises `ValueError` for malformed paths and `TypeError` for incompatible object/list shapes; reads may return their requested default.
 - Projection silently omits resolved values unauthorized by the current view (and tests must prove the omission); it must not broaden authorization.
 - Candidate resolution must have deterministic behavior for all valid inputs; an empty candidate set yields an empty resolution map.
+- A policy-rank tie after confidence raises `ValueError`; it must be resolved by the producer through priority, revision, sequence, or confidence rather than candidate metadata.
+- Duplicate candidate IDs, non-finite confidence, and any per-path policy tie raise deterministic errors before any candidate status is changed.
+- Resolution/candidate values use strict canonical JSON equality, not Python equality; booleans, integers, and floats remain distinct canonical values.
 
 ## Status semantics
 
@@ -184,10 +188,9 @@ Update `docs/DOMAIN_MODEL.md`, `docs/architecture/modules/domain.md`, `docs/arch
 
 ## Completion checklist
 
-- [ ] Domain models and validators match the canonical invariant list.
-- [ ] Candidate ranking is deterministic and UUID-independent.
-- [ ] Evidence/provenance is preserved through binding and resolution.
-- [ ] Nested array paths and current-view projection are covered by tests.
-- [ ] Domain dependency direction remains clean.
-- [ ] No workflow/provider/UI code was added.
-
+- [x] Domain models and validators match the canonical invariant list.
+- [x] Candidate ranking is deterministic and UUID-independent.
+- [x] Evidence/provenance is preserved through binding and resolution.
+- [x] Nested array paths and current-view projection are covered by tests.
+- [x] Domain dependency direction remains clean.
+- [x] No workflow/provider/UI code was added.
