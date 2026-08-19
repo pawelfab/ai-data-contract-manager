@@ -1,0 +1,183 @@
+{
+  "source_roots": [
+    "src",
+    "contracts",
+    "examples/contract-rules.json",
+    "pyproject.toml"
+  ],
+  "source_extensions": [
+    ".py",
+    ".pyi",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".java",
+    ".kt",
+    ".kts",
+    ".cs",
+    ".go",
+    ".rs",
+    ".php",
+    ".rb",
+    ".sql",
+    ".graphql",
+    ".proto",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".toml"
+  ],
+  "exclude_dirs": [
+    ".git",
+    ".agent-state",
+    ".venv",
+    "venv",
+    "node_modules",
+    "dist",
+    "build",
+    "target",
+    "coverage",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "__pycache__",
+    "docs/architecture/generated",
+    "docs/architecture",
+    ".github",
+    ".vscode",
+    "scripts/agent",
+    "githooks"
+  ],
+  "architecture_docs_dir": "docs/architecture",
+  "inventory_json": "docs/architecture/generated/repository-inventory.json",
+  "repository_map": "docs/architecture/generated/repository-map.md",
+  "documentation_impact_report": "docs/architecture/generated/documentation-impact.md",
+  "freshness_file": "docs/architecture/.freshness.json",
+  "session_state_dir": ".agent-state",
+  "session_state_max_age_hours": 168,
+  "documentation_relevant_patterns": [
+    "^src/",
+    "^contracts/",
+    "^examples/contract-rules\\.json$",
+    "^pyproject\\.toml$"
+  ],
+  "documentation_evidence_patterns": [
+    "^docs/architecture/README\\.md$",
+    "^docs/architecture/system-context\\.md$",
+    "^docs/architecture/modules/.+\\.md$",
+    "^docs/architecture/flows/.+\\.md$",
+    "^docs/architecture/symbols/.+\\.md$"
+  ],
+  "documentation_non_evidence_patterns": [
+    "^docs/architecture/generated/",
+    "^docs/architecture/contracts/",
+    "^docs/architecture/reviews/"
+  ],
+  "documentation_map": [
+    {
+      "source_pattern": "^src/adcm/application/",
+      "docs": [
+        "docs/architecture/modules/application.md",
+        "docs/architecture/symbols/application.md",
+        "docs/architecture/flows/turn-lifecycle.md"
+      ]
+    },
+    {
+      "source_pattern": "^src/adcm/domain/",
+      "docs": [
+        "docs/architecture/modules/domain.md",
+        "docs/architecture/symbols/domain.md"
+      ]
+    },
+    {
+      "source_pattern": "^src/adcm/ports/",
+      "docs": [
+        "docs/architecture/modules/ports.md",
+        "docs/architecture/symbols/ports.md",
+        "docs/architecture/system-context.md"
+      ]
+    },
+    {
+      "source_pattern": "^src/adcm/adapters/",
+      "docs": [
+        "docs/architecture/modules/adapters.md",
+        "docs/architecture/symbols/adapters.md",
+        "docs/architecture/system-context.md"
+      ]
+    },
+    {
+      "source_pattern": "^src/adcm/config\\.py$",
+      "docs": [
+        "docs/architecture/system-context.md"
+      ]
+    },
+    {
+      "source_pattern": "^(contracts/|examples/contract-rules\\.json$)",
+      "docs": [
+        "docs/architecture/modules/contract-schema.md",
+        "docs/architecture/system-context.md"
+      ]
+    },
+    {
+      "source_pattern": "^pyproject\\.toml$",
+      "docs": [
+        "docs/architecture/system-context.md"
+      ]
+    }
+  ],
+  "quality_commands": {
+    "format_check": [],
+    "lint": [],
+    "typecheck": [],
+    "test": [
+      "python -m pytest -q"
+    ],
+    "build": []
+  },
+  "pre_commit_quality_stages": [
+    "format_check",
+    "lint"
+  ],
+  "pre_push_quality_stages": [
+    "typecheck",
+    "test",
+    "build"
+  ],
+  "stop_quality_stages": [],
+  "strict_stop_gate": true,
+  "require_docs_for_staged_relevant_code": true,
+  "require_freshness_marker_for_staged_relevant_code": true,
+  "protected_agent_paths": [
+    ".github/hooks/",
+    ".github/agents/",
+    ".github/prompts/",
+    ".github/copilot-instructions.md",
+    ".codex/skills/",
+    ".vscode/",
+    "AGENTS.md",
+    "scripts/agent/",
+    "githooks/"
+  ],
+  "deny_command_patterns": [
+    "(^|\\s)rm\\s+-rf\\s+[/~]",
+    "git\\s+reset\\s+--hard",
+    "git\\s+clean\\s+-[a-zA-Z]*f",
+    "git\\s+push\\b.*(--force|-f)\\b",
+    "\\bDROP\\s+(DATABASE|SCHEMA)\\b",
+    "\\bTRUNCATE\\s+TABLE\\b",
+    "\\bterraform\\s+destroy\\b",
+    "\\bkubectl\\s+delete\\b.*\\b(namespace|ns)\\b"
+  ],
+  "approval_command_patterns": [
+    "\\bDELETE\\s+FROM\\b",
+    "\\bDROP\\s+TABLE\\b",
+    "\\bdocker\\s+system\\s+prune\\b",
+    "\\bhelm\\s+uninstall\\b",
+    "\\bRemove-Item\\b(?=[^\\r\\n]*-Recurse\\b)",
+    "\\b(?:rd|rmdir)\\b[^\\r\\n]*(?:/s|-s)\\b",
+    "\\bdel\\b[^\\r\\n]*(?:/s|-s)\\b",
+    "\\bgit\\s+restore\\b",
+    "\\bgit\\s+checkout\\s+--(?:\\s|$)"
+  ]
+}

@@ -1,0 +1,455 @@
+{
+    "version": "1.0",
+    "defaults": {
+        "rules": [
+            {
+                "id": "bronze.activate",
+                "action": "activate_root_section",
+                "section": "bronzeTable"
+            },
+            {
+                "id": "converter.output.parquet",
+                "action": "set_default",
+                "when_path": "converter.enabled",
+                "when_value": true,
+                "path": "converter.output.format",
+                "value": "parquet"
+            },
+            {
+                "id": "source_system.copy_to_converter",
+                "action": "copy_value",
+                "when_path": "converter",
+                "source_path": "metadata.sourceSystemGcpId",
+                "path": "converter.source.systemZrodlowy"
+            },
+            {
+                "id": "orchestration.start_date.copy_to_converter",
+                "action": "copy_value",
+                "when_path": "converter",
+                "source_path": "orchestration.startDate",
+                "path": "converter.source.dataDanych"
+            },
+            {
+                "id": "dag.filename_pattern",
+                "action": "format_value",
+                "when_path": "converter",
+                "source_path": "orchestration.dagId",
+                "fallback_source_path": "metadata.id",
+                "path": "converter.source.filenamePattern",
+                "template": "{source}_{{ logical_date.strftime('%Y%m%d') }}.TXT"
+            },
+            {
+                "id": "rawData.gcs_bucket",
+                "action": "format_value",
+                "when_path": "rawData",
+                "path": "rawData.gcsBucketPath",
+                "template": "gcs-bucket-{{ env }}-data-raw-rocket-01"
+            },
+            {
+                "id": "bronzeTable.bq_project",
+                "action": "format_value",
+                "when_path": "bronzeTable",
+                "path": "bronzeTable.table.project",
+                "template": "pekao-prj-{{ env }}-core-intg-01"
+            },
+            {
+                "id": "bronzeTable.base_dataset",
+                "action": "format_value",
+                "when_path": "bronzeTable",
+                "source_path": "metadata.sourceSystemGcpId",
+                "path": "bronzeTable.table.dataset",
+                "template": "{source}_bronze"
+            },
+            {
+                "id": "bronzeTable.table_name",
+                "action": "copy_value",
+                "when_path": "bronzeTable",
+                "source_path": "metadata.dataFileId",
+                "path": "bronzeTable.table.table"
+            },
+            {
+                "id": "silver.table_enrichment",
+                "action": "enrich_list",
+                "when_path": "silver",
+                "list_path": "silver.tables",
+                "fields": [
+                    {
+                        "relative_path": "table.project",
+                        "value": "pekao-prj-{{ var.value.env }}-core-intg-01"
+                    },
+                    {
+                        "relative_path": "table.dataset",
+                        "source_path": "metadata.sourceSystemGcpId",
+                        "template": "{source}_silver"
+                    },
+                    {
+                        "relative_path": "table.table",
+                        "source_path": "metadata.id"
+                    },
+                    {
+                        "relative_path": "source",
+                        "source_path": "metadata.id"
+                    }
+                ]
+            },
+            {
+                "id": "gold.entry_enrichment",
+                "action": "enrich_list",
+                "when_path": "gold",
+                "list_path": "gold.entries",
+                "fields": [
+                    {
+                        "relative_path": "table.project",
+                        "value": "pekao-prj-{{ var.value.env }}-core-gold-01"
+                    },
+                    {
+                        "relative_path": "table.dataset",
+                        "source_path": "metadata.sourceSystemGcpId",
+                        "template": "{source}_gold"
+                    },
+                    {
+                        "relative_path": "table.table",
+                        "source_path": "metadata.id"
+                    },
+                    {
+                        "relative_path": "historizationType",
+                        "value": "snapshot"
+                    },
+                    {
+                        "relative_path": "inheritColumns",
+                        "value": true
+                    }
+                ]
+            }
+        ]
+    },
+    "systems": {
+        "rocket": {
+            "source_types": [
+                "fixed_width"
+            ],
+            "rules": [
+                {
+                    "id": "rocket.orchestration.schedule.daily",
+                    "action": "set_default",
+                    "path": "orchestration.schedule",
+                    "value": "@daily"
+                },
+                {
+                    "id": "rocket.orchestration.start_date",
+                    "action": "set_default",
+                    "path": "orchestration.startDate",
+                    "value": "2025-01-01"
+                },
+                {
+                    "id": "rocket.converter.source_system",
+                    "action": "copy_value",
+                    "when_path": "converter.source",
+                    "source_path": "metadata.sourceSystemGcpId",
+                    "path": "converter.source.systemZrodlowy"
+                },
+                {
+                    "id": "rocket.preparator.unpack.format",
+                    "action": "set_default",
+                    "when_path": "preparator.operations.unpack.enabled",
+                    "when_value": true,
+                    "path": "preparator.operations.unpack.format",
+                    "value": "zip"
+                },
+                {
+                    "id": "rocket.gold.enabled",
+                    "action": "set_default",
+                    "path": "gold.enabled",
+                    "value": true
+                },
+                {
+                    "id": "rocket.bronze.project",
+                    "action": "set_default",
+                    "path": "bronzeTable.table.project",
+                    "value": "pekao-prj-{{ var.value.env }}-core-intg-01"
+                },
+                {
+                    "id": "rocket.bronze.dataset",
+                    "action": "set_default",
+                    "path": "bronzeTable.table.dataset",
+                    "value": "rocket_bronze"
+                },
+                {
+                    "id": "rocket.bronze.table",
+                    "action": "copy_value",
+                    "when_path": "bronzeTable",
+                    "source_path": "metadata.id",
+                    "path": "bronzeTable.table.table"
+                },
+                {
+                    "id": "rocket.converter.fixed_width.encoding",
+                    "action": "set_default",
+                    "path": "converter.source.fixedWidth.encoding",
+                    "value": "windows-1250"
+                },
+                {
+                    "id": "rocket.converter.fixed_width.trim_values",
+                    "action": "set_default",
+                    "path": "converter.source.fixedWidth.trimValues",
+                    "value": true
+                },
+                {
+                    "id": "rocket.converter.fixed_width.technical_header",
+                    "action": "set_default",
+                    "path": "converter.source.fixedWidth.technicalHeader",
+                    "value": false
+                },
+                {
+                    "id": "rocket.converter.fixed_width.column_header",
+                    "action": "set_default",
+                    "path": "converter.source.fixedWidth.columnHeader",
+                    "value": false
+                },
+                {
+                    "id": "rocket.converter.dest_partition.columns",
+                    "action": "set_default",
+                    "path": "converter.destPartition.columns",
+                    "value": [
+                        {
+                            "name": "ingest_date",
+                            "format": "yyyy-MM-dd"
+                        }
+                    ]
+                },
+                {
+                    "id": "rocket.converter.dest_partition.compression",
+                    "action": "set_default",
+                    "path": "converter.destPartition.compression",
+                    "value": "snappy"
+                },
+                {
+                    "id": "rocket.converter.dest_partition.mode",
+                    "action": "set_default",
+                    "path": "converter.destPartition.mode",
+                    "value": "overwrite"
+                },
+                {
+                    "id": "rocket.silver.create_table",
+                    "action": "ensure_list_item",
+                    "when_path": "bronzeTable.table.table",
+                    "list_path": "silver.tables"
+                },
+                {
+                    "id": "rocket.silver.table_enrichment",
+                    "action": "enrich_list",
+                    "when_path": "silver",
+                    "list_path": "silver.tables",
+                    "fields": [
+                        {
+                            "relative_path": "table.project",
+                            "value": "pekao-prj-{{ var.value.env }}-core-intg-01"
+                        },
+                        {
+                            "relative_path": "table.dataset",
+                            "value": "rocket_silver"
+                        },
+                        {
+                            "relative_path": "table.table",
+                            "source_path": "metadata.id"
+                        },
+                        {
+                            "relative_path": "source",
+                            "source_path": "bronzeTable.table.table"
+                        },
+                        {
+                            "relative_path": "materialization",
+                            "value": "incremental"
+                        },
+                        {
+                            "relative_path": "deduplicate",
+                            "value": false
+                        }
+                    ]
+                },
+                {
+                    "id": "rocket.silver.column_transformations",
+                    "action": "enrich_columns_by_type",
+                    "when_path": "silver",
+                    "list_path": "silver.tables",
+                    "columns_path": "columns",
+                    "transformations": {
+                        "STRING": [
+                            "trim"
+                        ],
+                        "DATE": [
+                            "parse_date"
+                        ],
+                        "NUMERIC": [
+                            "cast_numeric"
+                        ],
+                        "INT64": [
+                            "cast_int64"
+                        ]
+                    }
+                },
+                {
+                    "id": "rocket.gold.create_entry",
+                    "action": "ensure_list_item",
+                    "when_path": "bronzeTable.table.table",
+                    "list_path": "gold.entries"
+                },
+                {
+                    "id": "rocket.gold.entry_enrichment",
+                    "action": "enrich_list",
+                    "when_path": "gold",
+                    "list_path": "gold.entries",
+                    "fields": [
+                        {
+                            "relative_path": "table.project",
+                            "value": "pekao-prj-{{ var.value.env }}-core-gold-01"
+                        },
+                        {
+                            "relative_path": "table.dataset",
+                            "value": "rocket_gold"
+                        },
+                        {
+                            "relative_path": "table.table",
+                            "source_path": "metadata.id"
+                        }
+                    ]
+                }
+            ]
+        },
+        "sap": {
+            "source_types": [
+                "csv"
+            ],
+            "rules": [
+                {
+                    "id": "sap.metadata.version",
+                    "action": "set_default",
+                    "path": "metadata.version",
+                    "value": "1.0.0"
+                },
+                {
+                    "id": "sap.orchestration.schedule.daily",
+                    "action": "set_default",
+                    "path": "orchestration.schedule",
+                    "value": "@daily"
+                },
+                {
+                    "id": "sap.orchestration.start_date",
+                    "action": "set_default",
+                    "path": "orchestration.startDate",
+                    "value": "2026-01-01"
+                },
+                {
+                    "id": "sap.preparator.disabled",
+                    "action": "set_default",
+                    "path": "preparator.enabled",
+                    "value": false
+                },
+                {
+                    "id": "sap.converter.encoding",
+                    "action": "set_default",
+                    "path": "converter.source.encoding",
+                    "value": "ISO-8859-2"
+                },
+                {
+                    "id": "sap.converter.separator",
+                    "action": "set_default",
+                    "path": "converter.source.sep",
+                    "value": "|"
+                },
+                {
+                    "id": "sap.converter.header",
+                    "action": "set_default",
+                    "path": "converter.source.header",
+                    "value": true
+                },
+                {
+                    "id": "sap.converter.multiline",
+                    "action": "set_default",
+                    "path": "converter.source.multiline",
+                    "value": false
+                },
+                {
+                    "id": "sap.converter.filename_pattern",
+                    "action": "format_value",
+                    "when_path": "converter",
+                    "source_path": "metadata.id",
+                    "path": "converter.source.filenamePattern",
+                    "template": "{source}_{{ date:%Y%m%d }}.txt"
+                },
+                {
+                    "id": "sap.converter.dest_partition.columns",
+                    "action": "set_default",
+                    "path": "converter.destPartition.columns",
+                    "value": [
+                        {
+                            "name": "ingest_date",
+                            "format": "yyyy-MM-dd"
+                        }
+                    ]
+                },
+                {
+                    "id": "sap.converter.dest_partition.mode",
+                    "action": "set_default",
+                    "path": "converter.destPartition.mode",
+                    "value": "overwrite"
+                },
+                {
+                    "id": "sap.converter.dest_partition.compression",
+                    "action": "set_default",
+                    "path": "converter.destPartition.compression",
+                    "value": "snappy"
+                },
+                {
+                    "id": "sap.silver.create_table",
+                    "action": "ensure_list_item",
+                    "when_path": "bronzeTable.table.table",
+                    "list_path": "silver.tables"
+                },
+                {
+                    "id": "sap.silver.table_enrichment",
+                    "action": "enrich_list",
+                    "when_path": "silver",
+                    "list_path": "silver.tables",
+                    "fields": [
+                        {
+                            "relative_path": "table.project",
+                            "value": "pekao-prj-{{ env }}-core-intg-01"
+                        },
+                        {
+                            "relative_path": "table.dataset",
+                            "value": "sap_silver"
+                        },
+                        {
+                            "relative_path": "table.table",
+                            "source_path": "bronzeTable.table.table"
+                        },
+                        {
+                            "relative_path": "source",
+                            "source_path": "bronzeTable.table.table"
+                        },
+                        {
+                            "relative_path": "materialization",
+                            "value": "table"
+                        },
+                        {
+                            "relative_path": "deduplicate",
+                            "value": false
+                        }
+                    ]
+                },
+                {
+                    "id": "sap.gold.create_entry",
+                    "action": "ensure_list_item",
+                    "when_path": "bronzeTable.table.table",
+                    "list_path": "gold.entries"
+                },
+                {
+                    "id": "sap.gold.entry_enrichment",
+                    "action": "enrich_list",
+                    "when_path": "gold",
+                    "list_path": "gold.entries"
+                }
+            ]
+        }
+    }
+}

@@ -1,29 +1,48 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "ai-data-contract-manager"
+name = "adcm-minimal"
 version = "0.1.0"
-description = "Schema-authoritative conversational orchestrator for contract onboarding with Pydantic AI and MCP"
+description = "Minimal ADCM orchestrator + Contract Forge MCP reference implementation"
 requires-python = ">=3.11"
 dependencies = [
-    "jsonschema>=4.23,<5",
-    "mcp>=1.20,<2",
-    "pydantic>=2.12,<3",
-    "pydantic-ai-slim[openai,web]>=1.0,<2",
-    "python-dotenv>=1.0,<2",
-    "PyYAML>=6,<7",
+  "pydantic>=2.10,<3",
+  "jsonschema>=4.23,<5",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1"
 ]
 
 [project.optional-dependencies]
-ai = ["pydantic-ai>=1.0"]
-dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+mcp = [
+  "fastmcp>=3.4.7,<4",
+  "pydantic-ai-slim[mcp]>=2.32,<3"
+]
+
+openai = [
+  "pydantic-ai-slim[mcp,openai]>=2.32,<3"
+]
+
+vertex = [
+  "pydantic-ai-slim[mcp,google]>=2.32,<3"
+]
+
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<1",
+  "httpx>=0.28,<1"
+]
+
+[project.scripts]
+adcm-cli = "adcm.cli:main"
+adcm-api = "adcm.api:main"
+contract-forge-mcp = "contract_forge.mcp_server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
 pythonpath = ["src"]
-
-[tool.ruff]
-line-length = 100
+asyncio_mode = "auto"

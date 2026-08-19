@@ -1,94 +1,246 @@
-# ADCM architecture
+# ADCM — target architecture
 
-## 1. Goal
-
-ADCM is a conversational orchestrator for contract onboarding. The application should remain small and deterministic while delegating contract authority to MCP Contract Forge and semantic interpretation to an LLM.
-
-The system is intentionally **not** designed as an autonomous agent that sees a whole contract and decides what to ask. Contract Forge progressively discloses the current stage and legal paths. ADCM fast-forwards through stages using knowledge already extracted from the conversation and asks the user only when deterministic resolution cannot continue.
-
-## 2. Top-level architecture
+## 1. Component view
 
 ```text
-User/UI
-  |
-  v
-ChatService
-  |
-  +--> SemanticInterpreter (Pydantic AI adapter)
-  |        -> intent/signals/preferences/corrections/typos
-  |
-  v
-ADCM ConversationState
-  |  signals, preferences, evidence, candidates, revisions
-  |
-  v
-WorkflowRunner --------------------------------------+
-  |                                                  |
-  +--> ContractForgePort --> Contract Forge MCP       |
-  |       schema / allowed paths / workflow           |
-  |       defaults / enrichments / validation         |
-  |                                                  |
-  +--> CapabilityRouter --> Schema Explorer MCP       |
-  |                        Repository MCP             |
-  |                        future MCPs                |
-  |                                                  |
-  v                                                  |
-CandidateResolver -> DraftProjector ------------------+
-  |
-  v
-ContractDraft
++-----------------------------+
+| CLI now / Web UI later      |
++--------------+--------------+
+               |
+               v
++-----------------------------+
+| ADCM API / Orchestrator     |
+|                             |
+| - session flow              |
+| - conversation history      |
+| - stair-step loop           |
+| - conflict handling         |
++------+----------------------+ 
+       |
+       +-------------------+
+       |                   |
+       v                   v
++--------------+    +------------------+
+| Heuristics   |    | Semantic Resolver|
+| deterministic|    | LLM/Pydantic AI  |
++------+-------+    +---------+--------+
+       |                      |
+       +-----------+----------+
+                   |
+             candidate facts
+                   |
+                   v
++--------------------------------------+
+| Forge Gateway                        |
+| - local adapter for tests/demo       |
+| - MCP Streamable HTTP adapter        |
++------------------+-------------------+
+                   |
+                   v
++--------------------------------------+
+| Contract Forge MCP                   |
+|                                      |
+| - canonical contract state           |
+| - schema navigator                   |
+| - enrichment engine                  |
+| - defaults                           |
+| - pending requirement discovery      |
+| - validation                         |
+| - provenance/diagnostics             |
++------------------+-------------------+
+                   |
+          +--------+---------+
+          |                  |
+          v                  v
+   contract.json       enrichment rules
+
+Future:
+
+ADCM Orchestrator ---> Schema Explorer MCP ---> BigQuery / Git repo
+        |
+        +---------- context ----------> Contract Forge MCP
 ```
 
-## 3. Authority boundaries
+## 2. Session state
 
-### LLM authority
-LLM may interpret language but has no contract authority. It emits typed semantic facts and proposed interpretations. It does not define paths, required fields or ordering.
+There are conceptually two different state domains:
 
-### ADCM authority
-ADCM owns conversation/session knowledge, evidence, provenance, precedence, revisions and orchestration.
+### Conversation state (ADCM)
+Contains:
+- transcript;
+- user facts/partial facts;
+- UI/session metadata;
+- semantic extraction context.
 
-### Contract Forge authority
-Contract Forge owns schema legality, allowed paths, dynamic stages, defaults, enrichments and validation.
+### Canonical contract state (Forge)
+Contains:
+- current contract document;
+- active source system/type;
+- value origins/provenance;
+- applied enrichment/default history;
+- pending requirements;
+- validation errors.
 
-### Other MCP authority
-External MCPs own facts from their systems (for example table existence) but return them as findings/evidence/candidates. ADCM decides how they participate; they never write the draft directly.
+Do not collapse these into one mutable dictionary owned by ADCM.
 
-## 4. Why this prevents the original failure mode
+## 3. Stair-step algorithm
 
-A model never receives an unrestricted list of all contract fields and then immediately exposes it to the user. The user response is generated only after:
+Pseudo-flow:
 
-1. semantic interpretation;
-2. state reconciliation;
-3. the deterministic MCP workflow loop;
-4. candidate resolution;
-5. legal draft projection.
+```python
+state = forge.start_session()
 
-Contract Forge exposes only the current stage. ADCM can apply data already present in the user message without another user turn, and repeatedly call MCP until a genuinely missing value blocks progress.
+while not state.finished:
+    if state.pending:
+        candidates = heuristics.resolve(history, state.pending)
 
-## 5. Ports and adapters
+        if not candidates:
+            candidates = llm.resolve(history, state.pending)
 
-Ports isolate replaceable infrastructure:
+        if candidates:
+            state = forge.submit(candidates)
+            continue
 
-- `SemanticInterpreterPort`: Pydantic AI today, another library/provider locally tomorrow.
-- `ContractForgePort`: MCP HTTP/stdio implementation or local fake in tests.
-- `SessionRepositoryPort`: memory/file locally, database in cloud.
-- `AuditSinkPort`: JSONL locally, BigQuery/Cloud Logging/other durable sink in production.
-- `CapabilityHandlerPort`: Schema Explorer and future MCPs.
+        user_answer = ask_user(state.pending[0])
+        store_in_history(user_answer)
+        continue
 
-Domain/application code imports ports, never concrete adapters.
+    state = forge.refresh()
+```
 
-## 6. One-agent policy
+In practice, the orchestrator needs protection against loops (`max_auto_steps`) and should distinguish:
+- no candidate found;
+- candidate rejected by Forge;
+- partial candidate accepted/stored;
+- a genuinely new requirement exposed.
 
-Use one semantic Pydantic AI agent rather than a multi-agent system. The agent performs language tasks only. Workflow orchestration remains Python. This reduces token use, race conditions and accidental leakage of future contract requirements.
+A repeated identical question after a rejected parse is poor UX unless accompanied by a reason and a narrower clarification.
 
-## 7. Future extensions
+## 4. Value provenance
 
-The architecture supports:
+Recommended origin model:
 
-- Schema Explorer MCP for table-name checks and schema discovery;
-- GitHub-backed enrichment repositories behind Contract Forge;
-- existing-contract import and edit flows;
-- naming-policy capabilities;
-- data catalog / DQ MCPs;
-- external persistence and audit stores;
-- richer UI response generation without changing domain rules.
+```text
+USER_EXPLICIT
+LLM_EXTRACTED_USER_FACT
+SYSTEM_ENRICHMENT
+GENERIC_ENRICHMENT
+SCHEMA_DEFAULT
+STRUCTURAL
+```
+
+Recommended precedence:
+
+```text
+USER_EXPLICIT
+  > LLM_EXTRACTED_USER_FACT
+  > SYSTEM_ENRICHMENT
+  > GENERIC_ENRICHMENT
+  > SCHEMA_DEFAULT
+  > STRUCTURAL
+```
+
+Forge should expose origins for debugging and later UI explanations such as:
+
+> `targets.bronze.table.dataset` was filled by SAP system enrichment rule `sap.bronze.dataset`.
+
+## 5. Schema navigation
+
+The generic Forge schema layer should support as much as practical through standard JSON Schema 2020-12:
+- local `$ref`;
+- `properties`;
+- `required`;
+- `default`;
+- `enum`/`const`;
+- `oneOf` + discriminator for the known source pattern;
+- nested objects/arrays;
+- descriptions/questions;
+- final validator.
+
+When a requirement can be expressed with standard JSON Schema (`if/then`, `dependentRequired`, `oneOf`, etc.), prefer that over an opaque textual custom rule.
+
+## 6. Enrichment engine
+
+Enrichment is executed by Contract Forge. Rules should be machine-readable and registry-backed.
+
+Typical actions:
+- `set_default`;
+- `copy_value`;
+- `format_value`;
+- controlled derivation of target columns;
+- environment-driven enrichment through explicit context.
+
+Unknown actions should be rejected or reported as unsupported. They must not be interpreted by the LLM from their natural-language message.
+
+## 7. Partial facts
+
+ADCM needs a representation for facts that are useful but do not yet satisfy a complete Forge field.
+
+Example:
+
+```json
+{
+  "path": "source.columns",
+  "partial": [
+    {"name": "data_d"},
+    {"name": "sap1"},
+    {"name": "sap2"},
+    {"name": "sap3"}
+  ],
+  "missing": ["dataType"]
+}
+```
+
+This may live only in ADCM conversation memory until enough information exists to submit a valid `source.columns` candidate to Forge.
+
+Do not write invalid partial structures into the canonical contract unless Forge explicitly defines a draft/partial contract protocol.
+
+## 8. API boundary for future web UI
+
+The web UI should remain a renderer of conversation state, not a second contract engine.
+
+Minimal API shape:
+
+```text
+POST /sessions
+POST /sessions/{id}/messages
+GET  /sessions/{id}
+GET  /health
+```
+
+A response should be able to contain:
+- assistant message;
+- status;
+- pending path/type/allowed values;
+- current contract snapshot;
+- validation/diagnostic details;
+- optional provenance/partial-input hints.
+
+This allows later specialized widgets for enums, tables or columns without changing Contract Forge ownership.
+
+## 9. Schema Explorer integration
+
+Recommended orchestration:
+
+```text
+ADCM
+  -> Schema Explorer: environment/repo facts
+  <- structured context
+  -> Contract Forge: candidate + explorer context
+  <- enrichment/validation/pending
+```
+
+Do not make Contract Forge depend on network calls to Schema Explorer for every field unless there is a strong reason. Keep external environment lookups explicit, cacheable and observable.
+
+## 10. Production concerns kept outside the minimal core
+
+Not required for the first terminal demo, but architecture should leave room for:
+- durable session store;
+- auth/user identity propagation;
+- audit/provenance logs;
+- Cloud Run multi-instance behavior;
+- contract/rules compatibility versioning;
+- existing-contract editing workflow;
+- optional decisions (`x-acdm-optional-decision`);
+- Schema Explorer MCP;
+- web UI.

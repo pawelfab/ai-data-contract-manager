@@ -1,107 +1,140 @@
-# Multi-agent repository rules
+# ADCM — instructions for coding agents
 
-## Source-of-truth order
+## 1. Read before changing code
 
-1. Executable code and database migrations.
-2. Automated tests and observable command output.
-3. Public interfaces and schemas.
-4. `docs/architecture/generated/repository-map.md`.
-5. Curated files in `docs/architecture/`.
-6. Change contracts.
-7. Assumptions.
+Before planning, reviewing or implementing a change, read in this order:
 
-Never present an assumption as a confirmed repository fact.
+1. `docs/CURRENT_STATE.md`
+2. `docs/ADCM_CONTEXT.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/DECISIONS.md`
 
-## Request modes
+Then inspect the actual code relevant to the task. **Code is the source of truth for current implementation; these documents describe intent, constraints and known state.** If code and docs disagree, report the discrepancy before silently choosing one.
 
-Classify every request before acting:
+## 2. Core architectural rule
 
-- `EXPLAIN`: explain current behavior; do not edit files.
-- `PLAN`: produce a reviewed implementation contract; do not edit application code.
-- `IMPLEMENT`: edit code only when the user explicitly asks to implement, modify, fix, or refactor.
-- `DOC_SYNC`: update architecture documentation to match existing code.
-- `BOOTSTRAP_DOCS`: build the initial repository knowledge base.
+**ADCM is a thin orchestrator between the user/LLM and MCP Contract Forge. Contract Forge is the owner of the contract.**
 
-Do not infer `IMPLEMENT` from a request to discuss, explain, compare, estimate, design, or plan.
+ADCM may:
+- conduct the conversation and keep conversation/session context;
+- normalize imperfect user input;
+- correct obvious typos and map aliases;
+- parse pasted columns and other structured fragments;
+- use deterministic heuristics first and LLM semantics when useful;
+- call MCPs in a controlled loop;
+- present Forge questions, validation issues and results to the user.
 
-## Delegation
+ADCM must not:
+- independently decide whether a contract is valid;
+- invent contract structure that Forge/schema did not expose;
+- hardcode business defaults/enrichments that belong to Contract Forge;
+- let the LLM mutate the canonical contract directly;
+- let the LLM freely choose arbitrary contract paths to write;
+- duplicate schema/rules logic in the UI.
 
-- The Feature Coordinator is the only orchestration agent.
-- Worker agents must not invoke other agents.
-- Delegate isolated analysis when it keeps the parent context smaller.
-- Return summaries and evidence, not entire files.
-- For more than two independent modules, Code Verifier tasks may run in parallel.
-- Maximum correction loops:
-  - architecture/final contract: 1 review cycle,
-  - implementation/review: 2 correction cycles.
-- Stop and report unresolved blockers rather than looping indefinitely.
+Contract Forge must:
+- own canonical contract state;
+- interpret `contract.json` and enrichment rules;
+- decide the active source variant;
+- apply enrichments and JSON Schema defaults;
+- discover current missing requirements;
+- validate candidates and the final contract;
+- expose enough provenance/diagnostics to explain why a value exists.
 
-## Repository knowledge
+## 3. Required conversation flow
 
-Before broad code search:
-1. Read `docs/architecture/README.md`.
-2. Read `docs/architecture/.freshness.json` if present.
-3. Read the relevant module, flow, and symbol documents.
-4. Read `docs/architecture/generated/repository-map.md`.
-5. Inspect code only for the requested scope or to verify stale/missing facts.
+The intended stair-step flow is:
 
-Every factual answer about code must name relevant paths and symbols. Use line numbers when the available tooling returns stable line information.
+1. **Ask for source system first.**
+2. Contract Forge selects/derives the source type when possible.
+3. Forge applies **system-specific enrichment**.
+4. Forge applies **generic enrichment**.
+5. Forge applies **defaults from `contract.json`**.
+6. Forge returns the next missing required information.
+7. ADCM tries to satisfy it from already known facts:
+   - deterministic heuristics,
+   - previously provided user facts,
+   - LLM semantic extraction/normalization.
+8. If it cannot be safely resolved, ADCM asks the user a precise question.
+9. Candidate values go back to Forge for validation.
+10. Repeat until Forge reports complete/invalid.
 
-## Symbol discipline
+The LLM does **not** control this loop. Code does.
 
-- Confirm every existing class, method, function, endpoint, event, table, and configuration key in the repository.
-- Mark proposed symbols as `NEW`.
-- Do not create a parallel abstraction when an existing project pattern can be extended.
-- Do not propose an interface solely to satisfy a pattern; state the concrete boundary it protects.
-- Specify callers, callees, error paths, side effects, transaction boundaries, and tests.
+## 4. Value precedence
 
-## Change contracts
+Preserve this precedence unless an explicit architectural decision changes it:
 
-A final contract belongs in:
+`explicit user > LLM-extracted user fact > system enrichment > generic enrichment > JSON Schema default`
 
-`docs/architecture/contracts/<feature-slug>.md`
+Enrichment should normally be fill-only and must not silently override a stronger source.
 
-It must contain:
-- scope and non-goals,
-- confirmed current behavior,
-- proposed flow,
-- exact file and symbol changes,
-- method/function signatures,
-- models and schemas,
-- errors and compatibility,
-- migrations,
-- tests and quality gates,
-- implementation order,
-- risks,
-- assumptions and open decisions,
-- acceptance criteria,
-- symbol change registry.
+## 5. Dynamic contract requirement
 
-## Implementation
+`contract.json` is supplied by another module and may change. Avoid hardcoding individual contract fields in ADCM whenever they can be discovered from JSON Schema/Forge.
 
-- Implement only from a final reviewed contract.
-- Keep changes inside the contract unless a deviation is required by repository facts.
-- Record each deviation with reason and impact.
-- Add or update tests with behavior changes.
-- Run configured formatting, linting, type checking, tests, and build commands.
-- Never hide failing tests.
-- Never weaken tests merely to make a build green.
+Expected dynamic behavior includes, within supported schema patterns:
+- changed `required` fields;
+- changed `default`, `enum`, `pattern`, descriptions and `x-acdm-question`;
+- active source variants from discriminator/`oneOf`;
+- standard JSON Schema validation.
 
-## Documentation completion rule
+A genuinely new business enrichment action/kind may require a Forge handler. Do not attempt to infer new executable semantics from free-form `message` text.
 
-After application code changes, invoke Docs Updater when any of these changed:
-- externally observable behavior,
-- module responsibility or dependency,
-- class/function contract,
-- endpoint, event, schema, migration, or data flow,
-- error handling or transaction boundary,
-- operational command or configuration.
+## 6. User-input normalization rule
 
-Docs Updater must:
-1. inspect the final diff and tests,
-2. update only impacted documentation,
-3. regenerate repository inventory,
-4. run `doc_freshness.py --mark-current`,
-5. report updated documentation paths.
+ADCM should be forgiving about representation but conservative about meaning.
 
-Code changes are incomplete until this rule is satisfied or the agent explicitly states why documentation is unaffected.
+Examples it should handle or progressively clarify:
+- source-system typos such as `roket` -> `rocket`;
+- identifiers with spaces/case needing canonicalization;
+- pasted columns as JSON, CSV-like text, SQL/Oracle/BigQuery-like definitions, or multiline lists;
+- information provided before Forge asks for it;
+- incomplete structured input: preserve partial facts and ask only for what is missing instead of repeating the whole question.
+
+Do not fabricate a datatype or business value when the user did not provide enough evidence. A default such as `STRING` is acceptable only if the contract/rules explicitly define it or the user explicitly approves such a UX convention.
+
+## 7. MCP boundaries
+
+Current/future responsibilities:
+
+- **Contract Forge MCP** — contract structure, rules, enrichments, validation, pending requirements.
+- **Schema Explorer MCP** — environment facts such as BigQuery schema/table existence, naming standards and repository/YAML discovery.
+- **ADCM** — sequencing, conflict resolution between MCP results, user interaction and semantic normalization.
+
+MCPs should not be coupled by direct MCP-to-MCP calls by default. ADCM/application orchestration should pass required context between them.
+
+## 8. Change workflow
+
+For a question about existing behavior:
+- inspect docs and code;
+- answer from current implementation;
+- do not edit code unless asked.
+
+For a planning request:
+- inspect current code first;
+- produce a plan with concrete files/classes/functions;
+- do not implement unless asked.
+
+For an implementation request:
+- make the smallest change that satisfies the requested behavior;
+- preserve the ownership boundaries above;
+- add/update tests before considering the task complete;
+- run the relevant tests;
+- update `docs/CURRENT_STATE.md`;
+- update `docs/DECISIONS.md` only when an architectural/product decision changed.
+
+Avoid broad rewrites for a local bug. Avoid adding framework layers that are not required by the current vertical slice.
+
+## 9. Documentation maintenance
+
+After meaningful code changes, update `docs/CURRENT_STATE.md` with:
+- what changed;
+- current execution path;
+- known limitations/failing tests;
+- important files/classes;
+- next concrete work.
+
+When a durable architectural rule changes, add an entry to `docs/DECISIONS.md` with status, rationale and consequences.
+
+Use `docs/UPDATE_CHECKLIST.md` before finishing an implementation task.

@@ -1,0 +1,144 @@
+{
+  "version": "2.0-contract-v1",
+  "migration_note": "Rules adapted from ux_rules_new.json to the paths that exist in the attached contract.json. Unsupported legacy rules are documented separately.",
+  "defaults": {
+    "rules": [
+      {
+        "id": "generic.converter.output.parquet",
+        "action": "set_default",
+        "when_path": "converter.enabled",
+        "when_value": true,
+        "path": "converter.output.format",
+        "value": "parquet"
+      },
+      {
+        "id": "generic.orchestration.dag_id",
+        "action": "copy_value",
+        "source_path": "metadata.id",
+        "path": "orchestration.dagId"
+      },
+      {
+        "id": "generic.bronze.project",
+        "action": "format_value",
+        "path": "targets.bronze.table.project",
+        "template": "pekao-prj-{{ env }}-core-intg-01"
+      },
+      {
+        "id": "generic.bronze.dataset",
+        "action": "format_value",
+        "source_path": "metadata.sourceSystemGcpId",
+        "path": "targets.bronze.table.dataset",
+        "template": "{source}_bronze",
+        "transform": "lower"
+      },
+      {
+        "id": "generic.bronze.table",
+        "action": "copy_value",
+        "source_path": "metadata.id",
+        "path": "targets.bronze.table.table"
+      },
+      {
+        "id": "generic.bronze.columns_from_source",
+        "action": "derive_target_columns",
+        "source_path": "source.columns",
+        "path": "targets.bronze.columns"
+      }
+    ]
+  },
+  "systems": {
+    "rocket": {
+      "source_types": ["fixed_width"],
+      "rules": [
+        {
+          "id": "rocket.converter.enabled",
+          "action": "set_default",
+          "path": "converter.enabled",
+          "value": true
+        },
+        {
+          "id": "rocket.orchestration.schedule.daily",
+          "action": "set_default",
+          "path": "orchestration.schedule",
+          "value": "0 0 * * *"
+        },
+        {
+          "id": "rocket.orchestration.start_date",
+          "action": "set_default",
+          "path": "orchestration.startDate",
+          "value": "2025-01-01"
+        },
+        {
+          "id": "rocket.source.encoding",
+          "action": "set_default",
+          "path": "source.options.file.encoding",
+          "value": "windows-1250"
+        },
+        {
+          "id": "rocket.bronze.dataset",
+          "action": "set_default",
+          "path": "targets.bronze.table.dataset",
+          "value": "rocket_bronze"
+        }
+      ]
+    },
+    "sap": {
+      "source_types": ["csv"],
+      "rules": [
+        {
+          "id": "sap.converter.enabled",
+          "action": "set_default",
+          "path": "converter.enabled",
+          "value": true
+        },
+        {
+          "id": "sap.orchestration.schedule.daily",
+          "action": "set_default",
+          "path": "orchestration.schedule",
+          "value": "0 0 * * *"
+        },
+        {
+          "id": "sap.orchestration.start_date",
+          "action": "set_default",
+          "path": "orchestration.startDate",
+          "value": "2026-01-01"
+        },
+        {
+          "id": "sap.preparator.disabled",
+          "action": "set_default",
+          "path": "preparator.enabled",
+          "value": false
+        },
+        {
+          "id": "sap.source.encoding",
+          "action": "set_default",
+          "path": "source.options.file.encoding",
+          "value": "ISO-8859-2"
+        },
+        {
+          "id": "sap.source.delimiter",
+          "action": "set_default",
+          "path": "source.options.delimiter",
+          "value": "|"
+        },
+        {
+          "id": "sap.source.header",
+          "action": "set_default",
+          "path": "source.options.header",
+          "value": true
+        },
+        {
+          "id": "sap.source.multiline",
+          "action": "set_default",
+          "path": "source.options.multiline",
+          "value": false
+        },
+        {
+          "id": "sap.bronze.dataset",
+          "action": "set_default",
+          "path": "targets.bronze.table.dataset",
+          "value": "sap_bronze"
+        }
+      ]
+    }
+  }
+}
