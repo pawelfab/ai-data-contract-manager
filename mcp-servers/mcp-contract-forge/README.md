@@ -11,7 +11,6 @@ config/
   contract.json
   ux_rules_contract_v1.json
   ux_rules_original.json
-contracts/
 tests/
 docs/
 ```

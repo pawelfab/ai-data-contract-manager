@@ -37,8 +37,8 @@ ai-data-contract-manager\.venv\Scripts\python.exe ai-data-contract-manager\scrip
 Wynik:
 
 ```text
-ADCM: 12 passed
-Contract Forge: 8 passed
+ADCM: 60 passed
+Contract Forge: 23 passed
 MCP smoke: complete Rocket contract
 ```
 

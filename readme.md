@@ -12,7 +12,6 @@ mcp-servers/
   mcp-contract-forge/
     src/contract_forge/     # właściciel kontraktu i serwer MCP
     config/                 # contract.json i reguły enrichment/workflow
-    contracts/              # dodatkowe artefakty kontraktu
     tests/
     docs/
     pyproject.toml
@@ -42,6 +41,16 @@ adcm-cli
 
 ADCM łączy się domyślnie z `http://127.0.0.1:8001/mcp`. Nie ma już trybu
 `--local-forge`; granica MCP obowiązuje również w minimalnym uruchomieniu.
+
+Pierwsze pytanie pokazuje skonfigurowane systemy jako podpowiedzi, ale lista nie jest
+zamknięta. Można podać także własny identyfikator, np. `oracle_erp`. Użytkownik
+odpowiada za podanie poprawnej postaci identyfikatora; wartość może być później użyta
+przez enrichment ogólny, np. przy wyliczeniu nazwy datasetu. Gdy schemat nie określa
+wzorca, ADCM przyjmuje tu bezpośrednią odpowiedź jednoczłonową, aby nie pomylić
+wcześniejszego zdania z nazwą systemu.
+Jeśli Contract Forge nie ma konfiguracji dla tego systemu, pominie enrichment
+systemowy, zapyta o typ źródła i przejdzie przez pozostałe wymagania, stosując
+enrichment ogólny oraz defaulty z `contract.json`.
 
 ## Testy
 

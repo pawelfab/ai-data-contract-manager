@@ -184,6 +184,32 @@ facts are currently in-memory and disappear with the ADCM session.
 
 ---
 
+## D-014 — Unknown source systems use the generic Forge path
+
+**Status:** Accepted
+
+**Decision:** The first source-system Requirement exposes configured systems as
+hints, not as a closed enum. Forge accepts another schema-valid identifier. If it is
+not configured in the enrichment rules, Forge does not run source-type selection or
+system-specific enrichment for it; Forge asks for `source.sourceType` and then runs
+generic enrichment, JSON Schema defaults and ordinary requirement discovery.
+
+**Why:** A new source system must be usable before a dedicated enrichment profile is
+added, without baking the currently known systems or business fallback rules into
+ADCM.
+
+**Consequence:** Custom-system conversations usually contain more questions and
+receive no values with `SYSTEM_ENRICHMENT` origin. ADCM keeps fuzzy matching for the
+configured hints, but it does not impose an additional custom-system naming pattern
+when the supplied schema provides none; the user must enter the intended identifier.
+In that unconstrained case deterministic extraction requires a direct single-token
+answer so earlier conversational facts are not consumed as the source selection;
+this restriction is not written to or treated as validation of the canonical schema.
+Configured-system membership and all canonical validation remain owned by Forge.
+D-003 and the precedence/order from D-004 remain unchanged.
+
+---
+
 ## Open decisions
 
 ### O-002 — Optional decisions

@@ -19,5 +19,5 @@ python scripts/agent/install_git_hooks.py
 - Keep quality commands deterministic and non-interactive.
 - Use the same canonical commands as CI.
 - Make documentation patterns narrower when minor internal edits should not require architecture updates.
-- `strict_stop_gate` is disabled by default because a blocking Stop hook can create frustrating loops.
+- `strict_stop_gate` jest w tym repozytorium włączony (`true`); szablon `config.example.json` pozostawia go domyślnie wyłączonego (`false`).
 - The security guard is a template, not a complete security boundary.

@@ -114,13 +114,34 @@ class ContractForge:
         origin: Origin,
     ) -> list[ValidationIssue]:
         if path == "metadata.sourceSystemGcpId":
-            canonical = str(value).strip().lower()
-            if canonical not in self.rule_engine.systems:
-                return [ValidationIssue(path=path, message="Unknown source system.", validator="enum")]
-            applied = write_value(session.contract, session.origins, path, canonical.upper(), origin)
+            canonical_value = str(value).strip().upper()
+            node = self.navigator.schema_at_path(path, session.contract)
+            if node is None:
+                return [
+                    ValidationIssue(
+                        path=path,
+                        message="Source-system path does not exist in the contract schema.",
+                        validator="path",
+                    )
+                ]
+            local_errors = self.navigator.validate_value(node, canonical_value)
+            if local_errors:
+                return [
+                    issue.model_copy(
+                        update={"path": f"{path}.{issue.path}" if issue.path else path}
+                    )
+                    for issue in local_errors
+                ]
+            applied = write_value(
+                session.contract,
+                session.origins,
+                path,
+                canonical_value,
+                origin,
+            )
             if not applied:
                 return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
-            session.source_system = canonical
+            session.source_system = canonical_value.lower()
             session.applied.append(applied)
             return []
 
@@ -158,14 +179,25 @@ class ContractForge:
         self.navigator.ensure_required_containers(session.contract, session.origins)
 
         # Run to a fixpoint because later rules can become eligible after earlier rules/defaults.
+        known_source_system = session.source_system in self.rule_engine.systems
         for _ in range(8):
             before = json.dumps(session.contract, sort_keys=True, default=str)
-            session.applied.extend(self.rule_engine.apply_system_source_type(session.contract, session.origins, session.source_system))
+            if known_source_system:
+                session.applied.extend(
+                    self.rule_engine.apply_system_source_type(
+                        session.contract,
+                        session.origins,
+                        session.source_system,
+                    )
+                )
 
-            applied, _ = self.rule_engine.apply_pass(
-                session.contract, session.origins, session.source_system, Origin.SYSTEM_ENRICHMENT
-            )
-            session.applied.extend(applied)
+                applied, _ = self.rule_engine.apply_pass(
+                    session.contract,
+                    session.origins,
+                    session.source_system,
+                    Origin.SYSTEM_ENRICHMENT,
+                )
+                session.applied.extend(applied)
 
             applied, _ = self.rule_engine.apply_pass(
                 session.contract, session.origins, session.source_system, Origin.GENERIC_ENRICHMENT
@@ -182,14 +214,23 @@ class ContractForge:
     def _pending(self, session: SessionData) -> list[Requirement]:
         if session.source_system is None:
             systems = self.rule_engine.systems
+            node = self.navigator.schema_at_path(
+                "metadata.sourceSystemGcpId",
+                session.contract,
+            )
             return [
                 Requirement(
                     path="metadata.sourceSystemGcpId",
                     question="Jaki jest system źródłowy?",
                     reason="source_system",
                     input_mode=self.rule_engine.input_mode("metadata.sourceSystemGcpId"),
-                    value_schema={"type": "string", "enum": systems},
+                    value_schema=(
+                        self.navigator.public_schema(node)
+                        if node is not None
+                        else {"type": "string", "minLength": 1}
+                    ),
                     allowed_values=systems,
+                    allow_custom_value=True,
                 )
             ]
         self._advance(session)
@@ -261,7 +302,10 @@ class ContractForge:
         # Re-evaluate rule compatibility against the current active schema for observability.
         rule_issues: list[RuleIssue] = []
         if session.source_system:
-            for scope in (Origin.SYSTEM_ENRICHMENT, Origin.GENERIC_ENRICHMENT):
+            scopes = [Origin.GENERIC_ENRICHMENT]
+            if session.source_system in self.rule_engine.systems:
+                scopes.insert(0, Origin.SYSTEM_ENRICHMENT)
+            for scope in scopes:
                 _, issues = self.rule_engine.apply_pass(
                     deepcopy(session.contract), deepcopy(session.origins), session.source_system, scope
                 )

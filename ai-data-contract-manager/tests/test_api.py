@@ -17,7 +17,9 @@ def test_api_session_starts_with_source_system_question():
         body = started.json()
         assert body['status'] == 'needs_input'
         assert body['pending_path'] == 'metadata.sourceSystemGcpId'
-        assert body['pending_requirement']['value_schema']['enum'] == ['rocket', 'sap']
+        assert body['pending_requirement']['allowed_values'] == ['rocket', 'sap']
+        assert body['pending_requirement']['allow_custom_value'] is True
+        assert 'enum' not in body['pending_requirement']['value_schema']
 
         answered = client.post(
             f"/sessions/{body['session_id']}/messages",

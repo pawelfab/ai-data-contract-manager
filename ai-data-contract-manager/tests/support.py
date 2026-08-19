@@ -39,16 +39,26 @@ class FakeForgeGateway(ForgeGateway):
                 continue
             if path == "metadata.sourceSystemGcpId":
                 candidate = str(value).lower()
-                if candidate not in {"rocket", "sap"}:
+                if not candidate:
                     continue
                 self.source_system = candidate
                 self._set(path, candidate.upper(), Origin.USER)
-                self._set(
-                    "source.sourceType",
-                    "fixed_width" if candidate == "rocket" else "csv",
-                    Origin.SYSTEM_ENRICHMENT,
-                )
-                self._set("orchestration.schedule", "0 0 * * *", Origin.SYSTEM_ENRICHMENT)
+                if candidate in {"rocket", "sap"}:
+                    self._set(
+                        "source.sourceType",
+                        "fixed_width" if candidate == "rocket" else "csv",
+                        Origin.SYSTEM_ENRICHMENT,
+                    )
+                    self._set(
+                        "orchestration.schedule",
+                        "0 0 * * *",
+                        Origin.SYSTEM_ENRICHMENT,
+                    )
+            elif path == "source.sourceType":
+                candidate = str(value).lower()
+                if candidate not in {"csv", "fixed_width", "json", "txt", "jdbc"}:
+                    continue
+                self._set(path, candidate, origin)
             else:
                 self._set(path, value, origin)
         return self._state()
@@ -96,11 +106,24 @@ class FakeForgeGateway(ForgeGateway):
                     reason="source_system",
                     input_mode="explicit",
                     allowed_values=["rocket", "sap"],
-                    value_schema={"type": "string", "enum": ["rocket", "sap"]},
+                    allow_custom_value=True,
+                    value_schema={
+                        "type": "string",
+                        "minLength": 1,
+                    },
                 )
             ]
 
-        definitions = (
+        definitions = [
+            (
+                "source.sourceType",
+                "Jaki jest typ źródła danych?",
+                "explicit",
+                {
+                    "type": "string",
+                    "enum": ["csv", "fixed_width", "json", "txt", "jdbc"],
+                },
+            ),
             (
                 "metadata.id",
                 "Jak ma się nazywać pipeline?",
@@ -119,7 +142,7 @@ class FakeForgeGateway(ForgeGateway):
                 },
             ),
             ("source.columns", "Podaj kolumny.", "semantic", self._columns_schema()),
-        )
+        ]
         return [
             Requirement(path=path, question=question, input_mode=input_mode, value_schema=value_schema)
             for path, question, input_mode, value_schema in definitions
@@ -144,7 +167,7 @@ class FakeForgeGateway(ForgeGateway):
             "nullable": {"type": "boolean"},
         }
         required = ["name", "dataType"]
-        if self.source_system == "rocket":
+        if self._has("source.sourceType") and self.contract["source"]["sourceType"] == "fixed_width":
             properties.update(
                 {
                     "start": {"type": "integer"},

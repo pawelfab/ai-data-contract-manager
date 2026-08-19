@@ -62,6 +62,39 @@ def test_sap_enrichment():
     assert state.contract["preparator"]["enabled"] is False
 
 
+def test_unknown_source_system_skips_system_enrichment_and_asks_for_source_type():
+    forge = build_forge()
+    started = forge.start_session()
+    requirement = started.pending[0]
+
+    assert requirement.allowed_values == ["rocket", "sap"]
+    assert requirement.allow_custom_value is True
+    assert "enum" not in requirement.value_schema
+
+    state = forge.submit_values(
+        started.session_id,
+        {"metadata.sourceSystemGcpId": "oracle_erp"},
+        Origin.USER,
+    )
+
+    assert state.source_system == "oracle_erp"
+    assert state.contract["metadata"]["sourceSystemGcpId"] == "ORACLE_ERP"
+    assert state.pending[0].path == "source.sourceType"
+    assert set(state.pending[0].allowed_values or []) == {
+        "csv",
+        "fixed_width",
+        "jdbc",
+        "json",
+        "txt",
+    }
+    assert "schedule" not in state.contract["orchestration"]
+    assert Origin.SYSTEM_ENRICHMENT.value not in state.origins.values()
+    assert state.contract["metadata"]["version"] == "1.0.0"
+    assert state.contract["targets"]["bronze"]["table"]["dataset"] == (
+        "oracle_erp_bronze"
+    )
+
+
 def test_legacy_rules_are_reported_not_silently_remapped():
     forge = ContractForge.from_files(
         ROOT / "config" / "contract.json",

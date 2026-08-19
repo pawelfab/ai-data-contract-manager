@@ -363,6 +363,59 @@ async def test_stage07_e_new_required_string_works_over_real_mcp(
     assert {"metadata.businessDomain": "finance"} in gateway.submissions
 
 
+@pytest.mark.asyncio
+async def test_unknown_source_system_uses_generic_path_over_real_mcp(forge_url: str):
+    gateway = RecordingMCPForgeGateway(forge_url)
+    service = ADCMOrchestrator(gateway)
+
+    async with gateway:
+        turn = await service.start()
+        assert turn.pending_requirement is not None
+        assert turn.pending_requirement.allowed_values == ["rocket", "sap"]
+        assert turn.pending_requirement.allow_custom_value is True
+
+        turn = await service.message(turn.session_id, "oracle_erp")
+        state_after_system = await service.state(turn.session_id)
+
+        assert turn.pending_path == "source.sourceType"
+        assert turn.contract["metadata"]["sourceSystemGcpId"] == "ORACLE_ERP"
+        assert Origin.SYSTEM_ENRICHMENT.value not in state_after_system.origins.values()
+        assert "schedule" not in turn.contract["orchestration"]
+
+        answers: dict[str, str] = {
+            "source.sourceType": "csv",
+            "metadata.id": "oracle_orders_daily",
+            "metadata.owner": "data-team",
+            "source.uri": "gs://raw-zone/oracle/orders.csv",
+            "source.columns": "order_id STRING\namount NUMERIC",
+            "orchestration.schedule": "0 4 * * *",
+        }
+        while turn.status == "needs_input":
+            assert turn.pending_path in answers
+            turn = await service.message(
+                turn.session_id,
+                answers[turn.pending_path],
+            )
+        final_state = await service.state(turn.session_id)
+
+    assert turn.status == "complete"
+    assert turn.contract["source"]["sourceType"] == "csv"
+    assert "options" not in turn.contract["source"]
+    assert "converter" not in turn.contract
+    assert "preparator" not in turn.contract
+    assert turn.contract["metadata"]["version"] == "1.0.0"
+    assert turn.contract["targets"]["bronze"]["table"]["dataset"] == (
+        "oracle_erp_bronze"
+    )
+    assert turn.contract["orchestration"]["timezone"] == "Europe/Warsaw"
+    assert turn.contract["orchestration"]["schedule"] == "0 4 * * *"
+    assert Origin.SYSTEM_ENRICHMENT.value not in final_state.origins.values()
+    assert final_state.origins["targets.bronze.table.dataset"] == (
+        Origin.GENERIC_ENRICHMENT.value
+    )
+    assert final_state.origins["metadata.version"] == Origin.SCHEMA_DEFAULT.value
+
+
 def test_stage07_api_smoke_uses_real_mcp_transport(forge_url: str):
     gateway = RecordingMCPForgeGateway(forge_url)
     app = create_app(ADCMOrchestrator(gateway))

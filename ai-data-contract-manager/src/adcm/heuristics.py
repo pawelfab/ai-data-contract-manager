@@ -223,7 +223,13 @@ class HeuristicResolver:
 
         choices = self._schema_choices(req)
         if choices:
-            return self._fuzzy_choice(stripped, choices)
+            choice = self._fuzzy_choice(stripped, choices)
+            if choice is not None:
+                return choice
+            if not req.allow_custom_value:
+                return None
+            if not self._direct_custom_choice(stripped):
+                return None
 
         schema = req.value_schema
         for resolver in self.specialized_resolvers:
@@ -271,6 +277,11 @@ class HeuristicResolver:
             return json.loads(value)
         except json.JSONDecodeError:
             return None
+
+    @staticmethod
+    def _direct_custom_choice(value: str) -> bool:
+        """Do not consume an earlier sentence as an unconstrained open-list value."""
+        return len(value.split()) == 1
 
     @staticmethod
     def _boolean_value(value: str) -> bool | None:

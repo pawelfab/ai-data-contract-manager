@@ -228,10 +228,13 @@ async def test_t4_missing_information_returns_one_precise_question_without_llm()
     service = ADCMOrchestrator(FakeForgeGateway(), semantic=semantic)
     turn = await service.start()
 
-    turn = await service.message(turn.session_id, "nie wiem")
+    turn = await service.message(turn.session_id, "   ")
 
     assert turn.pending_path == "metadata.sourceSystemGcpId"
-    assert turn.message == "Jaki jest system źródłowy? Dostępne: rocket, sap."
+    assert turn.message == (
+        "Jaki jest system źródłowy? Znane wartości: rocket, sap. "
+        "Możesz podać inną wartość."
+    )
     assert semantic.calls == []
 
 

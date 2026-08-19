@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-19T14:42:07.088026+00:00",
+  "generated_at": "2026-08-19T18:43:45.131729+00:00",
   "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
   "files": [
     {
@@ -47,24 +47,29 @@
     {
       "path": "ai-data-contract-manager/src/adcm/cli.py",
       "language": "Python",
-      "bytes": 2242,
-      "lines": 65,
-      "sha256": "718693296dd412182165db016f5dbc4e3effbf8639fcc6666ef0af9ab43496a4",
+      "bytes": 2659,
+      "lines": 78,
+      "sha256": "1a251267d04e4d943fbc90c4c91171e0a783341e2d8427f200d61d0c4e3ef5bd",
       "symbols": [
         {
           "kind": "function",
+          "name": "_uses_multiline_input",
+          "line": 12
+        },
+        {
+          "kind": "function",
           "name": "_read_answer",
-          "line": 11
+          "line": 24
         },
         {
           "kind": "async_function",
           "name": "run",
-          "line": 24
+          "line": 37
         },
         {
           "kind": "function",
           "name": "main",
-          "line": 56
+          "line": 69
         }
       ]
     },
@@ -154,53 +159,199 @@
     {
       "path": "ai-data-contract-manager/src/adcm/heuristics.py",
       "language": "Python",
-      "bytes": 7351,
-      "lines": 189,
-      "sha256": "ab24961fc2b570d8707975d58823eaa1005eef0bbc17d76c8e6ed85ddd2c9ec5",
+      "bytes": 24545,
+      "lines": 693,
+      "sha256": "362fd266f650649c9b46608a1a72b777ac4f6a1759c6673920fc73647a66598e",
       "symbols": [
         {
           "kind": "function",
           "name": "_ascii",
-          "line": 18
+          "line": 15
         },
         {
           "kind": "function",
           "name": "slugify_identifier",
-          "line": 22
+          "line": 23
+        },
+        {
+          "kind": "class",
+          "name": "StructuredParseResult",
+          "line": 33,
+          "methods": [
+            {
+              "name": "complete",
+              "line": 39,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "SpecializedResolver",
+          "line": 43,
+          "methods": [
+            {
+              "name": "resolve",
+              "line": 44,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "LabeledContractFieldResolver",
+          "line": 53,
+          "methods": [
+            {
+              "name": "resolve",
+              "line": 56,
+              "async": false
+            }
+          ]
         },
         {
           "kind": "class",
           "name": "HeuristicResolver",
-          "line": 31,
+          "line": 100,
           "methods": [
             {
+              "name": "__init__",
+              "line": 103,
+              "async": false
+            },
+            {
               "name": "extract",
-              "line": 34,
+              "line": 113,
+              "async": false
+            },
+            {
+              "name": "parse_structured",
+              "line": 141,
+              "async": false
+            },
+            {
+              "name": "merge_structured",
+              "line": 175,
               "async": false
             },
             {
               "name": "_for_requirement",
-              "line": 49,
+              "line": 211,
+              "async": false
+            },
+            {
+              "name": "supports",
+              "line": 262,
+              "async": false
+            },
+            {
+              "name": "_schema_choices",
+              "line": 266,
+              "async": false
+            },
+            {
+              "name": "_explicit_json_value",
+              "line": 275,
+              "async": false
+            },
+            {
+              "name": "_direct_custom_choice",
+              "line": 282,
+              "async": false
+            },
+            {
+              "name": "_boolean_value",
+              "line": 287,
+              "async": false
+            },
+            {
+              "name": "_integer_value",
+              "line": 296,
+              "async": false
+            },
+            {
+              "name": "_number_value",
+              "line": 303,
+              "async": false
+            },
+            {
+              "name": "_within_numeric_bounds",
+              "line": 320,
+              "async": false
+            },
+            {
+              "name": "_string_value",
+              "line": 329,
+              "async": false
+            },
+            {
+              "name": "_valid_string",
+              "line": 386,
+              "async": false
+            },
+            {
+              "name": "_array_object_item_schema",
+              "line": 402,
+              "async": false
+            },
+            {
+              "name": "_decode_json_records",
+              "line": 418,
+              "async": false
+            },
+            {
+              "name": "_parse_text_record",
+              "line": 434,
+              "async": false
+            },
+            {
+              "name": "_find_token",
+              "line": 491,
+              "async": false
+            },
+            {
+              "name": "_evaluate_records",
+              "line": 524,
+              "async": false
+            },
+            {
+              "name": "_normalize_property",
+              "line": 563,
+              "async": false
+            },
+            {
+              "name": "_identity_property",
+              "line": 600,
+              "async": false
+            },
+            {
+              "name": "_record_label",
+              "line": 612,
+              "async": false
+            },
+            {
+              "name": "_same_identity",
+              "line": 622,
+              "async": false
+            },
+            {
+              "name": "_combine_results",
+              "line": 628,
+              "async": false
+            },
+            {
+              "name": "_dedupe_strings",
+              "line": 646,
+              "async": false
+            },
+            {
+              "name": "_unambiguous_pattern_candidate",
+              "line": 650,
               "async": false
             },
             {
               "name": "_fuzzy_choice",
-              "line": 112,
-              "async": false
-            },
-            {
-              "name": "_parse_columns",
-              "line": 128,
-              "async": false
-            },
-            {
-              "name": "_parse_regular_line",
-              "line": 161,
-              "async": false
-            },
-            {
-              "name": "_parse_fixed_width_line",
-              "line": 175,
+              "line": 671,
               "async": false
             }
           ]
@@ -229,9 +380,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/models.py",
       "language": "Python",
-      "bytes": 2188,
-      "lines": 79,
-      "sha256": "b554db81c349c80290f564b692ec54d1a10bade48f14a4378d433f5edd5e1711",
+      "bytes": 4915,
+      "lines": 154,
+      "sha256": "7d21f50ba6d9dd140317597b81dc97bf90eb1a86c692b0ffa99b0fd0e7b08a54",
       "symbols": [
         {
           "kind": "class",
@@ -241,94 +392,213 @@
         },
         {
           "kind": "class",
+          "name": "ExtractionMethod",
+          "line": 18,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "Requirement",
-          "line": 19,
+          "line": 23,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ValidationIssue",
-          "line": 28,
+          "line": 36,
           "methods": []
         },
         {
           "kind": "class",
           "name": "AppliedValue",
-          "line": 34,
+          "line": 42,
           "methods": []
         },
         {
           "kind": "class",
           "name": "RuleIssue",
-          "line": 41,
+          "line": 49,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ForgeState",
-          "line": 47,
+          "line": 55,
           "methods": []
         },
         {
           "kind": "class",
           "name": "AssistantTurn",
-          "line": 61,
+          "line": 71,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ChatMessage",
-          "line": 70,
+          "line": 82,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "UserFact",
+          "line": 88,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "PartialFact",
+          "line": 97,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ConversationMemory",
-          "line": 75,
-          "methods": []
+          "line": 106,
+          "methods": [
+            {
+              "name": "add_user_message",
+              "line": 114,
+              "async": false
+            },
+            {
+              "name": "add_assistant_message",
+              "line": 124,
+              "async": false
+            },
+            {
+              "name": "remember_fact",
+              "line": 129,
+              "async": false
+            },
+            {
+              "name": "get_fact",
+              "line": 136,
+              "async": false
+            },
+            {
+              "name": "forget_fact",
+              "line": 139,
+              "async": false
+            },
+            {
+              "name": "remember_partial",
+              "line": 142,
+              "async": false
+            },
+            {
+              "name": "get_partial",
+              "line": 149,
+              "async": false
+            },
+            {
+              "name": "clear_partial",
+              "line": 152,
+              "async": false
+            }
+          ]
         }
       ]
     },
     {
       "path": "ai-data-contract-manager/src/adcm/orchestrator.py",
       "language": "Python",
-      "bytes": 6720,
-      "lines": 155,
-      "sha256": "f54c595636daf72d5989281f4c521b9e1392cc2535b7271f6f588696503b4a85",
+      "bytes": 23176,
+      "lines": 611,
+      "sha256": "886f51e044f5f62c67fe2225376d6925f94a42b4401d114d7084955fde7cf44c",
       "symbols": [
         {
           "kind": "class",
           "name": "ADCMOrchestrator",
-          "line": 12,
+          "line": 29,
           "methods": [
             {
               "name": "__init__",
-              "line": 15,
+              "line": 32,
               "async": false
             },
             {
               "name": "start",
-              "line": 28,
+              "line": 49,
               "async": true
             },
             {
               "name": "message",
-              "line": 37,
+              "line": 58,
               "async": true
+            },
+            {
+              "name": "_auto_resolve",
+              "line": 106,
+              "async": true
+            },
+            {
+              "name": "_merge_current_structured",
+              "line": 216,
+              "async": false
+            },
+            {
+              "name": "_scan_history",
+              "line": 259,
+              "async": false
             },
             {
               "name": "state",
-              "line": 114,
+              "line": 291,
               "async": true
             },
             {
+              "name": "_resolvable_fields",
+              "line": 296,
+              "async": false
+            },
+            {
+              "name": "_candidate_from_facts",
+              "line": 306,
+              "async": false
+            },
+            {
               "name": "_semantic_prefix",
-              "line": 119,
+              "line": 322,
+              "async": false
+            },
+            {
+              "name": "_candidate_from_semantic",
+              "line": 332,
+              "async": false
+            },
+            {
+              "name": "_evidence_message_sequence",
+              "line": 394,
+              "async": false
+            },
+            {
+              "name": "_state_signature",
+              "line": 414,
+              "async": false
+            },
+            {
+              "name": "_with_candidate_issue",
+              "line": 425,
+              "async": false
+            },
+            {
+              "name": "_remember_deterministic",
+              "line": 432,
+              "async": false
+            },
+            {
+              "name": "_candidate_issue_summary",
+              "line": 451,
+              "async": false
+            },
+            {
+              "name": "_partial_question",
+              "line": 458,
               "async": false
             },
             {
               "name": "_turn_from_state",
-              "line": 129,
+              "line": 535,
               "async": false
             }
           ]
@@ -338,9 +608,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/runtime.py",
       "language": "Python",
-      "bytes": 1318,
-      "lines": 42,
-      "sha256": "42079551c7d996320c1fff92bc818f5dec036cc34fdf91b91bf56958bcb43cf5",
+      "bytes": 1391,
+      "lines": 43,
+      "sha256": "abc67fcc414e4a913d943f0a4779d0088cd9d5da31f51358eae5786100634d96",
       "symbols": [
         {
           "kind": "function",
@@ -362,35 +632,35 @@
     {
       "path": "ai-data-contract-manager/src/adcm/semantic.py",
       "language": "Python",
-      "bytes": 3798,
-      "lines": 110,
-      "sha256": "dc9ed5da1594869eec82c1bafb581438d2341019e0cd114c61075249a6af13ec",
+      "bytes": 4624,
+      "lines": 124,
+      "sha256": "c8fac1858f344c50dc298a46cdb2b109c32e08f4aed231248e6e64898c25b332",
       "symbols": [
         {
           "kind": "class",
           "name": "CandidateValue",
-          "line": 12,
+          "line": 13,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ExtractionResult",
-          "line": 19,
+          "line": 20,
           "methods": []
         },
         {
           "kind": "class",
           "name": "SemanticResolver",
-          "line": 23,
+          "line": 24,
           "methods": [
             {
               "name": "extract_from_history",
-              "line": 25,
+              "line": 26,
               "async": true
             },
             {
               "name": "close",
-              "line": 33,
+              "line": 35,
               "async": true
             }
           ]
@@ -398,11 +668,11 @@
         {
           "kind": "class",
           "name": "NoopSemanticResolver",
-          "line": 37,
+          "line": 39,
           "methods": [
             {
               "name": "extract_from_history",
-              "line": 38,
+              "line": 40,
               "async": true
             }
           ]
@@ -410,21 +680,21 @@
         {
           "kind": "class",
           "name": "PydanticAISemanticResolver",
-          "line": 42,
+          "line": 51,
           "methods": [
             {
               "name": "__init__",
-              "line": 45,
+              "line": 54,
               "async": false
             },
             {
               "name": "close",
-              "line": 67,
+              "line": 76,
               "async": true
             },
             {
               "name": "extract_from_history",
-              "line": 76,
+              "line": 85,
               "async": true
             }
           ]
@@ -434,33 +704,33 @@
     {
       "path": "ai-data-contract-manager/src/adcm/settings.py",
       "language": "Python",
-      "bytes": 3408,
-      "lines": 84,
-      "sha256": "1f172349160788f9cb534b738c6a39387bbcf102cb677b53370de90b514613a7",
+      "bytes": 3635,
+      "lines": 91,
+      "sha256": "9c808249777b7178446a9ce2702d2475fe02e185861f98cb703189493a507f3e",
       "symbols": [
         {
           "kind": "class",
           "name": "ADCMSettings",
-          "line": 14,
+          "line": 15,
           "methods": [
             {
               "name": "resolved_llm_provider",
-              "line": 36,
+              "line": 43,
               "async": false
             },
             {
               "name": "semantic_model_name",
-              "line": 46,
+              "line": 53,
               "async": false
             },
             {
               "name": "public_runtime_summary",
-              "line": 51,
+              "line": 58,
               "async": false
             },
             {
               "name": "validate_enabled_llm",
-              "line": 61,
+              "line": 68,
               "async": false
             }
           ]
@@ -468,21 +738,21 @@
         {
           "kind": "function",
           "name": "project_root",
-          "line": 76
+          "line": 83
         },
         {
           "kind": "function",
           "name": "load_settings",
-          "line": 80
+          "line": 87
         }
       ]
     },
     {
       "path": "mcp-servers/mcp-contract-forge/config/contract.json",
       "language": "JSON",
-      "bytes": 52755,
-      "lines": 1860,
-      "sha256": "ab6747eefae0fcee3f588adabd7d8b5dac615e9bf25ec1fd70727d17a0d1a3aa",
+      "bytes": 52863,
+      "lines": 1864,
+      "sha256": "bf5a69663352a46655ade094e7579edbd0b3a1a3d398fa225936469abe88b105",
       "symbols": []
     },
     {
@@ -499,14 +769,6 @@
       "bytes": 18137,
       "lines": 455,
       "sha256": "4019e89c5463b3a062ee0d1fb4a451ec754c6e06ae73709a842da521190a6cb4",
-      "symbols": []
-    },
-    {
-      "path": "mcp-servers/mcp-contract-forge/contracts/data-contract.schema.json",
-      "language": "JSON",
-      "bytes": 47922,
-      "lines": 1640,
-      "sha256": "998a8b4027e963a2459cbd89c7b57be0ec867554e104d8b00ea39104a85ac209",
       "symbols": []
     },
     {
@@ -528,73 +790,88 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/engine.py",
       "language": "Python",
-      "bytes": 8752,
-      "lines": 200,
-      "sha256": "191b1d0b5a966259c6434ab78204a6658c9419cb8eb0a10e3fb12c138db417d0",
+      "bytes": 13879,
+      "lines": 333,
+      "sha256": "5a4510479bcdfc7b4ebb351a80b1f1b9636eb916a28e58933da2743b2d080deb",
       "symbols": [
         {
           "kind": "class",
           "name": "ContractForge",
-          "line": 17,
+          "line": 25,
           "methods": [
             {
               "name": "__init__",
-              "line": 26,
+              "line": 36,
               "async": false
             },
             {
               "name": "from_files",
-              "line": 33,
+              "line": 43,
               "async": false
             },
             {
               "name": "list_source_systems",
-              "line": 38,
+              "line": 48,
               "async": false
             },
             {
               "name": "start_session",
-              "line": 44,
+              "line": 54,
               "async": false
             },
             {
               "name": "submit_values",
-              "line": 49,
+              "line": 59,
               "async": false
             },
             {
               "name": "get_state",
-              "line": 65,
+              "line": 76,
+              "async": false
+            },
+            {
+              "name": "_candidate_path_allowed",
+              "line": 81,
+              "async": false
+            },
+            {
+              "name": "_disallowed_path_issue",
+              "line": 96,
               "async": false
             },
             {
               "name": "_apply_explicit",
-              "line": 70,
+              "line": 109,
               "async": false
             },
             {
               "name": "_advance",
-              "line": 101,
+              "line": 174,
               "async": false
             },
             {
               "name": "_pending",
-              "line": 131,
+              "line": 214,
               "async": false
             },
             {
               "name": "_source_type_choices",
-              "line": 162,
+              "line": 254,
+              "async": false
+            },
+            {
+              "name": "_overridable",
+              "line": 261,
               "async": false
             },
             {
               "name": "_state",
-              "line": 169,
+              "line": 297,
               "async": false
             },
             {
               "name": "_get",
-              "line": 195,
+              "line": 328,
               "async": false
             }
           ]
@@ -638,9 +915,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/models.py",
       "language": "Python",
-      "bytes": 1988,
-      "lines": 73,
-      "sha256": "7f1695bdf55675dd57629fb5f7a3e94a344b3bd8fbbd6868f4eaaccb072e973a",
+      "bytes": 2996,
+      "lines": 97,
+      "sha256": "7e78848378f2ce48f8ff33b73dcde1681cc79a321ce8839ff90f8cf69db8337b",
       "symbols": [
         {
           "kind": "class",
@@ -649,39 +926,44 @@
           "methods": []
         },
         {
+          "kind": "function",
+          "name": "can_replace",
+          "line": 33
+        },
+        {
           "kind": "class",
           "name": "Requirement",
-          "line": 27,
+          "line": 44,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ValidationIssue",
-          "line": 36,
+          "line": 57,
           "methods": []
         },
         {
           "kind": "class",
           "name": "AppliedValue",
-          "line": 42,
+          "line": 63,
           "methods": []
         },
         {
           "kind": "class",
           "name": "RuleIssue",
-          "line": 49,
+          "line": 70,
           "methods": []
         },
         {
           "kind": "class",
           "name": "ForgeState",
-          "line": 55,
+          "line": 76,
           "methods": []
         },
         {
           "kind": "class",
           "name": "SessionData",
-          "line": 67,
+          "line": 90,
           "methods": []
         }
       ]
@@ -689,43 +971,48 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/path_utils.py",
       "language": "Python",
-      "bytes": 1731,
-      "lines": 61,
-      "sha256": "34f3ad4ebc7f64166d802b32b8a8a278fde117c4c60f9f3df350963a7af703e0",
+      "bytes": 2701,
+      "lines": 93,
+      "sha256": "5e81825fd8c48f2904ce5bf1826f246a552cc5b16f537ae0ca2bc32bfa7cb9f3",
       "symbols": [
         {
           "kind": "function",
           "name": "split_path",
-          "line": 9
+          "line": 11
         },
         {
           "kind": "function",
           "name": "get_path",
-          "line": 13
+          "line": 15
         },
         {
           "kind": "function",
           "name": "has_path",
-          "line": 27
+          "line": 29
         },
         {
           "kind": "function",
           "name": "set_path",
-          "line": 35
+          "line": 37
+        },
+        {
+          "kind": "function",
+          "name": "write_value",
+          "line": 59
         },
         {
           "kind": "function",
           "name": "delete_path",
-          "line": 50
+          "line": 82
         }
       ]
     },
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/rules.py",
       "language": "Python",
-      "bytes": 7439,
-      "lines": 184,
-      "sha256": "6cb8d8baa3acdc68edb6b369d1bba58c35aa342edadb78b4b90adcc70d2a0b97",
+      "bytes": 7154,
+      "lines": 188,
+      "sha256": "09390c8e46bb0773afbfee1d020e81db3dda7a79a3f57c12ff90a766f3adcd4d",
       "symbols": [
         {
           "kind": "class",
@@ -759,32 +1046,32 @@
             },
             {
               "name": "apply_pass",
-              "line": 48,
+              "line": 54,
               "async": false
             },
             {
               "name": "_apply_rule",
-              "line": 72,
+              "line": 78,
               "async": false
             },
             {
               "name": "_condition_matches",
-              "line": 147,
+              "line": 145,
               "async": false
             },
             {
               "name": "_render",
-              "line": 157,
+              "line": 155,
               "async": false
             },
             {
               "name": "_transform",
-              "line": 165,
+              "line": 163,
               "async": false
             },
             {
               "name": "_set",
-              "line": 173,
+              "line": 171,
               "async": false
             }
           ]
@@ -794,93 +1081,103 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/schema.py",
       "language": "Python",
-      "bytes": 12097,
-      "lines": 262,
-      "sha256": "ba885d32b7f478f1219cb206eed6e45ffe34b29021aa2d105daef6817c3d5212",
+      "bytes": 15745,
+      "lines": 367,
+      "sha256": "8adceff785f89bb45da56c84e77da58a1e23199f8bbf23921d2ded4bae928de2",
       "symbols": [
         {
           "kind": "class",
           "name": "SchemaNavigator",
-          "line": 12,
+          "line": 30,
           "methods": [
             {
               "name": "__init__",
-              "line": 21,
+              "line": 39,
               "async": false
             },
             {
               "name": "resolve_ref",
-              "line": 25,
+              "line": 43,
               "async": false
             },
             {
               "name": "active_node",
-              "line": 40,
+              "line": 58,
               "async": false
             },
             {
               "name": "schema_at_path",
-              "line": 57,
-              "async": false
-            },
-            {
-              "name": "path_exists_in_schema",
-              "line": 76,
-              "async": false
-            },
-            {
-              "name": "source_type_values",
               "line": 79,
               "async": false
             },
             {
+              "name": "path_exists_in_schema",
+              "line": 98,
+              "async": false
+            },
+            {
+              "name": "requirement_at_path",
+              "line": 101,
+              "async": false
+            },
+            {
+              "name": "source_type_values",
+              "line": 118,
+              "async": false
+            },
+            {
               "name": "inject_defaults",
-              "line": 94,
+              "line": 133,
               "async": false
             },
             {
               "name": "ensure_required_containers",
-              "line": 119,
+              "line": 164,
               "async": false
             },
             {
               "name": "missing_requirements",
-              "line": 141,
+              "line": 185,
               "async": false
             },
             {
               "name": "_walk_array",
-              "line": 194,
+              "line": 239,
               "async": false
             },
             {
               "name": "_walk_object_item",
-              "line": 204,
+              "line": 249,
               "async": false
             },
             {
               "name": "_dedupe",
-              "line": 222,
+              "line": 268,
               "async": false
             },
             {
               "name": "public_schema",
-              "line": 232,
+              "line": 277,
+              "async": false
+            },
+            {
+              "name": "unsupported_requirement_keywords",
+              "line": 317,
               "async": false
             },
             {
               "name": "allowed_values",
-              "line": 237,
+              "line": 342,
               "async": false
             },
             {
               "name": "validate_value",
-              "line": 245,
+              "line": 350,
               "async": false
             },
             {
               "name": "validate",
-              "line": 256,
+              "line": 361,
               "async": false
             }
           ]

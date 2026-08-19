@@ -10,7 +10,7 @@
 - walidacja kandydatów i gotowego kontraktu;
 - udostępnienie operacji przez MCP Streamable HTTP.
 
-`config/contract.json`, pozostałe pliki `config/` oraz `contracts/` są własnością
-tej usługi. ADCM zna jedynie DTO odpowiedzi MCP.
+`config/contract.json` oraz pozostałe pliki `config/` są własnością tej usługi. ADCM
+zna jedynie DTO odpowiedzi MCP.
 
 Dokumentacja przekrojowa znajduje się w głównym `docs/` monorepo.

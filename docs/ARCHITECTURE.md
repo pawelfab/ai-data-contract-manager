@@ -101,6 +101,19 @@ Do not collapse these into one mutable dictionary owned by ADCM.
 
 ## 3. Stair-step algorithm
 
+The source-system gate is open but schema-constrained. Forge exposes configured
+systems as `allowed_values` hints and marks the Requirement as accepting a custom
+value. A configured value selects its source type and system enrichment rules. A
+custom value is still stored as a USER fact, but Forge skips the system-enrichment
+pass, asks for `source.sourceType`, and continues with generic enrichment, schema
+defaults and normal missing-requirement discovery. ADCM only normalizes the user's
+value according to metadata already present in the supplied schema; Forge decides
+whether a configured system exists. ADCM does not add its own custom-system naming
+policy when the schema provides none. For an unconstrained open list, deterministic
+extraction accepts a custom value only as a direct single-token answer. This is a
+conversation disambiguation rule that prevents an earlier owner/schedule sentence
+from being consumed as the source system; it is not canonical contract validation.
+
 Pseudo-flow:
 
 ```python

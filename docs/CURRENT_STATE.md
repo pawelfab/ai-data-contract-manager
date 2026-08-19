@@ -21,7 +21,6 @@ ai-data-contract-manager/
 mcp-servers/mcp-contract-forge/
   src/contract_forge/
   config/
-  contracts/
   tests/
   docs/
   pyproject.toml
@@ -74,11 +73,15 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
 
 `ContractForge`:
 - owns canonical session state;
-- exposes source-system gate;
+- exposes an open, schema-constrained source-system gate: configured systems are
+  hints, while a custom identifier remains valid;
 - labels requirements as `explicit` or `semantic`, using the workflow policy from
   `ux_rules_contract_v1.json`;
 - accepts only currently allowed/pending paths;
-- applies system enrichment, generic enrichment, then schema defaults to a fixpoint;
+- for configured systems applies system enrichment, generic enrichment, then schema
+  defaults to a fixpoint;
+- for custom systems skips system source-type selection and system enrichment, asks
+  for `source.sourceType`, then applies generic enrichment and schema defaults;
 - applies every canonical value through one origin-precedence write function;
 - exposes schema-described `overridable` fields whose current value may be replaced
   by USER: lower-origin values and existing scalar USER values for correction,
@@ -98,10 +101,19 @@ tests use a fake `ForgeGateway`, not an in-process Forge engine.
 The CLI currently starts as intended:
 
 ```text
-ADCM: Jaki jest system źródłowy? Dostępne: rocket, sap.
+ADCM: Jaki jest system źródłowy? Znane wartości: rocket, sap. Możesz podać inną wartość.
 ```
 
 For SAP it then asks for pipeline id, owner, CSV URI and source columns.
+
+For a custom answer such as `oracle_erp`, Forge stores `ORACLE_ERP` in the contract,
+does not apply any system-specific enrichment, asks for the source type and continues
+through all remaining schema requirements. Generic enrichment and JSON Schema
+defaults still apply. The current supplied schema has no naming pattern for this
+field, so the user is responsible for entering the intended identifier; ADCM does
+not classify conversational intent. It accepts an unconstrained custom value only as
+a direct single-token answer so earlier owner/schedule sentences are not stolen by
+the still-pending source gate.
 
 Source system typo matching is implemented; identifiers are normalized (e.g. uppercase user input for `metadata.id` can be canonicalized to schema-safe lowercase form).
 
@@ -190,10 +202,13 @@ Important known inconsistencies:
 - `@daily` does not satisfy the current five-field cron regex;
 - a fixed-width rule references a `length` semantic inconsistent with the half-open range model/current properties;
 - some custom `x-contract-rules` are not sufficiently machine-readable to execute generically.
+- the supplied `metadata.sourceSystemGcpId` schema requires only a non-empty string;
+  therefore a malformed custom token can also propagate into generic values such as
+  the Bronze dataset name. The user currently owns correct identifier entry;
 
 ## 7. Current tests
 
-The two service suites have 80 passing tests in total: 58 ADCM tests and 22 Contract
+The two service suites have 83 passing tests in total: 60 ADCM tests and 23 Contract
 Forge tests. Coverage includes settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
@@ -254,6 +269,11 @@ and a new required schema field. The integration suite launches Contract Forge i
 own virtual environment and talks through MCP Streamable HTTP; separate assertions
 exercise the FastAPI and terminal boundaries. A loop-guard regression covers
 `max_auto_steps`.
+
+The custom-source regression verifies both Forge directly and the real MCP boundary.
+It enters `oracle_erp`, checks canonical casing and the absence of system enrichment,
+then completes the source-type and remaining requirement sequence with only generic
+enrichment and schema defaults applied automatically.
 
 The full Forge suite currently emits one non-fatal third-party
 `IncompleteFieldDefinitionWarning` while importing the MCP server.
@@ -434,26 +454,55 @@ UserFact store with `extraction_method=LLM`.
   table/write path in Forge. Requirement/Origin DTOs exist once per independently
   deployed service by design; no cross-service Python import was introduced.
 
-## 18. Last change
+## 18. Custom source-system fallback implementation map
+
+- `Requirement.allow_custom_value` distinguishes an open list of hints from a closed
+  enum without requiring ADCM to know the source-system path.
+- `DeterministicHeuristics` retains fuzzy matching for configured values, accepts a
+  schema-valid custom value, and does not add a naming constraint absent from the
+  supplied contract. The user currently supplies a correctly formed identifier such
+  as `oracle_erp`. An unconstrained custom value must be a direct single-token answer,
+  preventing prior natural-language facts from being treated as the system.
+- `ContractForge` validates the custom source identifier against `contract.json` and
+  stores it with USER origin. Membership in Forge rules decides whether the system
+  enrichment pass runs.
+- Unknown systems expose all source types supported by the active schema. The rest of
+  the flow remains the same Forge-owned requirement/validation loop.
+- Unit, Forge and separate-process MCP tests protect fuzzy known-system selection,
+  custom identifier submission, skipped system enrichment and full contract
+  completion.
+
+## 19. Last change
 
 ```text
-Last change: completed user-priority/fact-store Stage 07.
-Changed files/classes: ADCM mixed-message heuristics, USER correction/no-op handling,
-  completed-state semantic guard and max-step regression; Forge editable USER
-  Requirement exposure; real-MCP A-E/API/CLI integration tests and test documentation.
-  No new ADR was required because D-002, D-004, D-005 and D-012 already define these
-  boundaries.
-Behavior now: all staged scenarios run through the deterministic ADCM loop and Forge
-  validation. Rich first messages, latest-owner correction, partial arrays, bounded
-  semantic fallback and new schema fields work without ADCM canonical mutation or an
-  LLM-controlled MCP loop.
-Tests run/result: ADCM 58 passed and Forge 22 passed through the repository pre-push
-  quality gate. Forge
+Last change: retained the generic custom-source fallback while reverting the local
+  naming constraint added to the externally supplied contract.json.
+Changed files/classes: DeterministicHeuristics no longer adds the dependent
+  custom-name/pattern policy; its minimal direct-answer guard preserves historical
+  fact collection. Fake-gateway, unit and real-MCP tests use the user-supplied
+  oracle_erp identifier; README and architecture/current-state/decision documentation
+  state that identifier correctness belongs to the user until the supplied schema
+  defines a constraint. contract.json has no working-tree diff.
+Behavior now: known values such as rocket/sap retain fuzzy matching and configured
+  enrichment. A user-supplied custom identifier such as oracle_erp bypasses all
+  system-specific enrichment, exposes source.sourceType and proceeds through generic
+  enrichment, schema defaults and every remaining Forge requirement. No naming
+  constraint was added to the externally supplied contract.json.
+Impact checked: a correct oracle_erp identifier preserves the intended path. Because
+  the supplied field requires only a non-empty string, Forge would accept arbitrary
+  text submitted directly and can propagate it into generic values. ADCM avoids
+  stealing multiword conversation messages but deliberately does not judge the
+  meaning of a single custom token; identifier correctness remains with the user.
+Tests run/result: focused ADCM, Forge and real-MCP regressions passed. The repository
+  pre-push quality gate reports ADCM 60 passed and Forge 23 passed (83 total). Forge
   retains one known, non-fatal IncompleteFieldDefinitionWarning from the MCP
   dependency.
 Known issues remaining: dataFieldId is not present in the current contract schema;
   raw semantic transcript context remains a 20-user-message window, while UserFacts
   preserve already extracted values; repository duplicate lookup remains planned.
+External worktree state observed during this change: the previously tracked
+  contracts/data-contract.schema.json artifact and its directory were already absent
+  at final verification and were not restored. Runtime still uses config/contract.json.
 Next concrete task: Schema Explorer/repository lookup or the schema/rules compatibility
   gate, kept outside the completed staged series.
 ```

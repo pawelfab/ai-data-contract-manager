@@ -4,7 +4,6 @@
     "ai-data-contract-manager/pyproject.toml",
     "mcp-servers/mcp-contract-forge/src",
     "mcp-servers/mcp-contract-forge/config",
-    "mcp-servers/mcp-contract-forge/contracts",
     "mcp-servers/mcp-contract-forge/pyproject.toml"
   ],
   "source_extensions": [

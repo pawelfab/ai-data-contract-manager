@@ -584,11 +584,19 @@ class ADCMOrchestrator:
                     f"{keywords}. Podaj wartość jako jednoznaczny JSON; Contract Forge "
                     "wykona właściwą walidację."
                 )
-            suffix = (
-                f" Dostępne: {', '.join(map(str, requirement.allowed_values))}."
-                if requirement.allowed_values
-                else ""
-            )
+            if requirement.allow_custom_value:
+                known = (
+                    f" Znane wartości: {', '.join(map(str, requirement.allowed_values))}."
+                    if requirement.allowed_values
+                    else ""
+                )
+                suffix = f"{known} Możesz podać inną wartość."
+            else:
+                suffix = (
+                    f" Dostępne: {', '.join(map(str, requirement.allowed_values))}."
+                    if requirement.allowed_values
+                    else ""
+                )
         if issue_summary:
             question = f"Nie udało się zastosować podanej wartości ({issue_summary}). {question}"
         return AssistantTurn(

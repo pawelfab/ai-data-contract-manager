@@ -13,15 +13,20 @@ The minimal product path is intentionally narrow:
 
 ## 2. Fundamental product behavior
 
-The conversation starts with the source system because this unlocks system-specific enrichment and determines which source branch is relevant.
+The conversation starts with the source system because a configured system unlocks
+system-specific enrichment and may determine which source branch is relevant. The
+known-system list is a set of hints, not a closed enum: a schema-valid custom system
+identifier is accepted, skips system-specific enrichment, and continues through the
+generic/default path.
 
 High-level order:
 
 ```text
 User
   -> ADCM asks/selects source system
-  -> Contract Forge selects source variant/type
-  -> system-specific enrichment
+  -> Contract Forge selects source variant/type when configured
+  -> system-specific enrichment when the system is configured
+     OR asks for source type when the system is custom
   -> generic enrichment
   -> contract.json defaults
   -> missing required fields

@@ -49,6 +49,7 @@ class Requirement(BaseModel):
     value_schema: dict[str, Any] = Field(default_factory=dict)
     unsupported_schema_keywords: list[str] = Field(default_factory=list)
     allowed_values: list[Any] | None = None
+    allow_custom_value: bool = False
     current_value: Any | None = None
     current_origin: Origin | None = None
 

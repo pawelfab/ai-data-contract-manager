@@ -11,8 +11,7 @@ Read AGENTS.md and the referenced ADCM docs first. Then inspect the actual repos
 1. where the current code matches the documented architecture,
 2. where it differs,
 3. the exact execution path from CLI/API user message to Contract Forge and back,
-4. the current cause of the repeated source.columns question,
-5. the smallest implementation plan to fix partial column input and enable explicit LLM configuration.
+4. the smallest implementation plan to fix partial column input and enable explicit LLM configuration.
 Reference concrete files/classes/functions from the repo.
 ```
 

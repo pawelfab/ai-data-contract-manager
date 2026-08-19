@@ -55,6 +55,38 @@ def test_source_system_typo():
     assert out == {"metadata.sourceSystemGcpId": "rocket"}
 
 
+def test_open_source_system_choice_keeps_fuzzy_known_values_and_accepts_custom():
+    resolver = HeuristicResolver(specialized_resolvers=())
+    requirement = Requirement(
+        path="metadata.sourceSystemGcpId",
+        question="system?",
+        reason="source_system",
+        input_mode="explicit",
+        value_schema={
+            "type": "string",
+            "minLength": 1,
+        },
+        allowed_values=["rocket", "sap"],
+        allow_custom_value=True,
+    )
+
+    assert resolver.extract(
+        "roket",
+        [requirement],
+        allow_plain_fallback=True,
+    ) == {"metadata.sourceSystemGcpId": "rocket"}
+    assert resolver.extract(
+        "oracle_erp",
+        [requirement],
+        allow_plain_fallback=True,
+    ) == {"metadata.sourceSystemGcpId": "oracle_erp"}
+    assert resolver.extract(
+        "owner team_a",
+        [requirement],
+        allow_plain_fallback=True,
+    ) == {}
+
+
 def test_parse_regular_columns():
     resolver = HeuristicResolver()
     requirement = array_object_requirement()
