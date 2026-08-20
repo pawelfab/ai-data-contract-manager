@@ -4,7 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .models import ForgeState, Origin
+from .models import EditableField, ForgeState, Origin
 
 
 class ForgeGateway(ABC):
@@ -16,6 +16,9 @@ class ForgeGateway(ABC):
 
     @abstractmethod
     async def submit_values(self, session_id: str, values: dict[str, Any], origin: Origin) -> ForgeState: ...
+
+    @abstractmethod
+    async def get_editable_fields(self, session_id: str) -> list[EditableField]: ...
 
     async def __aenter__(self):
         return self
@@ -66,18 +69,29 @@ class MCPForgeGateway(ForgeGateway):
         )
         return ForgeState.model_validate(self._normalize(raw))
 
+    async def get_editable_fields(self, session_id: str) -> list[EditableField]:
+        raw = await self._toolset.direct_call_tool(
+            "get_editable_fields",
+            {"session_id": session_id},
+        )
+        normalized = self._normalize(raw)
+        # FastMCP wraps a bare list result in {"result": [...]}.
+        if isinstance(normalized, dict):
+            normalized = normalized.get("result", [])
+        return [EditableField.model_validate(item) for item in normalized]
+
     @staticmethod
     def _normalize(raw: Any) -> Any:
-        if isinstance(raw, dict):
+        if isinstance(raw, (dict, list)):
             return raw
         if hasattr(raw, "model_dump"):
             dumped = raw.model_dump(mode="json")
-            if isinstance(dumped, dict) and "data" in dumped and isinstance(dumped["data"], dict):
+            if isinstance(dumped, dict) and isinstance(dumped.get("data"), (dict, list)):
                 return dumped["data"]
             return dumped
         for attr in ("data", "structured_content", "structuredContent"):
             value = getattr(raw, attr, None)
-            if isinstance(value, dict):
+            if isinstance(value, (dict, list)):
                 return value
         content = getattr(raw, "content", None)
         if isinstance(content, list):

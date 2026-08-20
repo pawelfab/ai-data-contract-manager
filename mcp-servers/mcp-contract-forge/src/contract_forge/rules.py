@@ -24,6 +24,31 @@ class RuleEngine:
     def source_types(self, system: str) -> list[str]:
         return list(self.rules.get("systems", {}).get(system, {}).get("source_types", []))
 
+    def dependent_paths(self, source_path: str, system: str | None) -> list[str]:
+        """Paths whose enrichment rules read ``source_path``.
+
+        The dependency is declared in the rules themselves, so a changed input can be
+        propagated without Forge knowing any concrete contract field.
+        """
+        candidates = [
+            *self.rules.get("defaults", {}).get("rules", []),
+            *(self.rules.get("systems", {}).get(system, {}).get("rules", []) if system else []),
+        ]
+        dependents: list[str] = []
+        for rule in candidates:
+            target = rule.get("path")
+            if not target:
+                continue
+            sources = [rule.get("source_path"), rule.get("fallback_source_path")]
+            for source in sources:
+                if not source:
+                    continue
+                # A rule reading `source.columns` also depends on `source.columns.0.name`.
+                if source == source_path or source.startswith(f"{source_path}."):
+                    dependents.append(target)
+                    break
+        return dependents
+
     def input_mode(self, path: str) -> Literal["explicit", "semantic"]:
         configured = self.rules.get("workflow", {}).get("input_modes", {}).get(path)
         if configured is None:

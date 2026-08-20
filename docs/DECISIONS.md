@@ -258,6 +258,60 @@ compatibility and is expected to be replaced gradually by a real cause
 
 ---
 
+## D-017 — `complete` is a contract state, not the end of the session
+
+**Status:** Accepted
+
+**Decision:** A completed contract stays editable. Forge exposes a third, separate
+surface next to `pending` and `overridable`:
+
+- `pending` — what is missing,
+- `overridable` — derived values worth confirming against user facts,
+- `editable` — everything in the active contract the user may deliberately change,
+  regardless of provenance.
+
+`editable` is served by its own MCP tool, `get_editable_fields(session_id)`, rather than
+riding along in every `ForgeState`, so the ordinary stair-step loop does not carry the
+whole catalogue. A user may write any path the active schema resolves, including paths
+that do not exist yet; validation, `x-contract-rules` and origin precedence still apply.
+Arrays are one atomic edit unit — `source.columns`, never `source.columns.0.name` — and
+ADCM turns "add a column" into a replacement of the whole array. No JSON Patch.
+
+**Why:** Ending the conversation at `complete` made the last answer irreversible. Mixing
+`editable` into `overridable` was rejected because `overridable`'s filters exist to stop
+stale conversational facts from silently rewriting explicit or structured user values.
+
+**Consequence:** ADCM resolves an edit from a new user message deterministically first
+and only falls back to the LLM when the heuristics cannot place it — the LLM does not run
+merely because the contract is complete. A change can reopen the contract, e.g. enabling
+`preparator` makes an `x-contract-rule` demand an operation.
+
+---
+
+## D-018 — Changing an input invalidates what Forge derived from it
+
+**Status:** Accepted
+
+**Decision:** Enrichment stays fill-only, but a USER write now invalidates the derived
+values that depend on it, so `_advance` recalculates them. Dependencies are read from the
+rules' own `source_path`/`fallback_source_path`, so no contract field is hardcoded.
+Changing a recompute trigger — today only `metadata.sourceSystemGcpId` — goes further: it
+drops every value with an enrichment/default origin, re-runs enrichment for the new
+context, and then prunes values that no longer belong to the active schema variant. USER
+values are kept throughout; what was actually lost is reported in `ForgeState.discarded`.
+
+**Why:** Provenance makes this cheap, and it is one of the main reasons for having it.
+Without it, adding a source column left the target table stale and switching source
+systems left a contract mixing `sap_bronze` with Rocket enrichment.
+
+**Consequence:** Forge holds only the current valid contract; the history of what the user
+said stays in ADCM's `UserFact` memory, so a value pruned as belonging to an inactive
+branch can be reused if the user switches back. `RECOMPUTE_TRIGGER_PATHS` is a deliberate
+simplification — a `recompute_trigger` marker in the schema is the better home once more
+fields influence enrichment.
+
+---
+
 ## Open decisions
 
 ### O-002 — Optional decisions

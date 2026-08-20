@@ -70,6 +70,15 @@ def create_server():
         return forge.get_state(session_id).model_dump(mode="json")
 
     @mcp.tool()
+    def get_editable_fields(session_id: str) -> list[dict[str, Any]]:
+        """List the contract values the user may deliberately change right now.
+
+        Arrays are listed as a single unit; submit a replacement for the whole array
+        rather than a per-index path.
+        """
+        return [field.model_dump(mode="json") for field in forge.editable_fields(session_id)]
+
+    @mcp.tool()
     def submit_values(session_id: str, values: dict[str, Any], origin: str = "user") -> dict[str, Any]:
         """Submit only values currently requested by Contract Forge; then advance enrichment/defaults."""
         try:

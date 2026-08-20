@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .models import ChatMessage, Requirement, UserFact
+from .models import ChatMessage, ResolvableField, UserFact
 
 
 class CandidateValue(BaseModel):
@@ -27,8 +27,7 @@ class SemanticResolver(ABC):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        pending: list[Requirement],
-        overridable: list[Requirement],
+        targets: list[ResolvableField],
         user_facts: list[UserFact],
     ) -> ExtractionResult: ...
 
@@ -41,8 +40,7 @@ class NoopSemanticResolver(SemanticResolver):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        pending: list[Requirement],
-        overridable: list[Requirement],
+        targets: list[ResolvableField],
         user_facts: list[UserFact],
     ) -> ExtractionResult:
         return ExtractionResult()
@@ -86,21 +84,16 @@ class PydanticAISemanticResolver(SemanticResolver):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        pending: list[Requirement],
-        overridable: list[Requirement],
+        targets: list[ResolvableField],
         user_facts: list[UserFact],
     ) -> ExtractionResult:
         del session_id  # Session state is supplied explicitly; the model owns no workflow memory.
-        requirements = [*pending, *overridable]
         user_messages = [message for message in messages if message.role == "user"][-20:]
-        if not requirements or not user_messages:
+        if not targets or not user_messages:
             return ExtractionResult()
 
-        allowed_paths = [requirement.path for requirement in requirements]
-        pending_payload = [requirement.model_dump(mode="json") for requirement in pending]
-        overridable_payload = [
-            requirement.model_dump(mode="json") for requirement in overridable
-        ]
+        allowed_paths = [target.path for target in targets]
+        targets_payload = [target.model_dump(mode="json") for target in targets]
         facts_payload = [fact.model_dump(mode="json") for fact in user_facts]
         transcript = "\n".join(
             f"[user message_sequence={message.message_sequence}] {message.content}"
@@ -109,10 +102,10 @@ class PydanticAISemanticResolver(SemanticResolver):
         prompt = (
             "ALLOWED PATHS:\n"
             f"{json.dumps(allowed_paths, ensure_ascii=False)}\n\n"
-            "PENDING REQUIREMENTS:\n"
-            f"{json.dumps(pending_payload, ensure_ascii=False, default=str)}\n\n"
-            "OVERRIDABLE VALUES:\n"
-            f"{json.dumps(overridable_payload, ensure_ascii=False, default=str)}\n\n"
+            # mode tells the model whether a target is still missing, a derived value
+            # worth confirming, or an existing value the user may be changing now.
+            "TARGET FIELDS:\n"
+            f"{json.dumps(targets_payload, ensure_ascii=False, default=str)}\n\n"
             "EXISTING USER FACTS:\n"
             f"{json.dumps(facts_payload, ensure_ascii=False, default=str)}\n\n"
             "RECENT USER MESSAGES:\n"

@@ -214,9 +214,9 @@ Important known inconsistencies:
 
 ## 7. Current tests
 
-The two service suites have 109 passing tests in total: 65 ADCM tests and 44 Contract
+The two service suites have 129 passing tests in total: 74 ADCM tests and 55 Contract
 Forge tests. Coverage includes contract-rule execution, contract-definition validation,
-settings validation,
+post-completion editing, derived-value invalidation, settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.
@@ -295,16 +295,37 @@ the two independently installed services, including a complete Rocket contract f
 1. Add Schema Explorer/repository duplicate lookup as a separate MCP integration.
 2. Add the explicit schema/rules compatibility gate described by open decision O-003.
 
+## 8a. Editing a finished contract
+
+`complete` describes the contract, not the session. Forge exposes three separate
+surfaces: `pending` (what is missing), `overridable` (derived values worth confirming)
+and `editable` (everything the user may deliberately change, regardless of provenance).
+`editable` is served by its own MCP tool `get_editable_fields(session_id)` so the normal
+loop does not carry the catalogue.
+
+A USER submission may target any path the active schema resolves, including a section
+that does not exist yet; validation, `x-contract-rules` and precedence still apply.
+Arrays are one atomic edit unit, so ADCM rewrites the whole array instead of a per-index
+path. On a new user message with nothing pending, ADCM runs the deterministic heuristics
+first and only falls back to the LLM when they cannot place the message.
+
+Changing an input invalidates the enrichment values derived from it (dependencies come
+from the rules' own `source_path`), and changing `metadata.sourceSystemGcpId` triggers a
+full recompute of derived values plus pruning of anything outside the newly active schema
+variant. User-supplied values are always preserved; real losses are listed in
+`ForgeState.discarded`. See D-017 and D-018.
+
 ## 9. Do not accidentally regress
 
 While fixing the above, preserve:
 - source-system-first flow;
 - Forge contract ownership;
-- candidate-path restrictions;
+- USER-writable paths limited to the active schema;
 - system -> generic -> schema-default enrichment order;
 - deterministic heuristics before LLM;
 - bounded stair-step reuse of historical facts;
-- terminal/API separation from contract semantics.
+- terminal/API separation from contract semantics;
+- the session staying open after the contract is complete.
 
 ## 10. Stage 00 baseline implementation map
 

@@ -21,12 +21,20 @@ def _uses_multiline_input(requirement: Requirement | None) -> bool:
     )
 
 
+def _print_contract(label: str, contract: dict) -> None:
+    print(f"\n--- {label} ---")
+    print(json.dumps(contract, indent=2, ensure_ascii=False))
+
+
 def _read_answer(requirement: Requirement | None) -> str:
     if _uses_multiline_input(requirement):
         print("Wklej elementy (JSON albo po jednym rekordzie na linię). Zakończ pustą linią:")
         lines: list[str] = []
         while True:
-            line = input()
+            try:
+                line = input()
+            except EOFError:
+                break
             if not line.strip():
                 break
             lines.append(line)
@@ -50,15 +58,16 @@ async def run(verbose: bool) -> None:
                 print(f"\nADCM: {turn.message}")
                 if verbose and turn.contract:
                     print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
+                # A complete or invalid contract is a state, not the end of the session:
+                # the user may still come back and change any field.
                 if turn.status == "complete":
-                    print("\n--- FINAL CONTRACT ---")
-                    print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
+                    _print_contract("FINAL CONTRACT", turn.contract)
+                elif turn.status == "invalid":
+                    _print_contract("INVALID CONTRACT", turn.contract)
+                try:
+                    answer = _read_answer(turn.pending_requirement)
+                except EOFError:
                     return
-                if turn.status == "invalid":
-                    print("\n--- INVALID CONTRACT ---")
-                    print(json.dumps(turn.contract, indent=2, ensure_ascii=False))
-                    return
-                answer = _read_answer(turn.pending_requirement)
                 if answer.strip().lower() in {"quit", "exit", ":q"}:
                     return
                 turn = await service.message(turn.session_id, answer)

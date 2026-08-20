@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 
 from adcm.api import create_app
 from adcm.gateway import MCPForgeGateway
-from adcm.models import ChatMessage, Origin, Requirement, UserFact
+from adcm.models import ChatMessage, Origin, ResolvableField, UserFact
 from adcm.orchestrator import ADCMOrchestrator
 from adcm.semantic import CandidateValue, ExtractionResult, SemanticResolver
 
@@ -124,16 +124,17 @@ class FakeSemanticResolver(SemanticResolver):
         self,
         session_id: str,
         messages: list[ChatMessage],
-        pending: list[Requirement],
-        overridable: list[Requirement],
+        targets: list[ResolvableField],
         user_facts: list[UserFact],
     ) -> ExtractionResult:
         self.calls.append(
             {
                 "session_id": session_id,
                 "messages": deepcopy(messages),
-                "pending": [field.path for field in pending],
-                "overridable": [field.path for field in overridable],
+                "targets": [field.path for field in targets],
+                "pending": [field.path for field in targets if field.mode == "missing"],
+                "overridable": [field.path for field in targets if field.mode == "override"],
+                "editable": [field.path for field in targets if field.mode == "edit"],
                 "facts": deepcopy(user_facts),
             }
         )
@@ -467,5 +468,57 @@ def test_stage07_cli_smoke_uses_real_mcp_transport(forge_url: str):
 
     assert completed.returncode == 0, completed.stderr
     assert "FINAL CONTRACT" in completed.stdout
-    final_contract = json.loads(completed.stdout.split("--- FINAL CONTRACT ---", 1)[1])
+    # The session stays open after the contract is complete, so the prompt follows the
+    # contract on stdout; read just the first JSON document after the marker.
+    tail = completed.stdout.split("--- FINAL CONTRACT ---", 1)[1].lstrip()
+    final_contract, _ = json.JSONDecoder().raw_decode(tail)
     assert final_contract["metadata"]["id"] == "stage07_cli_smoke"
+
+
+@pytest.mark.asyncio
+async def test_stage09_editing_a_complete_contract_over_real_mcp(forge_url: str):
+    """`complete` keeps the session open, and edits go through the real MCP transport."""
+    gateway = RecordingMCPForgeGateway(forge_url)
+    service = ADCMOrchestrator(gateway, semantic=FakeSemanticResolver())
+
+    async with gateway:
+        turn = await service.start()
+        for answer in (
+            "sap",
+            "stage09_edit_smoke",
+            "data-team",
+            "gs://raw-zone/sap/edit.csv",
+            "customer_id STRING\namount NUMERIC",
+        ):
+            turn = await service.message(turn.session_id, answer)
+        assert turn.status == "complete", turn.message
+
+        forge_session = service.sessions[turn.session_id].forge_session_id
+        editable = {field.path: field for field in await gateway.get_editable_fields(forge_session)}
+        state = await service.state(turn.session_id)
+
+        # The catalogue crosses MCP as a list and keeps arrays as one edit unit.
+        assert "source.columns" in editable
+        assert editable["source.columns"].value_schema["type"] == "array"
+        assert not any(".0." in path for path in editable)
+        # User-supplied explicit and array fields are editable although Forge never
+        # advertises them as overridable.
+        assert {"metadata.id", "source.columns"} <= set(editable)
+        assert not {"metadata.id", "source.columns"} & {
+            field.path for field in state.overridable
+        }
+
+        turn = await service.message(turn.session_id, "gs://raw-zone/sap/inny.csv")
+        assert turn.status == "complete"
+        assert turn.contract["source"]["uri"] == "gs://raw-zone/sap/inny.csv"
+
+        # Enabling an optional section reopens the contract through x-contract-rules.
+        reopened = await gateway.submit_values(
+            forge_session,
+            {"preparator.enabled": True},
+            Origin.USER,
+        )
+        assert reopened.status == "invalid"
+        assert [
+            issue.rule_id for issue in reopened.contract_rule_issues if issue.status == "invalid"
+        ] == ["preparator.enabled_requires_operation"]

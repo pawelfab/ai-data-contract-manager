@@ -54,14 +54,15 @@ class FakeSemanticResolver:
         self,
         session_id,
         messages,
-        pending,
-        overridable,
+        targets,
         user_facts,
     ):
         self.calls.append(
             {
-                "pending": [requirement.path for requirement in pending],
-                "overridable": [requirement.path for requirement in overridable],
+                "targets": [target.path for target in targets],
+                "pending": [target.path for target in targets if target.mode == "missing"],
+                "overridable": [target.path for target in targets if target.mode == "override"],
+                "editable": [target.path for target in targets if target.mode == "edit"],
                 "facts": deepcopy(user_facts),
             }
         )

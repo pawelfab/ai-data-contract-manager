@@ -12,6 +12,8 @@ from .contracts import ContractSourcePort, InMemoryContractAdapter, JsonFileCont
 from .models import (
     OVERRIDABLE_ORIGINS,
     ContractRuleIssue,
+    DiscardedValue,
+    EditableField,
     ForgeState,
     Origin,
     Requirement,
@@ -19,8 +21,13 @@ from .models import (
     SessionData,
     ValidationIssue,
 )
-from .path_utils import get_path, has_path, write_value
+from .path_utils import delete_path, get_path, has_path, write_value
 from .rules import RuleEngine
+
+# Writing one of these paths invalidates everything Forge derived from it. A single
+# explicit trigger is enough today; a `recompute_trigger` marker in the schema would be
+# the better home once more fields influence enrichment.
+RECOMPUTE_TRIGGER_PATHS = frozenset({"metadata.sourceSystemGcpId"})
 
 
 class ContractForge:
@@ -78,6 +85,7 @@ class ContractForge:
         session = self._get(session_id)
         allowed = {r.path for r in self._pending(session)}
         session.candidate_issues.clear()
+        session.discarded.clear()
         # The source-system gate is always permitted until selected.
         if session.source_system is None:
             allowed.add("metadata.sourceSystemGcpId")
@@ -103,13 +111,18 @@ class ContractForge:
         origin: Origin,
         pending: set[str],
     ) -> bool:
+        """A user may write any path the active schema resolves, at any time.
+
+        `complete` means the current contract version is complete, not that the session
+        is closed, so deliberate edits are not restricted to pending/overridable paths.
+        The path still has to exist in the active schema, the value is still validated
+        locally, and enrichment origins still lose to USER through ``can_replace``.
+        """
         if path in pending:
             return True
-        if origin != Origin.USER or not has_path(session.contract, path):
+        if origin != Origin.USER:
             return False
-        if not self.navigator.path_exists_in_schema(path, session.contract):
-            return False
-        return session.origins.get(path) in OVERRIDABLE_ORIGINS | {Origin.USER}
+        return self.navigator.path_exists_in_schema(path, session.contract)
 
     def _disallowed_path_issue(self, session: SessionData, path: str) -> ValidationIssue:
         if not self.navigator.path_exists_in_schema(path, session.contract):
@@ -120,7 +133,7 @@ class ContractForge:
             )
         return ValidationIssue(
             path=path,
-            message="Candidate path is neither pending nor an overridable existing value.",
+            message="Candidate path is not currently writable by this origin.",
             validator="candidate_path",
         )
 
@@ -157,10 +170,13 @@ class ContractForge:
                 canonical_value,
                 origin,
             )
+            previous_system = session.source_system
             if not applied:
                 return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
             session.source_system = canonical_value.lower()
             session.applied.append(applied)
+            if previous_system is not None and previous_system != session.source_system:
+                self._recompute_derived_values(session)
             return []
 
         if path == "source.sourceType":
@@ -187,7 +203,88 @@ class ContractForge:
         if not applied:
             return [ValidationIssue(path=path, message="Candidate lost origin precedence.", validator="precedence")]
         session.applied.append(applied)
+        if origin == Origin.USER:
+            self._invalidate_dependents(session, path)
         return []
+
+    def _invalidate_dependents(self, session: SessionData, changed_path: str) -> None:
+        """Drop enrichment values derived from a path the user just changed.
+
+        Enrichment is fill-only, so without this a corrected input would leave its
+        derived values stale — adding a source column would not reach the target table.
+        Values the user set themselves are never touched.
+        """
+        pending = [changed_path]
+        seen: set[str] = set()
+        while pending:
+            source_path = pending.pop()
+            if source_path in seen:
+                continue
+            seen.add(source_path)
+            for target in self.rule_engine.dependent_paths(source_path, session.source_system):
+                if session.origins.get(target) not in OVERRIDABLE_ORIGINS:
+                    continue
+                delete_path(session.contract, target)
+                session.origins.pop(target, None)
+                pending.append(target)
+
+    def _recompute_derived_values(self, session: SessionData) -> None:
+        """Rebuild everything Forge derived after a recompute trigger changed.
+
+        Provenance makes this cheap: drop the values Forge itself produced, re-run
+        enrichment for the new context, then drop whatever no longer belongs to the
+        active schema variant. Values the user stated are kept — changing the source
+        system must not cost them the pipeline name, owner or schedule.
+        """
+        removed: list[DiscardedValue] = []
+        for path in sorted(session.origins, key=lambda item: item.count("."), reverse=True):
+            origin = session.origins[path]
+            if origin not in OVERRIDABLE_ORIGINS:
+                continue
+            removed.append(
+                DiscardedValue(
+                    path=path,
+                    previous_value=deepcopy(get_path(session.contract, path, None)),
+                    origin=origin,
+                    reason="recompute",
+                )
+            )
+            delete_path(session.contract, path)
+            session.origins.pop(path, None)
+
+        self._advance(session)
+        self._prune_inactive_branch(session)
+
+        # Most derived values are recalculated to the same thing. Only report what the
+        # user actually lost, otherwise the warning drowns in noise.
+        session.discarded.extend(
+            entry
+            for entry in removed
+            if get_path(session.contract, entry.path, None) != entry.previous_value
+        )
+
+    def _prune_inactive_branch(self, session: SessionData) -> None:
+        """Drop values that the newly active schema variant no longer knows.
+
+        Only runs once the source discriminator is resolved: under an unresolved
+        ``oneOf`` nothing below ``source`` resolves, and pruning then would also delete
+        correct values such as ``source.uri``.
+        """
+        if not has_path(session.contract, "source.sourceType"):
+            return
+        for path in sorted(session.origins, key=lambda item: item.count("."), reverse=True):
+            if self.navigator.path_exists_in_schema(path, session.contract):
+                continue
+            session.discarded.append(
+                DiscardedValue(
+                    path=path,
+                    previous_value=deepcopy(get_path(session.contract, path, None)),
+                    origin=session.origins[path],
+                    reason="inactive_branch",
+                )
+            )
+            delete_path(session.contract, path)
+            session.origins.pop(path, None)
 
     def _advance(self, session: SessionData) -> None:
         if session.source_system is None:
@@ -287,6 +384,44 @@ class ContractForge:
                 return configured
         return self.navigator.source_type_values()
 
+    def editable_fields(self, session_id: str) -> list[EditableField]:
+        """List the units of deliberate change in the current contract.
+
+        Separate from ``overridable``: that one drives automatic filling of derived
+        values, this one is the surface for changes the user asks for, whatever the
+        provenance. Served through its own MCP tool rather than every ForgeState so the
+        ordinary stair-step loop does not carry the whole catalogue.
+        """
+        session = self._get(session_id)
+        fields: list[EditableField] = []
+
+        def walk(value: Any, path: str) -> None:
+            node = self.navigator.schema_at_path(path, session.contract) if path else self.navigator.schema
+            if node is None:
+                return
+            # An array is one atomic edit unit: replacing the whole value keeps
+            # provenance and validation simple and avoids per-index paths.
+            if isinstance(value, dict) and node.get("type") != "array":
+                for name, child in value.items():
+                    walk(child, f"{path}.{name}" if path else name)
+                return
+            if not path:
+                return
+            fields.append(
+                EditableField(
+                    path=path,
+                    current_value=deepcopy(value),
+                    value_schema=self.navigator.public_schema(node),
+                    description=node.get("x-acdm-question") or node.get("description"),
+                    allowed_values=self.navigator.allowed_values(node),
+                    unsupported_schema_keywords=self.navigator.unsupported_requirement_keywords(node),
+                    current_origin=session.origins.get(path),
+                )
+            )
+
+        walk(session.contract, "")
+        return sorted(fields, key=lambda field: field.path)
+
     def _overridable(self, session: SessionData) -> list[Requirement]:
         """Expose existing values the user may replace through Forge."""
         fields: list[Requirement] = []
@@ -361,6 +496,7 @@ class ContractForge:
             validation_errors=validation_errors,
             candidate_issues=deepcopy(session.candidate_issues),
             applied=deepcopy(session.applied[-100:]),
+            discarded=deepcopy(session.discarded),
             rule_issues=rule_issues,
             contract_rule_issues=deepcopy(contract_rule_issues),
         )

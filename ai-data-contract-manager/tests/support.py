@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Any
 
 from adcm.gateway import ForgeGateway
-from adcm.models import ForgeState, Origin, Requirement
+from adcm.models import EditableField, ForgeState, Origin, Requirement
 
 
 class FakeForgeGateway(ForgeGateway):
@@ -30,10 +30,13 @@ class FakeForgeGateway(ForgeGateway):
         origin: Origin,
     ) -> ForgeState:
         self._check_session(session_id)
+        # Mirrors the real Forge gate: a user may write any path the contract knows,
+        # whether or not it is currently pending.
         allowed = {
             requirement.path
             for requirement in [*self._requirements(), *self._overridable()]
         }
+        allowed.update(self._known_paths())
         for path, value in values.items():
             if path not in allowed:
                 continue
@@ -62,6 +65,49 @@ class FakeForgeGateway(ForgeGateway):
             else:
                 self._set(path, value, origin)
         return self._state()
+
+    async def get_editable_fields(self, session_id: str) -> list[EditableField]:
+        self._check_session(session_id)
+        fields: list[EditableField] = []
+
+        def walk(value: Any, path: str) -> None:
+            requirement = self._requirement_for(path)
+            is_array = isinstance(value, list)
+            if isinstance(value, dict):
+                for name, child in value.items():
+                    walk(child, f"{path}.{name}" if path else name)
+                return
+            if not path:
+                return
+            fields.append(
+                EditableField(
+                    path=path,
+                    current_value=deepcopy(value),
+                    value_schema=(
+                        requirement.value_schema
+                        if requirement is not None
+                        else {"type": "array" if is_array else "string"}
+                    ),
+                    current_origin=self.origins.get(path),
+                )
+            )
+
+        walk(self.contract, "")
+        return sorted(fields, key=lambda field: field.path)
+
+    def _known_paths(self) -> set[str]:
+        if self.source_system is None:
+            return {"metadata.sourceSystemGcpId"}
+        return {
+            "metadata.sourceSystemGcpId",
+            *(requirement.path for requirement in self._all_definitions()),
+        }
+
+    def _requirement_for(self, path: str) -> Requirement | None:
+        for requirement in [*self._all_definitions(), *self._overridable()]:
+            if requirement.path == path:
+                return requirement
+        return None
 
     def _state(self) -> ForgeState:
         pending = self._requirements()
@@ -113,7 +159,13 @@ class FakeForgeGateway(ForgeGateway):
                     },
                 )
             ]
+        return [
+            requirement
+            for requirement in self._all_definitions()
+            if not self._has(requirement.path)
+        ]
 
+    def _all_definitions(self) -> list[Requirement]:
         definitions = [
             (
                 "source.sourceType",
@@ -146,7 +198,6 @@ class FakeForgeGateway(ForgeGateway):
         return [
             Requirement(path=path, question=question, input_mode=input_mode, value_schema=value_schema)
             for path, question, input_mode, value_schema in definitions
-            if not self._has(path)
         ]
 
     def _columns_schema(self) -> dict[str, Any]:

@@ -17,6 +17,7 @@ from .models import (
     Origin,
     PartialFact,
     Requirement,
+    ResolvableField,
     UserFact,
     ValidationIssue,
 )
@@ -60,6 +61,15 @@ class ADCMOrchestrator:
         memory = self.sessions[session_id]
         user_message = memory.add_user_message(text)
         state = await self.gateway.get_state(memory.forge_session_id)
+
+        # Nothing is missing, so this message can only be a deliberate change to a
+        # value that already exists. `complete` describes the contract, not the session.
+        if not state.pending:
+            state = await self._resolve_edit(memory, state, user_message, text)
+            turn = self._turn_from_state(session_id, state, memory)
+            memory.add_assistant_message(turn.message)
+            return turn
+
         fields = self._resolvable_fields(state)
         primary_path = state.pending[0].path if state.pending else None
 
@@ -104,6 +114,88 @@ class ADCMOrchestrator:
         memory.add_assistant_message(turn.message)
         return turn
 
+    async def _resolve_edit(
+        self,
+        memory: ConversationMemory,
+        state: ForgeState,
+        message: ChatMessage,
+        text: str,
+    ) -> ForgeState:
+        """Apply a change the user asked for to an already-filled contract.
+
+        Forge owns the catalogue of what can be changed, so ADCM never has to know the
+        contract structure. The LLM stays a fallback: it runs because a new user message
+        arrived and the heuristics could not place it, not because the contract is
+        complete.
+        """
+        targets = [
+            ResolvableField.from_editable(field)
+            for field in await self.gateway.get_editable_fields(memory.forge_session_id)
+        ]
+        if not targets:
+            return state
+
+        values = self.heuristics.extract(text, targets, allow_plain_fallback=False)
+        self._merge_edited_arrays(text, targets, values)
+
+        if not values:
+            result = await self.semantic.extract_from_history(
+                session_id=memory.session_id,
+                messages=memory.messages,
+                targets=targets,
+                user_facts=list(memory.facts.values()),
+            )
+            candidate = self._candidate_from_semantic(memory, targets, result)
+            if candidate is None:
+                return state
+            values = {candidate.path: candidate.value}
+            self._merge_edited_arrays(text, targets, values)
+
+        self._remember_deterministic(memory, message, values)
+
+        by_path = {target.path: target for target in targets}
+        for path, value in values.items():
+            if by_path[path].current_value == value:
+                # Asking for a value the contract already holds is not a failure; the
+                # unchanged state signature must not be reported as "no progress".
+                continue
+            state = await self.gateway.submit_values(
+                memory.forge_session_id,
+                {path: value},
+                Origin.USER,
+            )
+            if state.candidate_issues:
+                return state
+
+        # A change can reopen the contract, for example when an x-contract-rule or a
+        # recomputed source system reveals new requirements.
+        if state.pending:
+            state = await self._auto_resolve(memory, state)
+        return state
+
+    def _merge_edited_arrays(
+        self,
+        text: str,
+        targets: list[ResolvableField],
+        values: dict[str, Any],
+    ) -> None:
+        """Turn "add a column" into a replacement of the whole array.
+
+        Arrays are one atomic edit unit in Forge; per-index paths would drag index
+        bookkeeping and provenance into every layer for no benefit.
+        """
+        by_path = {target.path: target for target in targets}
+        for path in list(values):
+            target = by_path.get(path)
+            if target is None or target.value_schema.get("type") != "array":
+                continue
+            parsed = self.heuristics.parse_structured(text, target)
+            if parsed is None or not isinstance(target.current_value, list):
+                continue
+            merged = self.heuristics.merge_structured(target.current_value, parsed, target)
+            if merged.complete:
+                values[path] = merged.value
+
     async def _auto_resolve(
         self,
         memory: ConversationMemory,
@@ -140,14 +232,12 @@ class ADCMOrchestrator:
                     result = await self.semantic.extract_from_history(
                         session_id=memory.session_id,
                         messages=memory.messages,
-                        pending=[
-                            field
-                            for field in state.pending
-                            if field.path in semantic_paths
-                        ],
-                        overridable=[
-                            field
-                            for field in state.overridable
+                        targets=[
+                            ResolvableField.from_requirement(field, mode)
+                            for field, mode in (
+                                *((item, "missing") for item in state.pending),
+                                *((item, "override") for item in state.overridable),
+                            )
                             if field.path in semantic_paths
                         ],
                         user_facts=list(memory.facts.values()),
@@ -464,6 +554,18 @@ class ADCMOrchestrator:
         )
 
     @staticmethod
+    def _discarded_summary(state: ForgeState) -> str:
+        """Explain what a recompute cost the user, without asking for confirmation."""
+        if not state.discarded:
+            return ""
+        paths = ", ".join(entry.path for entry in state.discarded[:5])
+        more = f" (i {len(state.discarded) - 5} więcej)" if len(state.discarded) > 5 else ""
+        return (
+            " Zachowałem wartości podane przez Ciebie; Contract Forge przeliczył wartości"
+            f" wynikające z enrichmentu i domyślnych, a te pola przestały obowiązywać: {paths}{more}."
+        )
+
+    @staticmethod
     def _blocking_contract_rules(state: ForgeState) -> list[ContractRuleIssue]:
         """Business rules that stop completion. Non-executable rules never do."""
         return [
@@ -573,12 +675,16 @@ class ADCMOrchestrator:
         contract_rule_issues = [
             issue.model_dump(mode="json") for issue in state.contract_rule_issues
         ]
+        discarded = [entry.model_dump(mode="json") for entry in state.discarded]
         issue_summary = cls._candidate_issue_summary(state)
 
         if state.status == "complete":
             message = "Kontrakt jest kompletny i przeszedł walidację Contract Forge."
             if issue_summary:
                 message += f" Nie zastosowano jednak części danych użytkownika: {issue_summary}"
+            message += cls._discarded_summary(state)
+            # `complete` describes the contract, not the session: the user may keep going.
+            message += " Możesz nadal zmienić dowolne pole — po prostu napisz, co poprawić."
             return AssistantTurn(
                 session_id=session_id,
                 message=message,
@@ -586,6 +692,7 @@ class ADCMOrchestrator:
                 contract=state.contract,
                 candidate_issues=candidate_issues,
                 contract_rule_issues=contract_rule_issues,
+                discarded=discarded,
             )
         if state.status == "invalid":
             # Schema validation and business rules are both reported: a contract can be
@@ -604,12 +711,15 @@ class ADCMOrchestrator:
                 message=(
                     "Contract Forge zakończył kompletowanie, ale kontrakt jest niepoprawny: "
                     + "; ".join(reasons)
+                    + cls._discarded_summary(state)
+                    + " Napisz, co poprawić."
                 ),
                 status="invalid",
                 contract=state.contract,
                 validation_errors=[error.model_dump(mode="json") for error in state.validation_errors],
                 candidate_issues=candidate_issues,
                 contract_rule_issues=contract_rule_issues,
+                discarded=discarded,
             )
 
         requirement = state.pending[0] if state.pending else None
@@ -647,11 +757,12 @@ class ADCMOrchestrator:
             question = f"Nie udało się zastosować podanej wartości ({issue_summary}). {question}"
         return AssistantTurn(
             session_id=session_id,
-            message=question + suffix,
+            message=cls._discarded_summary(state).lstrip() + question + suffix,
             status="needs_input",
             pending_path=requirement.path if requirement else None,
             pending_requirement=requirement,
             contract=state.contract,
             candidate_issues=candidate_issues,
             contract_rule_issues=contract_rule_issues,
+            discarded=discarded,
         )

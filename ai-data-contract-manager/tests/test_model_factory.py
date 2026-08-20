@@ -11,7 +11,7 @@ from adcm.models import (
     ChatMessage,
     ExtractionMethod,
     Origin,
-    Requirement,
+    ResolvableField,
     UserFact,
 )
 from adcm.semantic import CandidateValue, ExtractionResult, PydanticAISemanticResolver
@@ -88,25 +88,25 @@ async def test_openai_compatible_factory_uses_gateway_json_mode() -> None:
                     message_sequence=1,
                 )
             ],
-            pending=[
-                Requirement(
+            targets=[
+                ResolvableField(
                     path="metadata.owner",
+                    mode="missing",
                     question="Kto jest właścicielem?",
                     value_schema={
                         "type": "string",
                         "description": "Zespół odpowiedzialny za pipeline.",
                         "examples": ["FinOps"],
                     },
-                )
-            ],
-            overridable=[
-                Requirement(
+                ),
+                ResolvableField(
                     path="orchestration.schedule",
+                    mode="override",
                     question="Podaj harmonogram.",
                     value_schema={"type": "string", "description": "Linux cron."},
                     current_value="0 0 * * *",
                     current_origin=Origin.SYSTEM_ENRICHMENT,
-                )
+                ),
             ],
             user_facts=[
                 UserFact(
@@ -133,7 +133,7 @@ async def test_openai_compatible_factory_uses_gateway_json_mode() -> None:
     assert captured_request["response_format"] == {"type": "json_object"}
     assert "tool_choice" not in captured_request
     request_text = json.dumps(captured_request["messages"], ensure_ascii=False)
-    assert "PENDING REQUIREMENTS" in request_text
+    assert "TARGET FIELDS" in request_text
     assert "ALLOWED PATHS" in request_text
     assert "orchestration.schedule" in request_text
     assert "system_enrichment" in request_text

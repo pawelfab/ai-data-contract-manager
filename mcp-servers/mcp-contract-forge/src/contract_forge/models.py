@@ -83,6 +83,36 @@ class AppliedValue(BaseModel):
     rule_id: str | None = None
 
 
+class DiscardedValue(BaseModel):
+    """A value Forge removed from the canonical contract, and why.
+
+    ``recompute`` means the value was derived by Forge and had to be recalculated;
+    ``inactive_branch`` means it no longer belongs to the active schema variant.
+    """
+
+    path: str
+    previous_value: Any = None
+    origin: Origin | None = None
+    reason: Literal["recompute", "inactive_branch"]
+
+
+class EditableField(BaseModel):
+    """One unit of deliberate change in the active contract.
+
+    Unlike ``Requirement``/``overridable`` this ignores provenance: a value the user
+    supplied is just as editable as one Forge derived. Arrays are exposed as a single
+    unit — ``source.columns``, never ``source.columns.0.name``.
+    """
+
+    path: str
+    current_value: Any = None
+    value_schema: dict[str, Any] = Field(default_factory=dict)
+    description: str | None = None
+    allowed_values: list[Any] | None = None
+    unsupported_schema_keywords: list[str] = Field(default_factory=list)
+    current_origin: Origin | None = None
+
+
 class RuleIssue(BaseModel):
     rule_id: str
     path: str | None = None
@@ -115,6 +145,7 @@ class ForgeState(BaseModel):
     validation_errors: list[ValidationIssue] = Field(default_factory=list)
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
+    discarded: list[DiscardedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
     contract_rule_issues: list[ContractRuleIssue] = Field(default_factory=list)
 
@@ -126,3 +157,4 @@ class SessionData(BaseModel):
     origins: dict[str, Origin] = Field(default_factory=dict)
     applied: list[AppliedValue] = Field(default_factory=list)
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
+    discarded: list[DiscardedValue] = Field(default_factory=list)

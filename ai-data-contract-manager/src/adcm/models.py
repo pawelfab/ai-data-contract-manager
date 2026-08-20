@@ -46,6 +46,47 @@ class Requirement(BaseModel):
     current_origin: Origin | None = None
 
 
+class EditableField(BaseModel):
+    """A contract value Forge says the user may deliberately change right now."""
+
+    path: str
+    current_value: Any = None
+    value_schema: dict[str, Any] = Field(default_factory=dict)
+    description: str | None = None
+    allowed_values: list[Any] | None = None
+    unsupported_schema_keywords: list[str] = Field(default_factory=list)
+    current_origin: Origin | None = None
+
+
+class ResolvableField(BaseModel):
+    """One target a resolver may fill, whatever exposed it.
+
+    The heuristics and the semantic resolver do not care whether a target came from
+    `pending`, `overridable` or `editable`; `mode` only records where it came from so
+    the orchestrator can phrase the turn.
+    """
+
+    path: str
+    mode: Literal["missing", "override", "edit"] = "missing"
+    question: str | None = None
+    description: str | None = None
+    input_mode: Literal["explicit", "semantic"] = "semantic"
+    value_schema: dict[str, Any] = Field(default_factory=dict)
+    unsupported_schema_keywords: list[str] = Field(default_factory=list)
+    allowed_values: list[Any] | None = None
+    allow_custom_value: bool = False
+    current_value: Any | None = None
+    current_origin: Origin | None = None
+
+    @classmethod
+    def from_requirement(cls, requirement: Requirement, mode: str) -> "ResolvableField":
+        return cls(mode=mode, **requirement.model_dump(include=set(cls.model_fields) - {"mode"}))
+
+    @classmethod
+    def from_editable(cls, field: EditableField) -> "ResolvableField":
+        return cls(mode="edit", **field.model_dump(include=set(cls.model_fields) - {"mode"}))
+
+
 class ValidationIssue(BaseModel):
     path: str
     message: str
@@ -57,6 +98,15 @@ class AppliedValue(BaseModel):
     value: Any
     origin: Origin
     rule_id: str | None = None
+
+
+class DiscardedValue(BaseModel):
+    """A value Forge removed from the canonical contract, and why."""
+
+    path: str
+    previous_value: Any = None
+    origin: Origin | None = None
+    reason: str
 
 
 class RuleIssue(BaseModel):
@@ -89,6 +139,7 @@ class ForgeState(BaseModel):
     validation_errors: list[ValidationIssue] = Field(default_factory=list)
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
+    discarded: list[DiscardedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
     contract_rule_issues: list[ContractRuleIssue] = Field(default_factory=list)
 
@@ -103,6 +154,7 @@ class AssistantTurn(BaseModel):
     validation_errors: list[dict[str, Any]] = Field(default_factory=list)
     candidate_issues: list[dict[str, Any]] = Field(default_factory=list)
     contract_rule_issues: list[dict[str, Any]] = Field(default_factory=list)
+    discarded: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ChatMessage(BaseModel):
