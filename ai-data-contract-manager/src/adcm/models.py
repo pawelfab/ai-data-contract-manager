@@ -21,9 +21,22 @@ class ExtractionMethod(str, Enum):
 
 
 class Requirement(BaseModel):
+    """One thing Forge needs before the contract can be completed.
+
+    ``status`` is the operational field ADCM branches on; ``reason`` is descriptive
+    provenance and is deliberately an open string so that a new discovery reason in
+    Forge cannot break this transport boundary.
+    """
+
     path: str
-    question: str
-    reason: Literal["source_system", "required", "one_of", "invalid"] = "required"
+    question: str | None = None
+    # missing   -> resolve from facts, heuristics, LLM, or ask the user
+    # invalid   -> a value exists but is wrong; ask for a correction
+    # forbidden -> a disallowed section/combination is present; ask for its removal
+    status: Literal["missing", "invalid", "forbidden"] = "missing"
+    reason: str = "required"
+    rule_id: str | None = None
+    message: str | None = None
     input_mode: Literal["explicit", "semantic"] = "semantic"
     value_schema: dict[str, Any] = Field(default_factory=dict)
     unsupported_schema_keywords: list[str] = Field(default_factory=list)
@@ -52,6 +65,17 @@ class RuleIssue(BaseModel):
     reason: str
 
 
+class ContractRuleIssue(BaseModel):
+    """Outcome of one business rule Forge evaluated against the contract."""
+
+    rule_id: str
+    status: Literal["missing", "invalid", "forbidden", "skipped_non_executable"]
+    path: str | None = None
+    message: str
+    severity: str = "error"
+    detail: str | None = None
+
+
 class ForgeState(BaseModel):
     """Client-side DTO validated from Contract Forge MCP responses."""
 
@@ -66,6 +90,7 @@ class ForgeState(BaseModel):
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
+    contract_rule_issues: list[ContractRuleIssue] = Field(default_factory=list)
 
 
 class AssistantTurn(BaseModel):
@@ -77,6 +102,7 @@ class AssistantTurn(BaseModel):
     contract: dict[str, Any] = Field(default_factory=dict)
     validation_errors: list[dict[str, Any]] = Field(default_factory=list)
     candidate_issues: list[dict[str, Any]] = Field(default_factory=list)
+    contract_rule_issues: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ChatMessage(BaseModel):

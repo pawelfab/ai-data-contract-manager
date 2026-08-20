@@ -220,3 +220,38 @@ Forge powinien odrzucać niekompatybilny zestaw na starcie zamiast częściowo w
 W `Metadata.required` są tylko `id`, `version`, `owner`, natomiast wybór systemu źródłowego jest potrzebny przed enrichmentem. V0 traktuje więc `metadata.sourceSystemGcpId` jako **jawny workflow gate Contract Forge**, mimo że samo JSON Schema go nie wymaga.
 
 To jest celowy wyjątek zgodny z wymaganiem UX „najpierw system źródłowy”, ale docelowo warto formalnie opisać go w kontrakcie/rules, np. przez osobną metadeklarację workflow albo dodanie pola do `required`, jeżeli zawsze jest obowiązkowe biznesowo.
+
+---
+
+## Stan po wdrożeniu wykonywalnych `x-contract-rules` (stage 08)
+
+Punkt 10 powyżej został zamknięty: reguły niosą teraz strukturalne `condition`/`assertion`,
+a Forge wykonuje je deterministycznie. Zasady wykonywalności opisuje
+`mcp-servers/mcp-contract-forge/docs/CONTRACT_RULES.md`.
+
+### Reguły usunięte z `config/contract.json`
+
+| `id` | Powód usunięcia |
+|---|---|
+| `converter.output_target_required` | `dest_partition` nie istnieje w schemacie, a `output` jest już na liście `required` w `ConverterConfig`. Reguła była tautologią. |
+| `converter.fixed_width.only_for_fixed_width_source` | `condition.path = "source.source_type"` był ewaluowany w kontekście węzła `converter`, który nie ma ani `source`, ani `fixed_width` (`additionalProperties: false`). Wariant stałopozycyjny wymusza już `oneOf` + `discriminator` na korzeniowym `source`. |
+| `converter.fixed_width.required_for_fixed_width_source` | Jak wyżej. |
+| `converter.fixed_width_column.length_matches_bounds` | Punkt 8: `FixedWidthColumn` nie ma pola `length` i ma `additionalProperties: false`, a formuła `end - start + 1` przeczy zakresowi półotwartemu. |
+
+### Reguły poprawione
+
+- `noteEquals` → `notEquals` (literówka w trzech miejscach). Aliasu kompatybilnościowego
+  celowo nie ma — walidator definicji odrzuci literówkę, gdyby wróciła.
+- `converter.fixed_width_column.end_not_before_start`: `gtePath` → `gtPath`. Przykłady
+  w schemacie (`start: 0, end: 8`, potem `start: 8, end: 20`) potwierdzają zakres
+  półotwarty, więc `end` musi być większe od `start`, a nie większe-równe.
+- `targets.bronze.required` i `targets.gold.requires_silver`: `path` skrócone z
+  `targets.bronze`/`targets.gold` do `bronze`/`gold`. Ścieżki reguł są relatywne do
+  węzła, przy którym reguła stoi, a te były zapisane od korzenia dokumentu.
+
+### Reguły zachowane jako nieaktywne
+
+Punkt 9 (nieużywane defs) pozostaje aktualny. `RecordValidationConfig`, `SilverTableConfig`
+i `TransformedColumn` nadal nie są referencjonowane z korzenia, a ich reguły mają ścieżki
+nierozwiązywalne w obecnych, pustych definicjach. `compile_contract()` raportuje je jako
+diagnostyki warningowe („reguła bezczynna”) i nie blokuje startu serwisu.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Iterable
+from typing import Any, Iterable, Iterator
 
 from jsonschema import Draft202012Validator
 
@@ -100,20 +100,81 @@ class SchemaNavigator:
 
     def requirement_at_path(self, path: str, contract: dict[str, Any]) -> Requirement | None:
         """Describe an active-schema path with the same metadata as a pending field."""
+        return self.requirement_for_path(path, contract)
+
+    def requirement_for_path(
+        self,
+        path: str,
+        contract: dict[str, Any],
+        *,
+        status: str = "missing",
+        reason: str = "required",
+        rule_id: str | None = None,
+        message: str | None = None,
+        fallback_question: str | None = None,
+    ) -> Requirement | None:
+        """Build a requirement for an active-schema path, whatever discovered it.
+
+        The schema still supplies question/value_schema/allowed_values; the caller only
+        supplies provenance, so a rule-driven requirement is indistinguishable from a
+        schema-driven one on the ADCM side except for ``reason``/``rule_id``.
+        """
         node = self.schema_at_path(path, contract)
         if node is None:
             return None
         return Requirement(
             path=path,
+            status=status,
+            reason=reason,
+            rule_id=rule_id,
+            message=message,
             question=(
                 node.get("x-acdm-question")
                 or node.get("description")
+                or fallback_question
                 or f"Podaj wartość dla {path}."
             ),
             value_schema=self.public_schema(node),
             unsupported_schema_keywords=self.unsupported_requirement_keywords(node),
             allowed_values=self.allowed_values(node),
         )
+
+    def iter_contract_rule_bindings(
+        self,
+        contract: dict[str, Any],
+    ) -> Iterator[tuple[str, Any, dict[str, Any]]]:
+        """Yield ``(base_path, context_value, raw_rule)`` for active schema nodes.
+
+        Rules are bound to the runtime location of the schema definition, so paths
+        inside condition/assertion are relative to that location. Only nodes present in
+        the current contract are evaluated; an absent optional section has no active
+        business-rule context yet.
+        """
+
+        def walk(node: dict[str, Any], value: Any, path: str) -> Iterator[tuple[str, Any, dict[str, Any]]]:
+            node = self.active_node(node, value)
+            raw_rules = node.get("x-contract-rules", [])
+            if isinstance(raw_rules, list):
+                for raw_rule in raw_rules:
+                    if isinstance(raw_rule, dict):
+                        yield path, value, deepcopy(raw_rule)
+
+            if isinstance(value, dict):
+                props = node.get("properties", {})
+                for name, child_value in value.items():
+                    child_schema = props.get(name)
+                    if not isinstance(child_schema, dict):
+                        continue
+                    child_path = f"{path}.{name}" if path else name
+                    yield from walk(child_schema, child_value, child_path)
+            elif isinstance(value, list):
+                item_schema = node.get("items")
+                if isinstance(item_schema, dict):
+                    for idx, item in enumerate(value):
+                        child_path = f"{path}.{idx}" if path else str(idx)
+                        yield from walk(item_schema, item, child_path)
+
+        yield from walk(self.schema, contract, "")
 
     def source_type_values(self) -> list[str]:
         """Return source discriminator values without depending on a concrete branch."""
@@ -234,7 +295,7 @@ class SchemaNavigator:
                     self._walk_array(child, child_value, child_path, out)
 
         walk(self.schema, contract, "")
-        return self._dedupe(out)
+        return self.dedupe_requirements(out)
 
     def _walk_array(self, node: dict[str, Any], value: list[Any], path: str, out: list[Requirement]) -> None:
         node = self.resolve_ref(node)
@@ -265,7 +326,8 @@ class SchemaNavigator:
                 )
 
     @staticmethod
-    def _dedupe(items: Iterable[Requirement]) -> list[Requirement]:
+    def dedupe_requirements(items: Iterable[Requirement]) -> list[Requirement]:
+        """Keep the first requirement per path; discovery sources may overlap."""
         seen: set[str] = set()
         out: list[Requirement] = []
         for item in items:

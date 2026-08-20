@@ -200,16 +200,23 @@ The minimal package therefore keeps:
 
 Important known inconsistencies:
 - `@daily` does not satisfy the current five-field cron regex;
-- a fixed-width rule references a `length` semantic inconsistent with the half-open range model/current properties;
-- some custom `x-contract-rules` are not sufficiently machine-readable to execute generically.
+- the fixed-width `length` rule was removed: `FixedWidthColumn` has no `length` property
+  (`additionalProperties: false`) and `end - start + 1` contradicts the half-open range;
+  see `docs/RULE_COMPATIBILITY.md`;
+- `x-contract-rules` now carry structural `condition`/`assertion` and are executed
+  deterministically. Rules that express their logic only in prose (`registry_lookup`) are
+  reported as `skipped_non_executable` and never block completion. Unknown kinds or
+  operators are rejected when the contract is loaded, not during a user session — see
+  `mcp-servers/mcp-contract-forge/docs/CONTRACT_RULES.md`;
 - the supplied `metadata.sourceSystemGcpId` schema requires only a non-empty string;
   therefore a malformed custom token can also propagate into generic values such as
   the Bronze dataset name. The user currently owns correct identifier entry;
 
 ## 7. Current tests
 
-The two service suites have 83 passing tests in total: 60 ADCM tests and 23 Contract
-Forge tests. Coverage includes settings validation,
+The two service suites have 109 passing tests in total: 65 ADCM tests and 44 Contract
+Forge tests. Coverage includes contract-rule execution, contract-definition validation,
+settings validation,
 `.env` loading, the OpenAI-compatible model factory, and the exact JSON-mode request
 shape through a mocked OpenAI HTTP transport. Existing schema tests explicitly read
 UTF-8 and pass on Windows.

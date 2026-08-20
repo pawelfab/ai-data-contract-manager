@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
 
+from .contracts import JsonFileContractAdapter
 from .engine import ContractForge
 from .models import Origin
 
@@ -21,11 +23,17 @@ def _service_path(env_name: str, default: str) -> Path:
 
 
 def build_forge() -> ContractForge:
+    """Build the singleton Forge.
+
+    A ``ContractDefinitionError`` here is deliberately fatal: a contract whose rules
+    Forge cannot execute must not serve sessions.
+    """
     load_dotenv(_root() / ".env", override=False)
     schema_path = _service_path("CONTRACT_FORGE_SCHEMA_PATH", "config/contract.json")
     rules_path = _service_path("CONTRACT_FORGE_RULES_PATH", "config/ux_rules_contract_v1.json")
     deploy_env = os.getenv("CONTRACT_FORGE_DEPLOY_ENV", "dev")
-    return ContractForge.from_files(schema_path, rules_path, deploy_env=deploy_env)
+    rules = json.loads(rules_path.read_text(encoding="utf-8"))
+    return ContractForge(JsonFileContractAdapter(schema_path), rules, deploy_env=deploy_env)
 
 
 forge = build_forge()

@@ -6,10 +6,12 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator
-
+from .compiler import compile_contract
+from .contract_rules import ContractRuleEngine
+from .contracts import ContractSourcePort, InMemoryContractAdapter, JsonFileContractAdapter
 from .models import (
     OVERRIDABLE_ORIGINS,
+    ContractRuleIssue,
     ForgeState,
     Origin,
     Requirement,
@@ -19,7 +21,6 @@ from .models import (
 )
 from .path_utils import get_path, has_path, write_value
 from .rules import RuleEngine
-from .schema import SchemaNavigator
 
 
 class ContractForge:
@@ -31,19 +32,36 @@ class ContractForge:
       user > system enrichment > generic enrichment > schema default.
 
     Deterministic and LLM extraction are ADCM concerns; both submit USER facts.
+
+    Contract definition I/O sits behind ``ContractSourcePort`` and the definition is
+    compiled before any session exists, so a contract Forge cannot execute is rejected
+    at startup rather than halfway through a conversation.
     """
 
-    def __init__(self, schema: dict[str, Any], rules: dict[str, Any], deploy_env: str = "dev"):
-        Draft202012Validator.check_schema(schema)
-        self.navigator = SchemaNavigator(schema)
+    def __init__(
+        self,
+        contract_source: ContractSourcePort | dict[str, Any],
+        rules: dict[str, Any],
+        deploy_env: str = "dev",
+    ):
+        # In-memory construction stays supported, but still goes through an adapter.
+        if isinstance(contract_source, dict):
+            contract_source = InMemoryContractAdapter(contract_source)
+        self.contract_source = contract_source
+        self.compiled = compile_contract(contract_source)
+        self.navigator = self.compiled.navigator
         self.rule_engine = RuleEngine(rules, self.navigator, deploy_env=deploy_env)
+        self.contract_rule_engine = ContractRuleEngine(self.compiled)
         self.sessions: dict[str, SessionData] = {}
 
     @classmethod
     def from_files(cls, schema_path: str | Path, rules_path: str | Path, deploy_env: str = "dev") -> "ContractForge":
-        schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
         rules = json.loads(Path(rules_path).read_text(encoding="utf-8"))
-        return cls(schema, rules, deploy_env=deploy_env)
+        return cls(JsonFileContractAdapter(schema_path), rules, deploy_env=deploy_env)
+
+    @classmethod
+    def from_dicts(cls, schema: dict[str, Any], rules: dict[str, Any], deploy_env: str = "dev") -> "ContractForge":
+        return cls(InMemoryContractAdapter(schema), rules, deploy_env=deploy_env)
 
     def list_source_systems(self) -> list[dict[str, Any]]:
         return [
@@ -211,7 +229,11 @@ class ContractForge:
             if after == before:
                 break
 
-    def _pending(self, session: SessionData) -> list[Requirement]:
+    def _pending(
+        self,
+        session: SessionData,
+        contract_rule_issues: list[ContractRuleIssue] | None = None,
+    ) -> list[Requirement]:
         if session.source_system is None:
             systems = self.rule_engine.systems
             node = self.navigator.schema_at_path(
@@ -246,7 +268,14 @@ class ContractForge:
                     allowed_values=choices,
                 )
             ]
-        requirements = self.navigator.missing_requirements(session.contract)
+        requirements = self.navigator.dedupe_requirements(
+            [
+                *self.navigator.missing_requirements(session.contract),
+                *self.contract_rule_engine.missing_requirements(
+                    session.contract, contract_rule_issues
+                ),
+            ]
+        )
         for requirement in requirements:
             requirement.input_mode = self.rule_engine.input_mode(requirement.path)
         return requirements
@@ -295,9 +324,19 @@ class ContractForge:
         return fields
 
     def _state(self, session: SessionData) -> ForgeState:
-        pending = self._pending(session)
+        # Evaluate the contract rules once and reuse the result for both requirement
+        # discovery and diagnostics.
+        contract_rule_issues = (
+            self.contract_rule_engine.evaluate(session.contract) if session.source_system else []
+        )
+        pending = self._pending(session, contract_rule_issues)
         validation_errors = [] if pending else self.navigator.validate(session.contract)
-        status = "needs_input" if pending else ("invalid" if validation_errors else "complete")
+        blocking_rules = [] if pending else self.contract_rule_engine.blocking_issues(contract_rule_issues)
+        status = (
+            "needs_input"
+            if pending
+            else ("invalid" if validation_errors or blocking_rules else "complete")
+        )
 
         # Re-evaluate rule compatibility against the current active schema for observability.
         rule_issues: list[RuleIssue] = []
@@ -323,6 +362,7 @@ class ContractForge:
             candidate_issues=deepcopy(session.candidate_issues),
             applied=deepcopy(session.applied[-100:]),
             rule_issues=rule_issues,
+            contract_rule_issues=deepcopy(contract_rule_issues),
         )
 
     def _get(self, session_id: str) -> SessionData:

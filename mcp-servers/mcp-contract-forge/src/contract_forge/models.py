@@ -42,9 +42,25 @@ def can_replace(current: Origin | None, candidate: Origin) -> bool:
 
 
 class Requirement(BaseModel):
+    """One thing Forge needs from ADCM before the contract can be completed.
+
+    ``status`` says what ADCM has to do; ``reason`` says why the requirement exists.
+    They are separate axes on purpose: ``reason`` is descriptive metadata that may grow
+    new values, ``status`` is the stable operational field ADCM branches on.
+    """
+
     path: str
-    question: str
-    reason: Literal["source_system", "required", "one_of", "invalid"] = "required"
+    # missing   -> try UserFact, heuristics, LLM, then ask the user
+    # invalid   -> a value exists but is wrong; ask for a correction
+    # forbidden -> a disallowed section/combination is present; ask for its removal
+    status: Literal["missing", "invalid", "forbidden"] = "missing"
+    # Deliberately a plain str, not a Literal: new discovery reasons must not break the
+    # transport boundary. Current values: source_system, required, one_of, invalid,
+    # contract_rule.
+    reason: str = "required"
+    rule_id: str | None = None
+    message: str | None = None
+    question: str | None = None
     input_mode: Literal["explicit", "semantic"] = "semantic"
     value_schema: dict[str, Any] = Field(default_factory=dict)
     unsupported_schema_keywords: list[str] = Field(default_factory=list)
@@ -73,6 +89,21 @@ class RuleIssue(BaseModel):
     reason: str
 
 
+class ContractRuleIssue(BaseModel):
+    """Outcome of one ``x-contract-rule`` evaluated against the current contract.
+
+    ``skipped_non_executable`` marks a rule whose logic is not expressed structurally
+    (no ``assertion``), so it is reported but never blocks completion.
+    """
+
+    rule_id: str
+    status: Literal["missing", "invalid", "forbidden", "skipped_non_executable"]
+    path: str | None = None
+    message: str
+    severity: str = "error"
+    detail: str | None = None
+
+
 class ForgeState(BaseModel):
     session_id: str
     source_system: str | None = None
@@ -85,6 +116,7 @@ class ForgeState(BaseModel):
     candidate_issues: list[ValidationIssue] = Field(default_factory=list)
     applied: list[AppliedValue] = Field(default_factory=list)
     rule_issues: list[RuleIssue] = Field(default_factory=list)
+    contract_rule_issues: list[ContractRuleIssue] = Field(default_factory=list)
 
 
 class SessionData(BaseModel):

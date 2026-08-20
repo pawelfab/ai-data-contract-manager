@@ -210,6 +210,54 @@ D-003 and the precedence/order from D-004 remain unchanged.
 
 ---
 
+## D-015 — A contract Forge cannot execute is a configuration error, not an invalid session
+
+**Status:** Accepted
+
+**Decision:** Contract definitions are compiled before any session exists. Loading walks
+every `x-contract-rules` entry in the document — including `$defs` no property references
+yet — and rejects unknown kinds, unknown operators, unparseable rules and duplicate rule
+ids with a `ContractDefinitionError`. Rules whose logic is not expressed structurally (no
+`assertion`, e.g. `registry_lookup`) are reported as `skipped_non_executable`: they never
+create a requirement, never set `invalid`, and never block completion. `kind` names only
+the consequence of a violation; the logic lives in `condition`/`assertion` and is never
+inferred from `message`, `notes` or the originating Pydantic validator.
+
+**Why:** Mixing the two failure worlds made an unsupported contract look like a user
+mistake. A user could answer fifteen questions before learning that Forge cannot execute
+the contract at all, and a single unsupported rule could make completion unreachable
+forever. Prose-parsing would also violate the ownership rule in `AGENTS.md`.
+
+**Consequence:** The service refuses to start on a contract it cannot execute, which is
+deliberate. Adding a new rule kind or operator is a Forge code change with a
+deterministic handler and a test — see
+`mcp-servers/mcp-contract-forge/docs/CONTRACT_RULES.md`. Rule paths are relative to the
+schema node carrying the rule; a cross-section rule would need a DSL extension, not a
+code workaround.
+
+---
+
+## D-016 — Requirements carry an operational `status`; `reason` is open metadata
+
+**Status:** Accepted
+
+**Decision:** `Requirement` gains `status` (`missing` / `invalid` / `forbidden`), which is
+what ADCM branches on, plus `rule_id` and `message`. `reason` stays as descriptive
+provenance and its type is relaxed from a `Literal` to a plain `str`. ADCM keeps its own
+structurally mirrored DTOs and never imports Forge models:
+Forge internal models → Forge transport DTO → MCP/JSON → ADCM transport DTO → ADCM domain.
+
+**Why:** `reason` mixed two questions ("why does this exist" and "what is wrong"). Pinning
+it to a `Literal` on both sides also meant every new discovery reason in Forge was a
+breaking change at the transport boundary.
+
+**Consequence:** ADCM resolves only `missing` requirements automatically; `invalid` and
+`forbidden` are phrased as correction requests. `reason="invalid"` is still accepted for
+compatibility and is expected to be replaced gradually by a real cause
+(`schema_validation`, `pattern`, `contract_rule`).
+
+---
+
 ## Open decisions
 
 ### O-002 — Optional decisions

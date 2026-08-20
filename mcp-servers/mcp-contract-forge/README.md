@@ -7,6 +7,9 @@ Zawiera schemat, reguły enrichmentu/workflow, walidację i stan sesji Forge.
 
 ```text
 src/contract_forge/
+  contracts/        # port źródła kontraktu + adaptery
+  compiler.py       # walidacja definicji -> CompiledContract
+  contract_rules.py # wykonanie x-contract-rules
 config/
   contract.json
   ux_rules_contract_v1.json
@@ -14,6 +17,9 @@ config/
 tests/
 docs/
 ```
+
+Reguły biznesowe kontraktu opisuje [docs/CONTRACT_RULES.md](docs/CONTRACT_RULES.md).
+Kontrakt z nieznanym `kind` lub operatorem jest odrzucany przy starcie serwera.
 
 ## Instalacja i uruchomienie
 

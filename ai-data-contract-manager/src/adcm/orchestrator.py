@@ -10,6 +10,7 @@ from .heuristics import HeuristicResolver
 from .models import (
     AssistantTurn,
     ChatMessage,
+    ContractRuleIssue,
     ConversationMemory,
     ExtractionMethod,
     ForgeState,
@@ -297,9 +298,12 @@ class ADCMOrchestrator:
         fields: list[Requirement] = []
         seen: set[str] = set()
         for field in [*state.pending, *state.overridable]:
-            if field.path not in seen:
-                seen.add(field.path)
-                fields.append(field)
+            # Only a missing value can be resolved automatically. An invalid or
+            # forbidden one needs the user to decide what to change.
+            if field.status != "missing" or field.path in seen:
+                continue
+            seen.add(field.path)
+            fields.append(field)
         return fields
 
     @staticmethod
@@ -418,6 +422,11 @@ class ADCMOrchestrator:
             "origins": state.origins,
             "pending": [field.model_dump(mode="json") for field in state.pending],
             "overridable": [field.model_dump(mode="json") for field in state.overridable],
+            # Business-rule outcomes are part of progress: a resolved rule can change
+            # nothing else in the state and would otherwise read as "no progress".
+            "contract_rule_issues": [
+                issue.model_dump(mode="json") for issue in state.contract_rule_issues
+            ],
         }
         return json.dumps(resolution_state, sort_keys=True, default=str)
 
@@ -453,6 +462,28 @@ class ADCMOrchestrator:
             f"{issue.path or '<root>'}: {issue.message}"
             for issue in state.candidate_issues[:3]
         )
+
+    @staticmethod
+    def _blocking_contract_rules(state: ForgeState) -> list[ContractRuleIssue]:
+        """Business rules that stop completion. Non-executable rules never do."""
+        return [
+            issue
+            for issue in state.contract_rule_issues
+            if issue.status in {"invalid", "forbidden"} and issue.severity == "error"
+        ]
+
+    @staticmethod
+    def _requirement_question(requirement: Requirement) -> str:
+        """Phrase a requirement according to what Forge says has to happen with it."""
+        question = requirement.question or requirement.message or f"Podaj wartość dla {requirement.path}."
+        if requirement.status == "invalid":
+            return f"Wartość dla {requirement.path} jest niepoprawna. {question}"
+        if requirement.status == "forbidden":
+            return (
+                f"Sekcja {requirement.path} nie jest dozwolona w tej konfiguracji "
+                f"i trzeba ją usunąć lub zmienić. {question}"
+            )
+        return question
 
     @staticmethod
     def _partial_question(requirement: Requirement, partial: PartialFact) -> str:
@@ -539,6 +570,9 @@ class ADCMOrchestrator:
         memory: ConversationMemory,
     ) -> AssistantTurn:
         candidate_issues = [issue.model_dump(mode="json") for issue in state.candidate_issues]
+        contract_rule_issues = [
+            issue.model_dump(mode="json") for issue in state.contract_rule_issues
+        ]
         issue_summary = cls._candidate_issue_summary(state)
 
         if state.status == "complete":
@@ -551,19 +585,31 @@ class ADCMOrchestrator:
                 status="complete",
                 contract=state.contract,
                 candidate_issues=candidate_issues,
+                contract_rule_issues=contract_rule_issues,
             )
         if state.status == "invalid":
-            details = "; ".join(
+            # Schema validation and business rules are both reported: a contract can be
+            # schema-valid and still violate a rule, in which case the older
+            # validation-only message would have been empty.
+            reasons = [
                 f"{error.path or '<root>'}: {error.message}"
                 for error in state.validation_errors[:5]
-            )
+            ]
+            reasons += [
+                f"{issue.path or '<root>'}: {issue.message}"
+                for issue in cls._blocking_contract_rules(state)[:5]
+            ]
             return AssistantTurn(
                 session_id=session_id,
-                message=f"Contract Forge zakończył kompletowanie, ale kontrakt jest niepoprawny: {details}",
+                message=(
+                    "Contract Forge zakończył kompletowanie, ale kontrakt jest niepoprawny: "
+                    + "; ".join(reasons)
+                ),
                 status="invalid",
                 contract=state.contract,
                 validation_errors=[error.model_dump(mode="json") for error in state.validation_errors],
                 candidate_issues=candidate_issues,
+                contract_rule_issues=contract_rule_issues,
             )
 
         requirement = state.pending[0] if state.pending else None
@@ -575,7 +621,7 @@ class ADCMOrchestrator:
             question = (
                 cls._partial_question(requirement, partial)
                 if partial is not None and (partial.missing or partial.invalid)
-                else requirement.question
+                else cls._requirement_question(requirement)
             )
             if requirement.unsupported_schema_keywords:
                 keywords = ", ".join(requirement.unsupported_schema_keywords)
@@ -607,4 +653,5 @@ class ADCMOrchestrator:
             pending_requirement=requirement,
             contract=state.contract,
             candidate_issues=candidate_issues,
+            contract_rule_issues=contract_rule_issues,
         )

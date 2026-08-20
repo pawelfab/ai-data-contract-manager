@@ -1543,13 +1543,13 @@
         {
           "id": "targets.bronze.required",
           "kind": "required",
-          "path": "targets.bronze",
+          "path": "bronze",
           "message": "Źródło raw zawsze musi zostać zapisane co najmniej do Bronze."
         },
         {
           "id": "targets.gold.requires_silver",
           "kind": "dependency",
-          "path": "targets.gold",
+          "path": "gold",
           "message": "Gold wymaga wcześniejszej warstwy Silver."
         }
       ]
@@ -1587,27 +1587,7 @@
             }
           }
         }
-      },
-      "x-contract-rules": [
-        {
-          "id": "converter.output_target_required",
-          "kind": "at_least_one",
-          "message": "At least one output target must be defined: output or destPartition.",
-          "path": "output"
-        },
-        {
-          "id": "converter.fixed_width.only_for_fixed_width_source",
-          "kind": "conditional_forbidden",
-          "message": "fixed_width section is only allowed when source_type is fixed_width.",
-          "path": "source.fixed_width"
-        },
-        {
-          "id": "converter.fixed_width.required_for_fixed_width_source",
-          "kind": "conditional_required",
-          "message": "fixed_width section is required when source_type is fixed_width.",
-          "path": "source.fixed_width"
-        }
-      ]
+      }
     },
     "DecryptConfig": {
       "title": "DecryptConfig",
@@ -1630,8 +1610,20 @@
         {
           "id": "preparator.decrypt.spec_required_when_enabled",
           "kind": "conditional_required",
+          "path": "spec",
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "assertion": {
+            "exists": true,
+            "path": "spec"
+          },
+          "severity": "error",
           "message": "spec is required when decrypt.enabled is true.",
-          "path": "spec"
+          "source": {
+            "pydantic_validator": "DecryptConfig._require_spec_when_enabled"
+          }
         }
       ]
     },
@@ -1639,16 +1631,18 @@
       "$ref": "#/$defs/FixedWidthColumn",
       "x-contract-rules": [
         {
-          "id": "converter.fixed_width_column.length_matches_bounds",
-          "kind": "computed_consistency",
-          "message": "length must equal end - start + 1 (or is auto-filled when absent).",
-          "path": "length"
-        },
-        {
           "id": "converter.fixed_width_column.end_not_before_start",
           "kind": "cross_field",
+          "path": "end",
+          "assertion": {
+            "gtPath": "start",
+            "path": "end"
+          },
+          "severity": "error",
           "message": "end must be greater than or equal to start.",
-          "path": "end"
+          "source": {
+            "pydantic_validator": "FixedWidthColumnConfig.validate_and_fill_length"
+          }
         }
       ]
     },
@@ -1682,8 +1676,28 @@
         {
           "id": "preparator.enabled_requires_operation",
           "kind": "cross_field",
+          "path": "operations",
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "assertion": {
+            "anyOf": [
+              {
+                "equals": true,
+                "path": "operations.decrypt.enabled"
+              },
+              {
+                "equals": true,
+                "path": "operations.unpack.enabled"
+              }
+            ]
+          },
+          "severity": "error",
           "message": "When preparator.enabled is true, at least one operation must be enabled: operations.decrypt or operations.unpack.enabled.",
-          "path": "operations"
+          "source": {
+            "pydantic_validator": "PreparatorConfig._require_at_least_one_operation"
+          }
         }
       ]
     },
@@ -1692,8 +1706,13 @@
         {
           "id": "record_validation.macro.registered",
           "kind": "registry_lookup",
+          "path": "macro",
+          "severity": "error",
           "message": "macro must exist in VALIDATION_REGISTRY.",
-          "path": "macro"
+          "notes": "Unknown names fail validation and include a closest-match hint.",
+          "source": {
+            "pydantic_validator": "RecordValidationConfig.check_macro_registered"
+          }
         }
       ]
     },
@@ -1702,14 +1721,30 @@
         {
           "id": "silver.business_key_hash.name_not_conflicting",
           "kind": "cross_field",
+          "path": "businessKeyHash.name",
+          "assertion": {
+            "notIn": "columns[*].name",
+            "path": "businessKeyHash.name"
+          },
+          "severity": "error",
           "message": "businessKeyHash.name must be different from existing columns[].name.",
-          "path": "businessKeyHash.name"
+          "source": {
+            "pydantic_validator": "SilverTableConfig.validate_business_key_hash"
+          }
         },
         {
           "id": "silver.business_key_hash.columns_exist",
           "kind": "reference_integrity",
+          "path": "businessKeyHash.columns",
+          "assertion": {
+            "existsIn": "columns[*].name",
+            "path": "businessKeyHash.columns[*]"
+          },
+          "severity": "error",
           "message": "businessKeyHash.columns must reference names present in columns[].name.",
-          "path": "businessKeyHash.columns"
+          "source": {
+            "pydantic_validator": "SilverTableConfig.validate_business_key_hash"
+          }
         }
       ]
     },
@@ -1718,8 +1753,13 @@
         {
           "id": "transformed_column.validations.registered",
           "kind": "registry_lookup",
+          "path": "validations",
+          "severity": "error",
           "message": "Every validations[] macro must exist in VALIDATION_REGISTRY.",
-          "path": "validations"
+          "notes": "Unknown names fail validation and include closest-match suggestions.",
+          "source": {
+            "pydantic_validator": "TransformedColumn.check_validations_registered"
+          }
         }
       ]
     },
@@ -1751,8 +1791,20 @@
         {
           "id": "preparator.unpack.format_required_when_enabled",
           "kind": "conditional_required",
+          "path": "format",
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "assertion": {
+            "exists": true,
+            "path": "format"
+          },
+          "severity": "error",
           "message": "format is required when unpack.enabled is true.",
-          "path": "format"
+          "source": {
+            "pydantic_validator": "UnpackConfig._require_format_when_enabled"
+          }
         }
       ]
     },
