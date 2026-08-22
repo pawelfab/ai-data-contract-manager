@@ -1,66 +1,26 @@
-# ADCM monorepo
+# AI Data Contract Manager system
 
-Repozytorium zawiera niezależnie instalowane i uruchamiane usługi:
+Monorepo of independently versioned and deployed services.
 
-```text
-ai-data-contract-manager/
-  src/adcm/                 # aplikacja, API, CLI i klient MCP
-  tests/
-  docs/
-  pyproject.toml
-mcp-servers/
-  mcp-contract-forge/
-    src/contract_forge/     # właściciel kontraktu i serwer MCP
-    config/                 # contract.json i reguły enrichment/workflow
-    tests/
-    docs/
-    pyproject.toml
-docs/                       # dokumentacja całego monorepo
-```
+- `ai-data-contract-manager/` — conversational ADCM service and the only service that owns the user conversation and PydanticAI orchestration/heuristics.
+- `mcp-servers/mcp-contract-forge/` — deterministic Contract Forge MCP service.
+- `docs/` — system-level architecture and protocol documentation.
 
-Każda usługa ma własny manifest, środowisko `.venv`, zależności i testy. Korzeń
-monorepo nie jest pakietem Pythona.
+Each service has its own `pyproject.toml`, `.venv`, dependencies, tests, Dockerfile, documentation and version. Services never import runtime Python code from each other.
 
-## Uruchomienie
+Core architecture rule: Contract Forge is a mandatory deterministic dependency of ADCM. Atlassian, repository, schema-explorer and visualizer MCPs are optional/agentic tools available through ADCM's PydanticAI layer. Forge is never placed in the agent's free tool-choice set.
 
-Terminal 1:
+Forge isolates both contract-format evolution and enrichment evolution behind separate ports. Current enrichment is JSON-backed; a per-user repository can later be added without changing ADCM or Forge evaluation logic.
 
-```powershell
-cd mcp-servers\mcp-contract-forge
-.\.venv\Scripts\Activate.ps1
-contract-forge-mcp
-```
+## Mandatory architecture contract
 
-Terminal 2:
+Before any architecture planning, feature implementation or LLM-assisted refactor, read [`docs/architecture-guardrails.md`](docs/architecture-guardrails.md). It defines which service owns each responsibility, how contract/enrichment evolution must remain localized, how PydanticAI and MCPs are split, and the anti-patterns that require redesign.
 
-```powershell
-cd ai-data-contract-manager
-.\.venv\Scripts\Activate.ps1
-adcm-cli
-```
+Coding agents should also read [`AGENTS.md`](AGENTS.md). A structural change to `contract.json` must normally be contained in the Contract Forge contract-format adapter; a change of enrichment persistence must normally be contained behind `EnrichmentRepositoryPort`. Neither should propagate through ADCM.
 
-ADCM łączy się domyślnie z `http://127.0.0.1:8001/mcp`. Nie ma już trybu
-`--local-forge`; granica MCP obowiązuje również w minimalnym uruchomieniu.
 
-Pierwsze pytanie pokazuje skonfigurowane systemy jako podpowiedzi, ale lista nie jest
-zamknięta. Można podać także własny identyfikator, np. `oracle_erp`. Użytkownik
-odpowiada za podanie poprawnej postaci identyfikatora; wartość może być później użyta
-przez enrichment ogólny, np. przy wyliczeniu nazwy datasetu. Gdy schemat nie określa
-wzorca, ADCM przyjmuje tu bezpośrednią odpowiedź jednoczłonową, aby nie pomylić
-wcześniejszego zdania z nazwą systemu.
-Jeśli Contract Forge nie ma konfiguracji dla tego systemu, pominie enrichment
-systemowy, zapyta o typ źródła i przejdzie przez pozostałe wymagania, stosując
-enrichment ogólny oraz defaulty z `contract.json`.
+## Consolidated v0.4 behavior
 
-## Testy
+The current package includes progressive source-system-first discovery, fillable requirements, data-driven global/system enrichment, deterministic ADCM candidate validation, edit-after-complete behavior and fixed-point convergence guards. See `docs/CURRENT_STATE.md`, `docs/DECISIONS.md` and `docs/KNOWN_ISSUES.md` before extending it.
 
-```powershell
-ai-data-contract-manager\.venv\Scripts\python.exe -m pytest ai-data-contract-manager\tests -q
-mcp-servers\mcp-contract-forge\.venv\Scripts\python.exe -m pytest mcp-servers\mcp-contract-forge\tests -q
-```
-
-Pełny zestaw ADCM zawiera testy integracyjne Stage 07. Uruchamiają one Contract Forge
-jako osobny proces z `mcp-servers\mcp-contract-forge\.venv` i sprawdzają MCP Streamable
-HTTP, API oraz CLI bez łamania granicy pakietów.
-
-Dokumentacja architektury całego systemu znajduje się w [docs](docs/).
+The supplied latest contract artifact is preserved unchanged by Forge as `resources/contract.input.json`. The runtime `resources/contract.json` contains a documented minimal repair for dangling local `$ref` definitions in that artifact; see `mcp-servers/mcp-contract-forge/docs/contract-repair-note.md`. Replace those inferred definitions with authoritative schema definitions when available.

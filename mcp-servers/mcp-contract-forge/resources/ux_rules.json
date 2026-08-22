@@ -1,0 +1,35 @@
+{
+  "version": "3",
+  "rules": [
+    {
+      "id": "global.source_system.metadata_id",
+      "scope": "global",
+      "path": "/metadata/id",
+      "value": "{/metadata/sourceSystemGcpId}",
+      "when": {
+        "path": "/metadata/sourceSystemGcpId",
+        "exists": true
+      },
+      "priority": 100
+    },
+    {
+      "id": "global.source_system.technical_metadata",
+      "scope": "global",
+      "pathPattern": "/**/systemZrodlowy",
+      "value": "{/metadata/sourceSystemGcpId}",
+      "when": {
+        "path": "/metadata/sourceSystemGcpId",
+        "exists": true
+      },
+      "priority": 100
+    },
+    {
+      "id": "example.sap.silver_dataset",
+      "scope": "system",
+      "system": "sap",
+      "path": "/silver/tables/0/table/dataset",
+      "value": "silver_sap",
+      "priority": 10
+    }
+  ]
+}

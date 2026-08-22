@@ -1,65 +1,42 @@
 # AI Data Contract Manager
 
-ADCM jest usługą rozmowy i orkiestracji. Nie posiada schematu kontraktu ani reguł
-enrichmentu i nie importuje pakietu `contract_forge`. Wszystkie operacje na
-kanonicznym kontrakcie wykonuje przez Contract Forge MCP.
+ADCM is the conversational service. It owns sessions, evidence/provenance, PydanticAI semantic reasoning, optional context MCP tools and the deterministic Contract Forge stabilization loop.
 
-## Struktura
+Forge is configured by `ADCM_FORGE_MCP_URL` and is not part of the PydanticAI agent toolset. Optional context servers are configured through `ADCM_CONTEXT_MCP_URLS`.
 
-```text
-src/adcm/
-  api.py             # FastAPI
-  cli.py             # klient terminalowy
-  gateway.py         # klient MCP Streamable HTTP
-  orchestrator.py    # deterministyczna pętla rozmowy
-  heuristics.py      # parsowanie bez LLM
-  semantic.py        # kontrolowany resolver Pydantic AI
-  models.py          # modele aplikacji i DTO odpowiedzi Forge
-tests/
-docs/
-scripts/smoke_demo.py
-```
+ADCM keeps the LLM behind `HeuristicsPort`. The current local compatibility path supports OpenAI-compatible `/v1/chat/completions` endpoints that do not implement tool calling by using PydanticAI `PromptedOutput`.
 
-## Instalacja
+## Local startup
 
-```powershell
+From `ai-data-contract-manager/` after installing the service into its own virtual environment:
+
+```bash
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[openai,dev]"
-Copy-Item .env.example .env
+# Windows PowerShell: .venv\\Scripts\\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env  # Windows: copy .env.example .env
+python -m adcm.main
 ```
 
-Konfiguracja lokalnego gatewaya OpenAI-compatible:
+Alternatively run the ASGI application directly:
 
-```dotenv
-ADCM_LLM_MODE=pydantic
-ADCM_LLM_PROVIDER=openai_compatible
-ADCM_MODEL=auto
-ADCM_LLM_CONFIDENCE_THRESHOLD=0.80
-OPENAI_BASE_URL=http://127.0.0.1:3030/v1
-OPENAI_API_KEY=local-gateway
+```bash
+uvicorn adcm.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## Uruchomienie
+`python -m adcm.main` is supported by the service entrypoint and starts Uvicorn. Merely importing `adcm.main:app` never starts a server, which remains correct for Cloud Run/ASGI deployment.
 
-Najpierw uruchom osobny serwis `mcp-contract-forge`, a następnie:
+## OpenAI through PydanticAI
 
-```powershell
-adcm-cli
-# albo
-adcm-api
+Install dependencies from this service's `pyproject.toml` (the OpenAI optional group is included), then configure `.env`:
+
+```env
+ADCM_LLM_MODE=pydantic-ai
+ADCM_LLM_MODEL=gpt-4o
+# Optional for a local OpenAI-compatible endpoint:
+ADCM_LLM_BASE_URL=http://127.0.0.1:1234/v1
+OPENAI_API_KEY=local-or-real-key
 ```
 
-Endpoint MCP można zmienić przez `ADCM_MCP_URL`. Tryb in-process
-`--local-forge` został usunięty, aby pakiety pozostały niezależnymi usługami.
-
-## Testy
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Testy używają fałszywego gatewaya na granicy MCP; nie instalują ani nie importują
-implementacji Contract Forge. Testy w `tests/integration/` dodatkowo uruchamiają
-siostrzany serwis z jego własnego `.venv` i weryfikują prawdziwy transport MCP oraz
-smoke API/CLI, nadal bez importowania pakietu Forge do ADCM.
+The adapter constructs `OpenAIChatModel` with `OpenAIProvider`. Leave `ADCM_LLM_BASE_URL` empty for the official provider or set it for a compatible local endpoint. Keep API keys outside source control.

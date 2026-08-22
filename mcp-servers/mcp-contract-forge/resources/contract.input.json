@@ -1,0 +1,1606 @@
+{
+  "$defs": {
+    "DecryptConfig": {
+      "properties": {
+        "spec": {
+          "default": null,
+          "description": "Decryption method specification",
+          "title": "Spec"
+        }
+      },
+      "title": "DecryptConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "exists": true,
+            "path": "spec"
+          },
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "id": "preparator.decrypt.spec_required_when_enabled",
+          "kind": "conditional_required",
+          "message": "spec is required when decrypt.enabled is true.",
+          "path": "spec",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "DecryptConfig._require_spec_when_enabled"
+          }
+        }
+      ]
+    },
+    "DestPartitionColumnConfig": {
+      "additionalProperties": false,
+      "description": "Partition column definition for destination files.",
+      "properties": {
+        "name": {
+          "description": "Partition column name",
+          "title": "Name",
+          "type": "string"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional partition format pattern",
+          "title": "Format"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "DestPartitionColumnConfig",
+      "type": "object"
+    },
+    "DestPartitionConfig": {
+      "additionalProperties": false,
+      "description": "Destination partitioned output config for converter jobs.",
+      "properties": {
+        "mode": {
+          "default": "overwrite",
+          "description": "Write mode for destination path",
+          "enum": [
+            "overwrite",
+            "append"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "compression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Compression codec, e.g. snappy",
+          "title": "Compression"
+        },
+        "numPartitions": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional number of output partitions",
+          "title": "Num Partitions"
+        },
+        "columns": {
+          "description": "Partition columns written to output path",
+          "items": {
+            "$ref": "#/$defs/DestPartitionColumnConfig"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "title": "DestPartitionConfig",
+      "type": "object"
+    },
+    "FixedWidthColumnConfig": {
+      "additionalProperties": false,
+      "description": "Single fixed-width column definition.",
+      "properties": {
+        "name": {
+          "description": "Column name in DataFrame",
+          "title": "Name",
+          "type": "string"
+        },
+        "start": {
+          "description": "Start position in record",
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "description": "End position in record",
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "length": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Field length in characters",
+          "title": "Length"
+        },
+        "trim": {
+          "default": true,
+          "description": "Trim whitespace from extracted value",
+          "title": "Trim",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "start",
+        "end"
+      ],
+      "title": "FixedWidthColumnConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "equalsPath": "length",
+            "formula": "end - start + 1"
+          },
+          "id": "converter.fixed_width_column.length_matches_bounds",
+          "kind": "computed_consistency",
+          "message": "length must equal end - start + 1 (or is auto-filled when absent).",
+          "path": "length",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "FixedWidthColumnConfig.validate_and_fill_length"
+          }
+        },
+        {
+          "assertion": {
+            "gtePath": "start",
+            "path": "end"
+          },
+          "id": "converter.fixed_width_column.end_not_before_start",
+          "kind": "cross_field",
+          "message": "end must be greater than or equal to start.",
+          "path": "end",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "FixedWidthColumnConfig.validate_and_fill_length"
+          }
+        }
+      ]
+    },
+    "FixedWidthConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for parsing fixed-width files.",
+      "properties": {
+        "encoding": {
+          "default": "UTF-8",
+          "description": "File encoding",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "trimValues": {
+          "default": true,
+          "description": "Whether to trim extracted values",
+          "title": "Trim Values",
+          "type": "boolean"
+        },
+        "technicalHeader": {
+          "default": false,
+          "description": "Whether file contains a technical header row",
+          "title": "Technical Header",
+          "type": "boolean"
+        },
+        "columnHeader": {
+          "default": false,
+          "description": "Whether file contains a logical column header row",
+          "title": "Column Header",
+          "type": "boolean"
+        },
+        "lineSeparator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Line ending separator for fixed-width records",
+          "title": "Line Separator"
+        },
+        "skipHeaderLines": {
+          "default": 0,
+          "description": "Number of lines to skip at file start",
+          "minimum": 0,
+          "title": "Skip Header Lines",
+          "type": "integer"
+        },
+        "columns": {
+          "description": "Fixed-width columns with start/end",
+          "items": {
+            "$ref": "#/$defs/FixedWidthColumnConfig"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "FixedWidthConfig",
+      "type": "object"
+    },
+    "FixedWidthSourceConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for selecting fixed-width file source.",
+      "properties": {
+        "sourceType": {
+          "const": "fixed_width",
+          "default": "fixed_width",
+          "description": "Source type discriminator",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "dataDanych": {
+          "description": "Data date (Polish: data danych). Business or snapshot date of the source f",
+          "title": "Data Date",
+          "type": "string"
+        },
+        "systemZrodlowy": {
+          "description": "Source system name (Polish: system źródłowy). Lowercase ider",
+          "title": "Source System",
+          "type": "string"
+        },
+        "filenamePattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "File name mask/pattern",
+          "title": "Filename Pattern"
+        },
+        "fixedWidth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FixedWidthConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when source_type is fixed_width",
+          "title": "Fixed Width"
+        }
+      },
+      "required": [
+        "dataDanych",
+        "systemZrodlowy"
+      ],
+      "title": "FixedWidthSourceConfig",
+      "type": "object"
+    },
+    "GoldConfig": {
+      "additionalProperties": false,
+      "description": "Gold layer component — mart tables with historization support.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Enable this pipeline component. When false, the entire section is skipped.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "entries": {
+          "description": "List of gold tables produced by this pipeline",
+          "items": {
+            "$ref": "#/$defs/GoldEntryConfig"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entries"
+      ],
+      "title": "GoldConfig",
+      "type": "object"
+    },
+    "GoldEntryConfig": {
+      "additionalProperties": false,
+      "description": "Single Gold table or snapshot entry.",
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Destination BigQuery table generated for this gold entry.",
+          "title": "Table"
+        },
+        "historizationType": {
+          "default": "snapshot",
+          "description": "Historization strategy for this gold table",
+          "enum": [
+            "snapshot",
+            "scd2",
+            "scd1",
+            "none"
+          ],
+          "title": "Historization Type",
+          "type": "string"
+        },
+        "inheritColumns": {
+          "default": true,
+          "description": "When true, column definitions are inherited from the source silver table.",
+          "title": "Inherit Columns",
+          "type": "boolean"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/TransformedColumn"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit column definitions (required when inheritColumns is false)",
+          "title": "Columns"
+        },
+        "snapshotDataDateColumn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "data_danych",
+          "description": "Optional name of the column that stores the snapshot data date (used for snapshots)",
+          "title": "Snapshot Data Date Column"
+        }
+      },
+      "required": [
+        "table"
+      ],
+      "title": "GoldEntryConfig",
+      "type": "object"
+    },
+    "JdbcSourceConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for reading from a JDBC data source.",
+      "properties": {
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Column"
+                  },
+                  {
+                    "$ref": "#/$defs/FixedWidthColumnConfig"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of source columns. When present, replaces default source columns.",
+          "title": "Columns"
+        },
+        "sourceType": {
+          "const": "jdbc",
+          "default": "jdbc",
+          "description": "Source type discriminator",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "dbType": {
+          "default": "oracle",
+          "description": "Database type: oracle | mssql | db2 | informix | postgresql | db2zos",
+          "enum": [
+            "oracle",
+            "mssql",
+            "db2",
+            "informix",
+            "postgresql",
+            "db2zos"
+          ],
+          "title": "DB Type",
+          "type": "string"
+        },
+        "sourceTable": {
+          "description": "Source table or schema.table",
+          "title": "Source Table",
+          "type": "string"
+        },
+        "sourceSchema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional database schema (owner) prepended to source_table in the query as schema.table",
+          "title": "Source Schema"
+        },
+        "tableWhere": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional WHERE condition to filter source data (without the WHERE keyword)",
+          "title": "Table Where"
+        },
+        "jdbcConnectionName": {
+          "description": "JDBC connection label used to derive Vault paths (e.g. 'CODAS')",
+          "title": "JDBC Connection Name",
+          "type": "string"
+        },
+        "jdbcFetchSize": {
+          "default": 10000,
+          "description": "Number of rows fetched per batch (100 - 100 000)",
+          "maximum": 100000,
+          "minimum": 100,
+          "title": "JDBC Fetch Size",
+          "type": "integer"
+        },
+        "dataDanych": {
+          "description": "Source data date in YYYY-MM-DD format, e.g. '2026-07-01'. (alias: tSourceDate)",
+          "title": "Data Date",
+          "type": "string"
+        },
+        "systemZrodlowy": {
+          "description": "Source system identifier written to technical metadata, e.g. 'codas'. (alias: tSourceSystem)",
+          "title": "Source System",
+          "type": "string"
+        },
+        "sourceName": {
+          "description": "Business source name written to technical metadata, e.g. 'UMOWA'. For JDBC source, defaults to source_table if not specified.",
+          "title": "Source Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceTable",
+        "jdbcConnectionName",
+        "dataDanych",
+        "systemZrodlowy",
+        "sourceName"
+      ],
+      "title": "JdbcSourceConfig",
+      "type": "object"
+    },
+    "JsonSourceConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for reading JSON files.",
+      "properties": {
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Column"
+                  },
+                  {
+                    "$ref": "#/$defs/FixedWidthColumnConfig"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of source columns. When present, replaces default source columns.",
+          "title": "Columns"
+        },
+        "sourceType": {
+          "const": "json",
+          "default": "json",
+          "description": "Source type discriminator",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "dataDanych": {
+          "description": "Data date (Polish: data danych). Business or snapshot date of the source file. (alias: tSourceDate)",
+          "title": "Data Date",
+          "type": "string"
+        },
+        "systemZrodlowy": {
+          "description": "Source system name (Polish: system \u0017ar\u0000ódłowy). Lowercase identifier written to technical metadata, e.g. 'codas'. (alias: tSourceSystem)",
+          "title": "Source System",
+          "type": "string"
+        },
+        "filenamePattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "File name mask/pattern",
+          "title": "Filename Pattern"
+        },
+        "multiline": {
+          "default": false,
+          "description": "Whether JSON spans multiple lines per record",
+          "title": "Multiline",
+          "type": "boolean"
+        },
+        "encoding": {
+          "default": "UTF-8",
+          "description": "File encoding (alias: charset)",
+          "title": "Encoding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataDanych",
+        "systemZrodlowy"
+      ],
+      "title": "JsonSourceConfig",
+      "type": "object"
+    },
+    "MetadataConfig": {
+      "additionalProperties": false,
+      "description": "Pipeline metadata — identifies the pipeline and its version.",
+      "properties": {
+        "id": {
+          "description": "Unique configuration identifier",
+          "title": "ID",
+          "type": "string"
+        },
+        "version": {
+          "description": "Configuration version (SemVer, e.g., 1.0.0)",
+          "title": "Version",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable configuration description",
+          "title": "Description"
+        },
+        "sourceSystemGcpId": {
+          "description": "ID of the source system used in GCP resource names",
+          "title": "Source System Gcp ID",
+          "type": "string"
+        },
+        "dataFileId": {
+          "description": "Name of the data being processed (e.g., name of the table in Rocket). Used to determine file paths.",
+          "title": "Data File ID",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sourceSystemGcpId",
+        "dataFileId"
+      ],
+      "title": "MetadataConfig",
+      "type": "object"
+    },
+    "OpenPgpDecrypt": {
+      "additionalProperties": false,
+      "description": "OpenPGP decryption configuration.",
+      "properties": {
+        "method": {
+          "const": "openpgp",
+          "default": "openpgp",
+          "description": "Decryption method discriminator",
+          "title": "Method",
+          "type": "string"
+        },
+        "privateKeySecret": {
+          "description": "Secret Manager name for the private key",
+          "title": "Private Key Secret",
+          "type": "string"
+        },
+        "passphraseSecret": {
+          "description": "Secret Manager name for the passphrase",
+          "title": "Passphrase Secret",
+          "type": "string"
+        },
+        "outputFilename": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit output filename after decryption",
+          "title": "Output Filename"
+        }
+      },
+      "required": [
+        "privateKeySecret",
+        "passphraseSecret"
+      ],
+      "title": "OpenPgpDecrypt",
+      "type": "object"
+    },
+    "OpenSslDes3Decrypt": {
+      "additionalProperties": false,
+      "description": "OpenSSL DES3 decryption configuration.",
+      "properties": {
+        "method": {
+          "const": "openssl_des3",
+          "default": "openssl_des3",
+          "description": "Decryption method discriminator",
+          "title": "Method",
+          "type": "string"
+        },
+        "keySecret": {
+          "description": "Secret Manager name for the decryption key",
+          "title": "Key Secret",
+          "type": "string"
+        },
+        "keyDerivationHash": {
+          "default": "md5",
+          "description": "Hash algorithm for key derivation",
+          "enum": [
+            "md5",
+            "sha256",
+            "sha512"
+          ],
+          "title": "Key Derivation Hash",
+          "type": "string"
+        },
+        "outputFilename": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit output filename after decryption",
+          "title": "Output Filename"
+        }
+      },
+      "required": [
+        "keySecret"
+      ],
+      "title": "OpenSslDes3Decrypt",
+      "type": "object"
+    },
+    "OrchestrationConfig": {
+      "additionalProperties": false,
+      "description": "Airflow orchestration settings for generated DAGs.",
+      "properties": {
+        "dagId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Airflow DAG ID for the pipeline. If not provided, defaults to the pipeline ID from metadata.",
+          "title": "Dag ID"
+        },
+        "schedule": {
+          "description": "Cron expression or Airflow preset (@daily, @hourly, etc.)",
+          "title": "Schedule",
+          "type": "string"
+        },
+        "startDate": {
+          "description": "DAG start date in ISO format (YYYY-MM-DD). Airflow will not run any scheduled runs prior to this date.",
+          "title": "Start Date",
+          "type": "string"
+        },
+        "needsCatchup": {
+          "default": false,
+          "description": "Whether the DAG should backfill missed runs when deployed or stopped",
+          "title": "Needs Catchup",
+          "type": "boolean"
+        },
+        "useDeferrableTasks": {
+          "default": true,
+          "description": "Whether the tasks in DAG should be executed in deferred mode",
+          "title": "Use Deferrable Tasks",
+          "type": "boolean"
+        },
+        "maxActiveTasks": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional maximum number of concurrently running entity tasks",
+          "title": "Max Active Tasks"
+        }
+      },
+      "required": [
+        "schedule",
+        "startDate"
+      ],
+      "title": "OrchestrationConfig",
+      "type": "object"
+    },
+    "PreparatorConfig": {
+      "additionalProperties": false,
+      "description": "Preparator component — decrypt, unpack, and stage raw files.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Enable this pipeline component. When false, the entire section is skipped during generation.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparatorInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Input file list consumed by the preparator component. Optional in user-facing configs.",
+          "title": "Input"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparatorOutput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Output location where prepared files are written. Optional in user-facing configs.",
+          "title": "Output"
+        },
+        "operations": {
+          "$ref": "#/$defs/PreparatorOperations",
+          "description": "Operations that can be executed on the input files before staging.",
+          "title": "Operations"
+        },
+        "timeoutSeconds": {
+          "default": 1800,
+          "description": "Maximum execution time in seconds",
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "title": "PreparatorConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "anyOf": [
+              {
+                "equals": true,
+                "path": "operations.decrypt.enabled"
+              },
+              {
+                "equals": true,
+                "path": "operations.unpack.enabled"
+              }
+            ]
+          },
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "id": "preparator.enabled_requires_operation",
+          "kind": "cross_field",
+          "message": "When preparator.enabled is true, at least one operation must be enabled: operations.decrypt or operations.unpack.",
+          "path": "operations",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "PreparatorConfig._require_at_least_one_operation"
+          }
+        }
+      ]
+    },
+    "PreparatorInput": {
+      "additionalProperties": false,
+      "description": "Input file paths for the preparator.",
+      "properties": {
+        "files": {
+          "description": "GCS paths to input files (supports Jinja2 templates)",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "files"
+      ],
+      "title": "PreparatorInput",
+      "type": "object"
+    },
+    "PreparatorOperations": {
+      "additionalProperties": false,
+      "description": "Operations performed by the preparator on input files.",
+      "properties": {
+        "checksum": {
+          "$ref": "#/$defs/ChecksumConfig",
+          "description": "Checksum verification settings for input files.",
+          "title": "Checksum"
+        },
+        "decrypt": {
+          "$ref": "#/$defs/DecryptConfig",
+          "description": "Decryption settings applied before files are staged to output.",
+          "title": "Decrypt"
+        },
+        "unpack": {
+          "$ref": "#/$defs/UnpackConfig",
+          "description": "Archive unpacking settings applied before files are staged to output.",
+          "title": "Unpack"
+        }
+      },
+      "title": "PreparatorOperations",
+      "type": "object"
+    },
+    "PreparatorOutput": {
+      "additionalProperties": false,
+      "description": "Output location for the preparator.",
+      "properties": {
+        "path": {
+          "description": "GCS path prefix for output files",
+          "title": "Path",
+          "type": "string"
+        },
+        "overwrite": {
+          "default": false,
+          "description": "Overwrite existing files at output path",
+          "title": "Overwrite",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "PreparatorOutput",
+      "type": "object"
+    },
+    "RawDataConfig": {
+      "additionalProperties": false,
+      "description": "Raw data source configuration — GCS bucket and file format.",
+      "properties": {
+        "gcsBucketPath": {
+          "description": "Path within the GCS bucket for raw data files",
+          "title": "GCS Bucket Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gcsBucketPath"
+      ],
+      "title": "RawDataConfig",
+      "type": "object"
+    },
+    "RecordValidationConfig": {
+      "additionalProperties": false,
+      "description": "Validation rule evaluated on a full source row (can reference multiple columns).",
+      "properties": {
+        "macro": {
+          "description": "Validation macro name that accepts a row expression and returns BOOL",
+          "title": "Macro",
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional custom failure message (falls back to validation registry)",
+          "title": "Message"
+        }
+      },
+      "required": [
+        "macro"
+      ],
+      "title": "RecordValidationConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "notes": "Unknown names fail validation and include a closest-match hint.",
+          "path": "macro",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "RecordValidationConfig.check_macro_registered"
+          }
+        }
+      ]
+    },
+    "SilverConfig": {
+      "additionalProperties": false,
+      "description": "Silver layer component — dbt-managed transformation tables.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Enable this pipeline component. When false, the entire section is skipped during execution.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "tables": {
+          "description": "List of silver tables produced by this pipeline",
+          "items": {
+            "$ref": "#/$defs/SilverTableConfig"
+          },
+          "title": "Tables",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tables"
+      ],
+      "title": "SilverConfig",
+      "type": "object"
+    },
+    "SilverTableConfig": {
+      "additionalProperties": false,
+      "description": "Single Silver table — destination and columns with optional transformations.",
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "description": "Destination BigQuery table generated for this silver model.",
+          "title": "Table"
+        },
+        "source": {
+          "description": "Source table name in Bronze layer",
+          "title": "Source",
+          "type": "string"
+        },
+        "pk": {
+          "description": "Primary key column for deduplication",
+          "title": "Pk",
+          "type": "string"
+        },
+        "materialization": {
+          "default": "table",
+          "description": "dbt materialization strategy for this table",
+          "enum": [
+            "table",
+            "view",
+            "incremental"
+          ],
+          "title": "Materialization",
+          "type": "string"
+        },
+        "deduplicate": {
+          "default": true,
+          "description": "Whether to keep only the latest record per 'pk' using integration_process_timestamp",
+          "title": "Deduplicate",
+          "type": "boolean"
+        },
+        "businessKeyHash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BusinessKeyHashConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional compound business-key hash column generated in the silver model",
+          "title": "Business Key Hash"
+        },
+        "recordValidations": {
+          "description": "Optional table-level validation rules evaluated on full source rows. Useful for cross-column checks.",
+          "items": {
+            "$ref": "#/$defs/RecordValidationConfig"
+          },
+          "title": "Record Validations",
+          "type": "array"
+        },
+        "columns": {
+          "description": "Column definitions including source mapping and transformations",
+          "items": {
+            "$ref": "#/$defs/TransformedColumn"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "table",
+        "source",
+        "pk",
+        "columns"
+      ],
+      "title": "SilverTableConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "notIn": "columns[*].name",
+            "path": "businessKeyHash.name"
+          },
+          "id": "silver.business_key_hash.name_not_conflicting",
+          "kind": "cross_field",
+          "message": "businessKeyHash.name must be different from existing columns[].name.",
+          "path": "businessKeyHash.name",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "SilverTableConfig.validate_business_key_hash"
+          }
+        },
+        {
+          "assertion": {
+            "existsIn": "columns[*].name",
+            "path": "businessKeyHash.columns[*]"
+          },
+          "id": "silver.business_key_hash.columns_exist",
+          "kind": "reference_integrity",
+          "message": "businessKeyHash.columns must reference names present in columns[].name.",
+          "path": "businessKeyHash.columns",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "SilverTableConfig.validate_business_key_hash"
+          }
+        }
+      ]
+    },
+    "TechColumnsConfig": {
+      "additionalProperties": false,
+      "description": "Technical output columns emitted by converter jobs.",
+      "properties": {
+        "column": {
+          "description": "Technical columns added to the output dataset",
+          "items": {
+            "type": "string"
+          },
+          "title": "Column",
+          "type": "array"
+        }
+      },
+      "title": "TechColumnsConfig",
+      "type": "object"
+    },
+    "TransformedColumn": {
+      "additionalProperties": false,
+      "description": "Extended column with transformation logic, used in silver and gold layers.",
+      "properties": {
+        "name": {
+          "description": "Column name in target table",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "description": "BigQuery data type (STRING, INT64, BOOLEAN, etc.)",
+          "title": "Type",
+          "type": "string"
+        },
+        "nullable": {
+          "default": true,
+          "description": "Whether column can be null",
+          "title": "Nullable",
+          "type": "boolean"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column documentation",
+          "title": "Description"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source column name if different from target name",
+          "title": "Source"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Raw SQL expression to apply (overrides transformations list)",
+          "title": "Expression"
+        },
+        "transformations": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ordered list of named transformation macros to apply (e.g., ['trim', 'upper'])",
+          "title": "Transformations"
+        },
+        "validations": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ordered list of validation macro names to run against this column. Each macro...",
+          "title": "Validations"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "TransformedColumn",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "id": "transformed_column.validations.registered",
+          "kind": "registry_lookup",
+          "message": "Every validations[] macro must exist in VALIDATION_REGISTRY.",
+          "notes": "Unknown names fail validation and include closest-match suggestions.",
+          "path": "validations",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "TransformedColumn.check_validations_registered"
+          }
+        }
+      ]
+    },
+    "TxtSourceConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for reading fixed-format TXT files.",
+      "properties": {
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Column"
+                  },
+                  {
+                    "$ref": "#/$defs/FixedWidthSourceConfig"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional list of source columns. When present, replaces default source column inference",
+          "title": "Columns"
+        },
+        "sourceType": {
+          "const": "txt",
+          "default": "txt",
+          "description": "Source type discriminator",
+          "title": "Source Type",
+          "type": "string"
+        },
+        "dataDanych": {
+          "description": "Data date (Polish: data danych). Business or snapshot date of the source file",
+          "title": "Data Date",
+          "type": "string"
+        },
+        "systemZrodlowy": {
+          "description": "Source system name (Polish: system źródłowy). Lowercase identifier",
+          "title": "Source System",
+          "type": "string"
+        },
+        "numOffiles": {
+          "default": 1,
+          "description": "Number of files to load",
+          "minimum": 1,
+          "title": "Num Of Files",
+          "type": "integer"
+        },
+        "filenamePattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "File name mask/pattern",
+          "title": "Filename Pattern"
+        },
+        "sep": {
+          "default": ",",
+          "description": "Field delimiter character",
+          "title": "Sep",
+          "type": "string"
+        },
+        "quote": {
+          "default": "\"",
+          "description": "Quote character used to wrap fields",
+          "title": "Quote",
+          "type": "string"
+        },
+        "encoding": {
+          "description": "Source file encoding (alias: charset)",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "technicalHeader": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether technical header is present",
+          "title": "Technical Header"
+        },
+        "columnHeader": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether column headers are present",
+          "title": "Column Header"
+        },
+        "lineSeparator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Line ending separator",
+          "title": "Line Separator"
+        },
+        "skipHeaderLines": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of lines to skip at file start",
+          "title": "Skip Header Lines"
+        }
+      },
+      "required": [
+        "dataDanych",
+        "systemZrodlowy",
+        "encoding"
+      ],
+      "title": "TxtSourceConfig",
+      "type": "object"
+    },
+    "UnpackConfig": {
+      "additionalProperties": false,
+      "description": "Archive unpacking configuration.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "description": "Enable this archive unpacking step. When false, the unpack section is skipped",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "zip",
+                "gzip",
+                "targz",
+                "tar",
+                "compress_z"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Archive format to unpack",
+          "title": "Format"
+        },
+        "outputFilename": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Explicit output filename after unpacking",
+          "title": "Output Filename"
+        }
+      },
+      "title": "UnpackConfig",
+      "type": "object",
+      "x-contract-rules": [
+        {
+          "assertion": {
+            "exists": true,
+            "path": "format"
+          },
+          "condition": {
+            "equals": true,
+            "path": "enabled"
+          },
+          "id": "preparator.unpack.format_required_when_enabled",
+          "kind": "conditional_required",
+          "message": "Format is required when unpack.enabled is true.",
+          "path": "format",
+          "severity": "error",
+          "source": {
+            "pydantic_validator": "UnpackConfig._require_format_when_enabled"
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root configuration object for data pipeline generation. Passed to generator hub which di",
+  "properties": {
+    "metadata": {
+      "$ref": "#/$defs/MetadataConfig",
+      "description": "Pipeline identity and version",
+      "title": "Metadata"
+    },
+    "orchestration": {
+      "$ref": "#/$defs/OrchestrationConfig",
+      "description": "Airflow DAG scheduling and retry settings",
+      "title": "Orchestration"
+    },
+    "rawData": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RawDataConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Configuration for raw data source (GCS bucket, file format, etc.)",
+      "title": "Raw Data"
+    },
+    "bronzeTable": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BronzeTableConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Configuration for Bronze layer table (destination, schema, etc.)",
+      "title": "Bronze Table"
+    },
+    "preparator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PreparatorConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional: unzip/decrypt raw files before ingestion",
+      "title": "Preparator"
+    },
+    "converter": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConverterConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional: normalize source format to parquet via Spark",
+      "title": "Converter"
+    },
+    "silver": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SilverConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional: dbt-managed transformation tables (Silver layer)",
+      "title": "Silver"
+    },
+    "gold": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GoldConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional: mart tables with historization (Gold layer)",
+      "title": "Gold"
+    }
+  },
+  "required": [
+    "metadata",
+    "orchestration"
+  ],
+  "title": "IntegrationPipelineConfig",
+  "type": "object",
+  "x-contract-rules-spec": {
+    "conditionAndAssertionDsl": {
+      "compositeOperators": [
+        "anyOf",
+        "allOf",
+        "not"
+      ],
+      "extendedOperators": [
+        "existsIn",
+        "notIn",
+        "gtePath",
+        "equalsPath",
+        "formula"
+      ],
+      "leafOperators": [
+        "path",
+        "equals",
+        "notEquals",
+        "exists"
+      ]
+    },
+    "evaluationHint": "Treat each rule as an independent constraint over the validated config. If condition is om",
+    "location": "$defs.<Model>.x-contract-rules[]",
+    "optionalRuleFields": [
+      "kind",
+      "path",
+      "condition",
+      "assertion",
+      "source",
+      "notes"
+    ],
+    "pathSyntax": {
+      "arrayWildcard": "[*]",
+      "separator": "."
+    },
+    "requiredRuleFields": [
+      "id",
+      "message",
+      "severity"
+    ],
+    "sourceSchema": {
+      "pydantic_validator": "<ClassName>.<validator_method>"
+    },
+    "version": "1.0"
+  }
+}

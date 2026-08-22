@@ -1,42 +1,16 @@
 # MCP Contract Forge
 
-Contract Forge jest samodzielnym serwisem MCP i właścicielem kanonicznego kontraktu.
-Zawiera schemat, reguły enrichmentu/workflow, walidację i stan sesji Forge.
+Deterministic MCP service for contract discovery, defaults/enrichment and validation.
 
-## Struktura
+It intentionally does **not** depend on PydanticAI. The service uses Pydantic for typed models and the MCP Python SDK for transport.
 
-```text
-src/contract_forge/
-  contracts/        # port źródła kontraktu + adaptery
-  compiler.py       # walidacja definicji -> CompiledContract
-  contract_rules.py # wykonanie x-contract-rules
-config/
-  contract.json
-  ux_rules_contract_v1.json
-  ux_rules_original.json
-tests/
-docs/
-```
+Only the `contract_json_v1` adapter knows the supplied raw `contract.json` structure. A future structural change should be handled by replacing/adding this adapter while preserving normalized domain models and Forge API v1.
 
-Reguły biznesowe kontraktu opisuje [docs/CONTRACT_RULES.md](docs/CONTRACT_RULES.md).
-Kontrakt z nieznanym `kind` lub operatorem jest odrzucany przy starcie serwera.
 
-## Instalacja i uruchomienie
+## Discovery and enrichment
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
-contract-forge-mcp
-```
+`resources/discovery_rules.json` controls which formal requirements are visible now; it does not define validity. `resources/ux_rules.json` contains normalized enrichment data. Global rules support JSON-pointer value copying/interpolation and path patterns, while system rules are activated only when the semantic source-system context matches.
 
-Domyślny endpoint to `http://127.0.0.1:8001/mcp`. Konfigurację można zmienić
-zmiennymi opisanymi w `.env.example`.
+The source-system-first gate is a semantic anchor from `contract_json_v1/semantic_paths.py`, not a hard-coded ADCM path.
 
-## Testy
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Testy Forge nie importują ADCM.
+See `docs/requirement-discovery.md`, `docs/enrichment.md` and `docs/contract-repair-note.md`.

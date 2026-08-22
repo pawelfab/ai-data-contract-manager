@@ -1,0 +1,59 @@
+{
+  "version": "1.1",
+  "presentation": {
+    "@sourceSystem": {
+      "displayName": "System źródłowy",
+      "helpText": "Nazwa/identyfikator systemu źródłowego używany przez konfigurację, np. SAP lub Rocket."
+    }
+  },
+  "steps": [
+    {
+      "id": "source-system",
+      "whenMissing": ["@sourceSystem"],
+      "expose": ["@sourceSystem"]
+    },
+    {
+      "id": "metadata",
+      "whenPresent": ["@sourceSystem"],
+      "whenAnyMissing": [
+        "/metadata/id",
+        "/metadata/version",
+        "/metadata/dataFileId"
+      ],
+      "expose": [
+        "/metadata/id",
+        "/metadata/version",
+        "/metadata/dataFileId"
+      ]
+    },
+    {
+      "id": "orchestration",
+      "whenPresent": [
+        "@sourceSystem",
+        "/metadata/id",
+        "/metadata/version",
+        "/metadata/dataFileId"
+      ],
+      "whenAnyMissing": [
+        "/orchestration/schedule",
+        "/orchestration/startDate"
+      ],
+      "expose": [
+        "/orchestration/schedule",
+        "/orchestration/startDate"
+      ]
+    },
+    {
+      "id": "remaining",
+      "whenPresent": [
+        "@sourceSystem",
+        "/metadata/id",
+        "/metadata/version",
+        "/metadata/dataFileId",
+        "/orchestration/schedule",
+        "/orchestration/startDate"
+      ],
+      "exposeMatchingSchemaRequirements": true
+    }
+  ]
+}
