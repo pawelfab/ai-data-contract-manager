@@ -1,6 +1,6 @@
 # Generated repository map
 
-Generated: `2026-08-23T14:05:43.416942+00:00`
+Source snapshot: `84b8c2c9e24046d41bd3fb821514ca3313225690b381180785de555adb7f5042`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 

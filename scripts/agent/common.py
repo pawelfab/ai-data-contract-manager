@@ -5,7 +5,7 @@ import json
 import os
 import re
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +45,17 @@ def git_files() -> list[Path]:
     return [ROOT / line for line in result.stdout.splitlines() if line.strip()]
 
 
+def index_files() -> list[str]:
+    """Return paths represented by the Git index, excluding unstaged files."""
+
+    if not git_available():
+        raise RuntimeError("A staged snapshot requires a Git repository.")
+    result = run_git(["ls-files", "--cached"])
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or "Unable to list index files.")
+    return [line.strip().replace("\\", "/") for line in result.stdout.splitlines() if line.strip()]
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -68,25 +79,78 @@ def is_excluded(path: Path, config: dict[str, Any]) -> bool:
     return False
 
 
+def is_excluded_relative(path: str, config: dict[str, Any]) -> bool:
+    normalized_path = PurePosixPath(path).as_posix().strip("/")
+    parts = set(PurePosixPath(normalized_path).parts)
+    for item in config.get("exclude_dirs", []):
+        normalized_item = PurePosixPath(item).as_posix().strip("/")
+        if "/" in normalized_item:
+            if normalized_item in normalized_path:
+                return True
+        elif normalized_item in parts:
+            return True
+    return False
+
+
+def configured_source_paths(config: dict[str, Any], candidates: Iterable[str]) -> list[str]:
+    """Filter repository-relative paths using the configured source inventory rules."""
+
+    extensions = {item.lower() for item in config.get("source_extensions", [])}
+    roots = [PurePosixPath(item).as_posix().strip("/") for item in config.get("source_roots", [])]
+    result: list[str] = []
+    for candidate in candidates:
+        relative = PurePosixPath(candidate).as_posix().strip("/")
+        if is_excluded_relative(relative, config):
+            continue
+        if extensions and PurePosixPath(relative).suffix.lower() not in extensions:
+            continue
+        if roots and not any(relative == root or relative.startswith(f"{root}/") for root in roots):
+            continue
+        result.append(relative)
+    return sorted(set(result))
+
+
 def source_files(config: dict[str, Any]) -> list[Path]:
-    extensions = {x.lower() for x in config.get("source_extensions", [])}
-    roots = [ROOT / x for x in config.get("source_roots", [])]
-    active_roots = [p.resolve() for p in roots if p.exists()]
-    result: list[Path] = []
-    for path in git_files():
-        if not path.exists() or not path.is_file() or is_excluded(path, config):
-            continue
-        if extensions and path.suffix.lower() not in extensions:
-            continue
-        resolved = path.resolve()
-        if active_roots and not any(resolved == r or r in resolved.parents for r in active_roots):
-            continue
-        result.append(path)
-    return sorted(set(result), key=lambda p: rel(p))
+    candidates = [rel(path) for path in git_files() if path.exists() and path.is_file()]
+    return [ROOT / path for path in configured_source_paths(config, candidates)]
+
+
+def staged_source_paths(config: dict[str, Any]) -> list[str]:
+    """Return configured source paths from the staged Git index."""
+
+    return configured_source_paths(config, index_files())
+
+
+def read_staged_file(path: str) -> bytes:
+    """Read one file from the Git index, never from the working tree."""
+
+    if not git_available():
+        raise RuntimeError("A staged snapshot requires a Git repository.")
+    result = subprocess.run(
+        ["git", "show", f":{path}"],
+        cwd=ROOT,
+        capture_output=True,
+    )
+    if result.returncode:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        raise RuntimeError(detail or f"Unable to read {path} from the Git index.")
+    return result.stdout
 
 
 def current_source_hashes(config: dict[str, Any]) -> dict[str, str]:
     return {rel(path): sha256_file(path) for path in source_files(config)}
+
+
+def staged_source_hashes(config: dict[str, Any]) -> dict[str, str]:
+    return {
+        path: hashlib.sha256(read_staged_file(path)).hexdigest()
+        for path in staged_source_paths(config)
+    }
+
+
+def source_snapshot_id(source_hashes: dict[str, str]) -> str:
+    canonical = "".join(f"{path}\0{digest}\n" for path, digest in sorted(source_hashes.items()))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def documentation_relevant(path: str, config: dict[str, Any]) -> bool:

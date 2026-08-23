@@ -2,13 +2,21 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from common import ROOT, load_config, rel, sha256_file, source_files
+from common import (
+    ROOT,
+    load_config,
+    read_staged_file,
+    rel,
+    source_files,
+    source_snapshot_id,
+    staged_source_paths,
+)
 
 
 LANGUAGE_BY_SUFFIX = {
@@ -72,25 +80,28 @@ def generic_symbols(text: str) -> list[dict[str, Any]]:
     return sorted(found, key=lambda item: (item["line"], item["name"]))
 
 
-def inspect(path: Path) -> dict[str, Any]:
-    raw = path.read_bytes()
+def inspect_bytes(path: str, raw: bytes) -> dict[str, Any]:
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError:
         text = raw.decode("utf-8", errors="replace")
-    suffix = path.suffix.lower()
+    suffix = Path(path).suffix.lower()
     symbols = python_symbols(text) if suffix in {".py", ".pyi"} else generic_symbols(text)
     return {
-        "path": rel(path),
+        "path": path,
         "language": LANGUAGE_BY_SUFFIX.get(suffix, suffix.lstrip(".").upper() or "Unknown"),
         "bytes": len(raw),
         "lines": text.count("\n") + (1 if text else 0),
-        "sha256": sha256_file(path),
+        "sha256": hashlib.sha256(raw).hexdigest(),
         "symbols": symbols,
     }
 
 
-def render_map(items: list[dict[str, Any]], generated_at: str) -> str:
+def inspect(path: Path) -> dict[str, Any]:
+    return inspect_bytes(rel(path), path.read_bytes())
+
+
+def render_map(items: list[dict[str, Any]], snapshot_id: str) -> str:
     by_top: dict[str, list[dict[str, Any]]] = {}
     for item in items:
         top = item["path"].split("/", 1)[0]
@@ -99,7 +110,7 @@ def render_map(items: list[dict[str, Any]], generated_at: str) -> str:
     lines = [
         "# Generated repository map",
         "",
-        f"Generated: `{generated_at}`",
+        f"Source snapshot: `{snapshot_id}`",
         "",
         "> Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.",
         "",
@@ -125,16 +136,16 @@ def render_map(items: list[dict[str, Any]], generated_at: str) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate a language-light repository inventory.")
-    parser.parse_args()
-    config = load_config()
-    items = [inspect(path) for path in source_files(config)]
-    generated_at = datetime.now(timezone.utc).isoformat()
+def generate(config: dict[str, Any], *, staged: bool = False) -> list[dict[str, Any]]:
+    if staged:
+        items = [inspect_bytes(path, read_staged_file(path)) for path in staged_source_paths(config)]
+    else:
+        items = [inspect(path) for path in source_files(config)]
+    snapshot_id = source_snapshot_id({item["path"]: item["sha256"] for item in items})
     payload = {
         "schema_version": 1,
-        "generated_at": generated_at,
-        "repository_root": str(ROOT),
+        "source_snapshot": snapshot_id,
+        "repository_root": ".",
         "files": items,
     }
 
@@ -143,10 +154,18 @@ def main() -> int:
     inventory_path.parent.mkdir(parents=True, exist_ok=True)
     map_path.parent.mkdir(parents=True, exist_ok=True)
     inventory_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    map_path.write_text(render_map(items, generated_at), encoding="utf-8")
+    map_path.write_text(render_map(items, snapshot_id), encoding="utf-8")
     print(f"Indexed {len(items)} source files.")
     print(f"Wrote {inventory_path.relative_to(ROOT)}")
     print(f"Wrote {map_path.relative_to(ROOT)}")
+    return items
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Generate a language-light repository inventory.")
+    parser.add_argument("--staged", action="store_true", help="Read source files from the Git index.")
+    args = parser.parse_args()
+    generate(load_config(), staged=args.staged)
     return 0
 
 

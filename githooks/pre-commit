@@ -2,4 +2,5 @@
 set -eu
 
 python scripts/agent/doc_freshness.py --check-staged
+python scripts/agent/documentation_update.py --staged
 python scripts/agent/quality_gate.py --profile pre-commit

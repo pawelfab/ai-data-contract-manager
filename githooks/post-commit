@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-
-# A post-commit hook cannot amend the commit it follows. Generated documentation is
-# intentionally left in the working tree for review and a subsequent commit.
-python scripts/agent/documentation_update.py --after-commit || {
-  echo "warning: documentation generation failed; run scripts/agent/documentation_update.py manually" >&2
-}

@@ -1,17 +1,23 @@
 # Generated documentation impact
 
-Generated: `2026-08-23T14:05:44.566017+00:00`
-Commit: `6bb31de5f97be9ed762eac2c8adc9220b04c3666`
+Source snapshot: `84b8c2c9e24046d41bd3fb821514ca3313225690b381180785de555adb7f5042`
+Input: `staged Git index`
 
 > This deterministic review aid does not replace curated architecture or service documentation.
 
 ## Changed source paths
 
-- `docs/.freshness.json`
-- `docs/generated/documentation-impact.md`
-- `docs/generated/repository-inventory.json`
-- `docs/generated/repository-map.md`
+- `docs/documentation-automation.md`
+- `githooks/post-commit`
+- `githooks/pre-commit`
+- `scripts/agent/README.md`
+- `scripts/agent/common.py`
+- `scripts/agent/config.example.json`
+- `scripts/agent/config.json`
 - `scripts/agent/doc_freshness.py`
+- `scripts/agent/documentation_update.py`
+- `scripts/agent/repo_inventory.py`
+- `scripts/agent/tests/test_documentation_update.py`
 
 ## Curated documentation to review
 
@@ -19,4 +25,4 @@ Commit: `6bb31de5f97be9ed762eac2c8adc9220b04c3666`
 
 ## Commit workflow
 
-The pre-commit hook requires curated documentation with documentation-relevant code. The post-commit hook regenerates this report and the repository inventory, then records the source snapshot. Generated files are left unstaged for review and a subsequent commit.
+When documentation-relevant source is staged, the pre-commit hook generates these artifacts from the staged Git index and stages them in the same commit. The post-commit hook does not modify the working tree.

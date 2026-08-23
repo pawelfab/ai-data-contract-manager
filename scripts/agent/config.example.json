@@ -55,7 +55,9 @@
   "freshness_file": "docs/.freshness.json",
   "documentation_relevant_patterns": [
     "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
-    "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)"
+    "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)",
+    "^scripts/agent/",
+    "^githooks/"
   ],
   "documentation_evidence_patterns": [
     "^docs/(architecture|CURRENT_STATE|DECISIONS|service-boundaries|integration-flow|system-overview|documentation-automation)\\.md$",

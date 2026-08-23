@@ -3,19 +3,17 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from common import (
     ROOT,
-    architecture_dir,
     current_source_hashes,
     documentation_relevant,
-    git_available,
     load_config,
-    run_git,
+    source_snapshot_id,
     staged_files,
+    staged_source_hashes,
 )
 
 
@@ -59,24 +57,26 @@ def compare(config: dict[str, Any]) -> dict[str, Any]:
 
 
 def mark_current(config: dict[str, Any], reason: str) -> dict[str, Any]:
-    commit = None
-    branch = None
-    dirty = None
-    if git_available():
-        commit_result = run_git(["rev-parse", "HEAD"])
-        branch_result = run_git(["branch", "--show-current"])
-        status_result = run_git(["status", "--porcelain"])
-        commit = commit_result.stdout.strip() if commit_result.returncode == 0 else None
-        branch = branch_result.stdout.strip() if branch_result.returncode == 0 else None
-        dirty = bool(status_result.stdout.strip())
+    source_hashes = current_source_hashes(config)
     payload = {
-        "schema_version": 1,
-        "marked_at": datetime.now(timezone.utc).isoformat(),
+        "schema_version": 2,
         "reason": reason,
-        "commit": commit,
-        "branch": branch,
-        "working_tree_dirty": dirty,
-        "source_hashes": current_source_hashes(config),
+        "source_snapshot": source_snapshot_id(source_hashes),
+        "source_hashes": source_hashes,
+    }
+    path = ROOT / config["freshness_file"]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return payload
+
+
+def mark_staged(config: dict[str, Any], reason: str) -> dict[str, Any]:
+    source_hashes = staged_source_hashes(config)
+    payload = {
+        "schema_version": 2,
+        "reason": reason,
+        "source_snapshot": source_snapshot_id(source_hashes),
+        "source_hashes": source_hashes,
     }
     path = ROOT / config["freshness_file"]
     path.parent.mkdir(parents=True, exist_ok=True)

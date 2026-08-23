@@ -2,25 +2,27 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
-import sys
-from datetime import datetime, timezone
 
-from common import ROOT, current_source_hashes, git_available, load_config, run_git
-from doc_freshness import compare, mark_current
+from common import (
+    ROOT,
+    current_source_hashes,
+    documentation_relevant,
+    load_config,
+    run_git,
+    source_snapshot_id,
+    staged_files,
+    staged_source_hashes,
+)
+from doc_freshness import compare, mark_current, mark_staged
+from repo_inventory import generate as generate_inventory
 
 
-def changed_paths_after_commit(config: dict) -> tuple[str | None, list[str]]:
-    """Return paths in HEAD; remain usable when a repository export has no Git metadata."""
-
-    if git_available():
-        commit = run_git(["rev-parse", "HEAD"])
-        changed = run_git(["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"])
-        if commit.returncode == 0 and changed.returncode == 0:
-            return commit.stdout.strip(), sorted(
-                line.replace("\\", "/") for line in changed.stdout.splitlines() if line.strip()
-            )
-    return None, sorted(current_source_hashes(config))
+GENERATED_ARTIFACTS = (
+    "docs/generated/repository-inventory.json",
+    "docs/generated/repository-map.md",
+    "docs/generated/documentation-impact.md",
+    "docs/.freshness.json",
+)
 
 
 def suggested_docs(paths: list[str], config: dict) -> list[str]:
@@ -32,14 +34,14 @@ def suggested_docs(paths: list[str], config: dict) -> list[str]:
     return sorted(suggestions)
 
 
-def render_impact_report(*, commit: str | None, paths: list[str], config: dict) -> str:
-    generated_at = datetime.now(timezone.utc).isoformat()
+def render_impact_report(*, paths: list[str], snapshot_id: str, staged: bool, config: dict) -> str:
     suggestions = suggested_docs(paths, config)
+    source = "staged Git index" if staged else "working tree"
     lines = [
         "# Generated documentation impact",
         "",
-        f"Generated: `{generated_at}`",
-        f"Commit: `{commit or 'unavailable; current source inventory used'}`",
+        f"Source snapshot: `{snapshot_id}`",
+        f"Input: `{source}`",
         "",
         "> This deterministic review aid does not replace curated architecture or service documentation.",
         "",
@@ -53,36 +55,68 @@ def render_impact_report(*, commit: str | None, paths: list[str], config: dict) 
         "",
         "## Commit workflow",
         "",
-        "The pre-commit hook requires curated documentation with documentation-relevant code. "
-        "The post-commit hook regenerates this report and the repository inventory, then records the source snapshot. "
-        "Generated files are left unstaged for review and a subsequent commit.",
+        "When documentation-relevant source is staged, the pre-commit hook generates these artifacts "
+        "from the staged Git index and stages them in the same commit. "
+        "The post-commit hook does not modify the working tree.",
         "",
     ])
     return "\n".join(lines)
 
 
-def generate(config: dict, *, after_commit: bool) -> None:
-    inventory = ROOT / "scripts" / "agent" / "repo_inventory.py"
-    completed = subprocess.run([sys.executable, str(inventory)], cwd=ROOT, text=True)
-    if completed.returncode:
-        raise RuntimeError("repository inventory generation failed")
+def has_staged_documentation_relevant_source(config: dict) -> bool:
+    return any(documentation_relevant(path, config) for path in staged_files())
 
-    commit, paths = changed_paths_after_commit(config) if after_commit else (None, compare(config).get("changed", []))
+
+def staged_change_paths() -> list[str]:
+    return [path for path in staged_files() if path not in GENERATED_ARTIFACTS]
+
+
+def stage_generated_artifacts() -> None:
+    result = run_git(["add", "--", *GENERATED_ARTIFACTS])
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or "Unable to stage generated documentation.")
+
+
+def generate(config: dict, *, staged: bool = False) -> bool:
+    if staged:
+        if not has_staged_documentation_relevant_source(config):
+            print("No documentation-relevant source changes are staged; generated documentation is unchanged.")
+            return False
+        source_hashes = staged_source_hashes(config)
+        paths = staged_change_paths()
+    else:
+        freshness = compare(config)
+        if freshness["status"] == "CURRENT":
+            print("Documentation freshness is current; generated documentation is unchanged.")
+            return False
+        source_hashes = current_source_hashes(config)
+        paths = freshness["changed"]
+
+    snapshot_id = source_snapshot_id(source_hashes)
+    generate_inventory(config, staged=staged)
     report_path = ROOT / config["documentation_impact_report"]
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(render_impact_report(commit=commit, paths=paths, config=config), encoding="utf-8")
+    report_path.write_text(
+        render_impact_report(paths=paths, snapshot_id=snapshot_id, staged=staged, config=config),
+        encoding="utf-8",
+    )
 
-    reason = "post-commit documentation generation" if after_commit else "manual documentation generation"
-    mark_current(config, reason)
+    reason = "pre-commit staged documentation generation" if staged else "manual documentation generation"
+    if staged:
+        mark_staged(config, reason)
+        stage_generated_artifacts()
+    else:
+        mark_current(config, reason)
     print(f"Wrote {report_path.relative_to(ROOT)}")
     print(f"Updated {config['freshness_file']}")
+    return True
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate repository documentation aids and update freshness state.")
-    parser.add_argument("--after-commit", action="store_true", help="Describe the commit at HEAD.")
+    parser = argparse.ArgumentParser(description="Generate deterministic repository documentation aids.")
+    parser.add_argument("--staged", action="store_true", help="Generate from the staged Git index and stage outputs.")
     args = parser.parse_args()
-    generate(load_config(), after_commit=args.after_commit)
+    generate(load_config(), staged=args.staged)
     return 0
 
 
