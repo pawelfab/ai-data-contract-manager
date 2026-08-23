@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+- Support discriminated `oneOf` unions. `properties.source` was a `oneOf` the Requirement Engine never entered, so `sourceType: "sap"` was reported as a **valid** contract with no issues, and no `/source/*` field was ever discovered.
+- Add `x-discriminator` as a generic contract annotation and a `UnionBranchSelector`: the discriminator is asked for first (carrying its allowed values), then only the selected branch is walked. An unknown value is an error listing the allowed values; a union without the annotation stays atomic.
+- Reject ambiguous unions at load time via `source_linter` — duplicate discriminator values, or a branch with no `const`/`enum` for the discriminator, are contract defects, not user-document problems.
+- Add `allowed_values` to `Requirement`, filled for any schema with `const`/`enum`.
+- Add `JsonSchemaValidator` (`Draft202012Validator`, a dependency declared since 0.2.0 but never used). `valid` is now decided by full schema validation instead of by whatever the discovery walker found: `valid = not schema_errors and not rule_errors`.
+- Add `schema_validation_issue_mapper` so presentation policy lives outside the validator. Missing-data and union-container errors stay out of `issues`; a failed discriminated union is re-reported against the branch the document selected, so a wrong value inside it is not lost.
+
 ## 0.4.1
 
 - Requirement Engine now enters required arrays, so enabling a component (`silver.enabled = true`) discovers its table instead of stopping at `/silver/tables`. Previously those requirements appeared only once enrichment had materialised element 0.

@@ -9,9 +9,11 @@ from contract_forge.application.ports.enrichment_source import EnrichmentReposit
 from contract_forge.application.services.enrichment_context import EnrichmentContextBuilder
 from contract_forge.application.services.enrichment_resolver import resolve_enrichment
 from contract_forge.application.services.fillable_requirements import fillable_requirements
+from contract_forge.application.services.json_schema_validator import JsonSchemaValidator
 from contract_forge.application.services.requirement_discovery import RequirementDiscovery
 from contract_forge.application.services.rule_engine import evaluate_rules
 from contract_forge.application.services.schema_engine import evaluate_schema
+from contract_forge.application.services.schema_validation_issue_mapper import map_schema_errors
 from contract_forge.domain.evaluation.models import ForgeEvaluation, ValidationIssue
 from contract_forge.utils.pointer import exists_pointer
 
@@ -31,6 +33,7 @@ class EvaluateContract:
         self.enrichment_repository = enrichment_repository
         self.discovery_policy_repository = discovery_policy_repository
         self.discovery_strict = discovery_strict
+        self.schema_validator = JsonSchemaValidator()
 
     def execute(self, document: dict[str, Any], user_id: str | None = None) -> ForgeEvaluation:
         raw = self.contract_source.load_raw()
@@ -41,9 +44,13 @@ class EvaluateContract:
         formal_requirements = _dedup_requirements(schema_req + rule_req)
         issues += rule_issues
 
-        # Final validity is intentionally independent from UX discovery/filtering.
-        unresolved_formal = [r for r in formal_requirements if not exists_pointer(document, r.path)]
-        valid = not unresolved_formal and not [i for i in issues if i.severity == "error"]
+        # The Requirement Engine is a discovery tool and may not cover every keyword, so it is
+        # never the authority on correctness. `valid` means "this contract is finally correct",
+        # not "the conversation can continue" — the conversation is driven by `requirements`,
+        # and an in-progress document is legitimately invalid.
+        schema_errors = self.schema_validator.validate(contract.raw_schema, document)
+        valid = not schema_errors and not [i for i in rule_issues if i.severity == "error"]
+        issues += _dedup_issues(map_schema_errors(schema_errors), issues)
 
         fillable = fillable_requirements(formal_requirements)
         discovery = RequirementDiscovery(
@@ -87,6 +94,13 @@ class EvaluateContract:
             issues=issues,
             valid=valid,
         )
+
+
+def _dedup_issues(candidates, existing):
+    """The schema engine already reports const/enum/minItems precisely; keep its wording."""
+
+    taken = {(i.path, i.severity) for i in existing}
+    return [i for i in candidates if (i.path, i.severity) not in taken]
 
 
 def _dedup_requirements(items):

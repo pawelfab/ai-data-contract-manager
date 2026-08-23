@@ -10,6 +10,9 @@ class Requirement(BaseModel):
     title: str | None = None
     description: str | None = None
     expected_type: str | None = Field(None, alias="expectedType")
+    # Values Forge will accept here. ADCM checks membership and nothing else — it never
+    # interprets what a value means or which branch of the contract it selects.
+    allowed_values: list[Any] = Field(default_factory=list, alias="allowedValues")
     display_name: str | None = Field(None, alias="displayName")
     help_text: str | None = Field(None, alias="helpText")
 

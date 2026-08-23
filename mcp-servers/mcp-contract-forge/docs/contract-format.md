@@ -14,6 +14,32 @@ discovery_rules.json         → in which order requirements are shown
 
 Keeping them apart is what stops a UX wish from being encoded as a fake constraint, and a real constraint from silently changing the conversation.
 
+## `x-discriminator`
+
+Marks a `oneOf` as a discriminated union and names the property that selects the branch:
+
+```json
+"source": {
+  "oneOf": [
+    {"$ref": "#/$defs/JdbcSourceConfig"},
+    {"$ref": "#/$defs/JsonSourceConfig"},
+    {"$ref": "#/$defs/TxtSourceConfig"},
+    {"$ref": "#/$defs/FixedWidthSourceConfig"}
+  ],
+  "x-discriminator": { "path": "sourceType" }
+}
+```
+
+The accepted values are read from each branch's `const` (or `enum`) for that property — the
+annotation never repeats them, so it cannot drift from the branches. A `oneOf` without the
+annotation is not selectable and stays atomic: the union node itself is the requirement.
+
+Two defects are static properties of the contract and therefore fail at **load** time, through
+`source_linter`, rather than surfacing later as a puzzling problem with a user's document:
+
+- two branches claiming the same discriminator value;
+- a branch that declares no `const`/`enum` for the discriminator.
+
 ## `x-requirement-expand-items`
 
 A boolean annotation on an array property. Without it an array is **atomic**: the array itself is the requirement and is filled as a whole. With it, Forge may expand missing elements into per-field requirements — bounded by `minItems`, never beyond.

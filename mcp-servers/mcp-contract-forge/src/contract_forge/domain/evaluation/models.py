@@ -10,6 +10,9 @@ class Requirement(BaseModel):
     title: str | None = None
     description: str | None = None
     expected_type: str | None = Field(None, alias="expectedType")
+    # Values the contract accepts here, from `const`/`enum` or a union discriminator. ADCM
+    # checks membership generically; it never interprets what the values mean.
+    allowed_values: list[Any] = Field(default_factory=list, alias="allowedValues")
     display_name: str | None = Field(None, alias="displayName")
     help_text: str | None = Field(None, alias="helpText")
 
@@ -35,7 +38,7 @@ class ValidationIssue(BaseModel):
 class ForgeEvaluation(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     api_version: str = Field("1", alias="apiVersion")
-    forge_version: str = Field("0.4.1", alias="forgeVersion")
+    forge_version: str = Field("0.5.0", alias="forgeVersion")
     schema_version: str | None = Field(None, alias="schemaVersion")
     rules_spec_version: str | None = Field(None, alias="rulesSpecVersion")
     requirements: list[Requirement] = Field(default_factory=list)

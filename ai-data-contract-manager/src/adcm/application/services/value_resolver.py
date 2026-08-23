@@ -96,6 +96,9 @@ class ValueResolver:
             if matching and matching.path == candidate.path and not _type_matches(candidate.value, matching.expected_type):
                 decisions.append(_decision(candidate, CandidateDecisionStatus.REJECTED, "invalid_type"))
                 continue
+            if matching and matching.path == candidate.path and matching.allowed_values and candidate.value not in matching.allowed_values:
+                decisions.append(_decision(candidate, CandidateDecisionStatus.REJECTED, "value_not_allowed"))
+                continue
             if _destroys_container(current_document, candidate.path, candidate.value):
                 decisions.append(_decision(candidate, CandidateDecisionStatus.REJECTED, "destroys_container"))
                 continue

@@ -101,3 +101,45 @@ def test_same_accepted_value_is_not_progress():
     )
     assert outcome.decisions[0].status == CandidateDecisionStatus.ACCEPTED
     assert outcome.changed is False
+
+
+# Forge tells ADCM which values it will accept; ADCM checks membership and nothing else.
+# The requirement below is deliberately anonymous — ADCM must not care what it selects.
+CHOICE = [Requirement(path="/x", expectedType="string", allowedValues=["one", "two"])]
+
+
+def test_value_outside_the_allowed_set_is_rejected():
+    state = ContractState()
+    outcome = ValueResolver().apply_candidates(
+        state,
+        [Candidate(path="/x", value="three", evidence_id="e")],
+        evidence(),
+        CHOICE,
+    )
+    assert outcome.decisions[0].status == CandidateDecisionStatus.REJECTED
+    assert outcome.decisions[0].reason == "value_not_allowed"
+    assert outcome.changed is False
+    assert state.latest_user_values() == {}
+
+
+def test_value_inside_the_allowed_set_is_accepted():
+    state = ContractState()
+    outcome = ValueResolver().apply_candidates(
+        state,
+        [Candidate(path="/x", value="two", evidence_id="e")],
+        evidence(),
+        CHOICE,
+    )
+    assert outcome.decisions[0].status == CandidateDecisionStatus.ACCEPTED
+    assert state.effective_document()["x"] == "two"
+
+
+def test_a_requirement_without_an_allowed_set_constrains_nothing():
+    state = ContractState()
+    outcome = ValueResolver().apply_candidates(
+        state,
+        [Candidate(path="/x", value="anything", evidence_id="e")],
+        evidence(),
+        [Requirement(path="/x", expectedType="string")],
+    )
+    assert outcome.decisions[0].status == CandidateDecisionStatus.ACCEPTED

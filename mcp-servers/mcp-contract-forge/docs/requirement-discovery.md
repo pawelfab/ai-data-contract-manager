@@ -37,6 +37,21 @@ A malformed policy produces `DiscoveryPolicyIssue` values. In production these a
 
 Structural parents are not questions when their existence follows from filling required children. For example `/metadata` is removed when `/metadata/id` and other child requirements exist. A genuinely fillable array/object leaf such as a columns array remains a requirement.
 
+## Discriminated unions
+
+The discriminator is the question; the branch comes after it.
+
+| state | what Forge does |
+|---|---|
+| `oneOf` without `x-discriminator` | union stays atomic — the node itself is the requirement |
+| discriminator absent | one requirement: the discriminator, carrying `allowed_values`. **Never** a merge of requirements from every branch |
+| discriminator matches a branch | descend into that branch only |
+| discriminator matches nothing | `error` issue listing the allowed values; no branch selected |
+
+`allowed_values` is filled generically for every requirement whose schema has `const` or
+`enum`, not only for discriminators. ADCM checks membership and nothing else — it never
+learns what a value means or which branch it selects.
+
 ## Arrays
 
 The Requirement Engine expands structure only as deep as the schema deterministically says it should:
@@ -62,6 +77,44 @@ Defaulting to atomic matters for collections a user states in one breath. `Silve
 A cardinality issue is reported only for an array that is present and too short. An absent array already carries its own requirement, so reporting it twice would be noise.
 
 Known limitation: Forge cannot ask for elements beyond `minItems`. A pipeline with two silver tables discovers only `tables[0]`; adding another needs a mechanism that does not exist yet.
+
+## Discovery is not validation
+
+Two services read the contract and they answer different questions:
+
+```text
+contract.json
+   ├── RequirementEngine   → requirements: what we ask about now
+   └── JsonSchemaValidator → schema errors: whether the document is correct
+```
+
+The Requirement Engine walks the schema the way a conversation needs it. That walker may
+legitimately not cover every keyword — it did not understand `oneOf` for a long time, and an
+invalid `sourceType` passed as a valid contract because of it. Correctness must never depend
+on the walker, so `valid` is decided by `Draft202012Validator` against the complete raw schema:
+
+```python
+valid = not schema_errors and not rule_errors
+```
+
+**`valid` means "this contract is finally correct", not "the conversation can continue."**
+An in-progress document is legitimately `valid: False` while still having open `requirements`;
+those two signals must not be conflated. ADCM already keeps them apart — it renders YAML only
+when `valid and not unresolved and not decision_warnings`, and asks questions from
+`requirements`.
+
+### Which formal errors reach the user
+
+`JsonSchemaValidator` reports violations; `schema_validation_issue_mapper` decides which ones
+a person should see, so changing presentation never changes what `valid` is computed from.
+
+Suppressed: `required`, `oneOf`, `anyOf`, `allOf`. Absence is what `requirements` are for, and
+a union container error cannot tell a wrong discriminator apart from a right discriminator with
+an unfinished branch — both produce the identical message. Everything else (`const`, `enum`,
+`type`, `pattern`, `minItems`, …) is shown: it always means an existing value is wrong.
+
+So that a mistake inside a chosen branch is not lost with the container error, the validator
+re-reports a failed discriminated union against the branch the document actually selected.
 
 ## Enrichment interaction
 

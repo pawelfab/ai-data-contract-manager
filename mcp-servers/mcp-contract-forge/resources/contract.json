@@ -1806,6 +1806,9 @@
           "$ref": "#/$defs/FixedWidthSourceConfig"
         }
       ],
+      "x-discriminator": {
+        "path": "sourceType"
+      },
       "description": "Source data configuration. sourceType selects the concrete source model.",
       "title": "Source"
     }

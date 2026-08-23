@@ -1,8 +1,13 @@
 from typing import Any
+from contract_forge.application.services.union_branch_selector import (
+    BranchSelectionStatus,
+    UnionBranchSelector,
+)
 from contract_forge.domain.evaluation.models import Requirement, SuggestedValue, ValidationIssue
 from contract_forge.utils.pointer import get_pointer, exists_pointer
 
 NULL=object()
+_UNIONS=UnionBranchSelector()
 
 # Discovery annotation, deliberately separate from `minItems`:
 #   minItems   -> how many elements the contract requires (validation)
@@ -22,6 +27,36 @@ def _walk(schema:dict,path:str,document:dict,defs:dict,active:bool,req,sug,issue
         name=schema["$ref"].split("/")[-1]; target=defs.get(name)
         if target: _walk(target,path,document,defs,active,req,sug,issues)
         return
+    # oneOf: a discriminated union. The discriminator is the question; the branch comes after.
+    if "oneOf" in schema:
+        if not _UNIONS.selects(schema):
+            return  # no discriminator declared -> the union node stays atomic
+        selection=_UNIONS.select(schema,path,document,defs)
+        if selection.status is BranchSelectionStatus.SELECTED:
+            _walk(selection.branch,path,document,defs,True,req,sug,issues)
+        elif selection.status is BranchSelectionStatus.MISSING_DISCRIMINATOR:
+            # Only the discriminator, never a merge of requirements from every branch.
+            req.append(Requirement(
+                path=selection.discriminator_path,
+                kind="schema",
+                title=schema.get("title"),
+                description=schema.get("description"),
+                expectedType=_discriminator_type(selection.allowed_values),
+                allowedValues=selection.allowed_values,
+            ))
+        elif selection.status is BranchSelectionStatus.INVALID_DISCRIMINATOR:
+            issues.append(ValidationIssue(
+                path=selection.discriminator_path,
+                severity="error",
+                message=f"Allowed values: {', '.join(repr(v) for v in selection.allowed_values)}",
+            ))
+        else:  # AMBIGUOUS - a contract defect the linter normally rejects at load time
+            issues.append(ValidationIssue(
+                path=selection.discriminator_path,
+                severity="warning",
+                message="Contract defect: more than one branch accepts this discriminator value",
+            ))
+        return
     # anyOf: choose non-null ref/object branch when the value exists, otherwise collect defaults only conservatively
     if "anyOf" in schema:
         value=get_pointer(document,path,NULL) if path else document
@@ -36,7 +71,7 @@ def _walk(schema:dict,path:str,document:dict,defs:dict,active:bool,req,sug,issue
         child_path=path+"/"+_esc(name)
         present=exists_pointer(document,child_path)
         if name in required_names and not present:
-            req.append(Requirement(path=child_path,kind="schema",title=child.get("title"),description=child.get("description"),expectedType=_type(child)))
+            req.append(Requirement(path=child_path,kind="schema",title=child.get("title"),description=child.get("description"),expectedType=_type(child),allowedValues=_allowed_values(child)))
         # descend if child present. For required object refs, descend as well so subrequirements are discoverable.
         # Required arrays are entered too, so cardinality and expansion below can run at all.
         descend=present or (name in required_names and (_objectish(child) or child.get("type")=="array"))
@@ -62,12 +97,22 @@ def _walk(schema:dict,path:str,document:dict,defs:dict,active:bool,req,sug,issue
         if const is not None and value != const: issues.append(ValidationIssue(path=path,message=f"Value must equal {const!r}"))
 
 def _objectish(s):
-    return s.get("type")=="object" or "$ref" in s or any("$ref" in b for b in s.get("anyOf",[]) if isinstance(b,dict))
+    # A union node must be entered too, otherwise its discriminator is never asked about.
+    return s.get("type")=="object" or "$ref" in s or any(
+        "$ref" in b for key in ("anyOf","oneOf") for b in s.get(key,[]) if isinstance(b,dict)
+    )
 def _type(s):
     if "type" in s: return s["type"]
-    for b in s.get("anyOf",[]):
-        if b.get("type") not in (None,"null"): return b.get("type")
-    return "object" if "$ref" in s else None
+    for key in ("anyOf","oneOf"):
+        for b in s.get(key,[]):
+            if isinstance(b,dict) and b.get("type") not in (None,"null"): return b.get("type")
+    return "object" if ("$ref" in s or "oneOf" in s) else None
+def _allowed_values(s):
+    if "const" in s: return [s["const"]]
+    enum=s.get("enum")
+    return list(enum) if isinstance(enum,list) else []
+def _discriminator_type(values):
+    return "string" if all(isinstance(v,str) for v in values) and values else None
 def _esc(x): return x.replace("~","~0").replace("/","~1")
 def _dedup_req(items):
     out={};
