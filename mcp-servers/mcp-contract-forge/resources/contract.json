@@ -1,10 +1,248 @@
 {
   "$defs": {
-    "DecryptConfig": {
+    "BigQueryTable": {
+      "additionalProperties": false,
+      "description": "BigQuery destination table identifier.",
       "properties": {
-        "spec": {
+        "project": {
+          "type": "string",
+          "title": "Project"
+        },
+        "dataset": {
+          "type": "string",
+          "title": "Dataset"
+        },
+        "table": {
+          "type": "string",
+          "title": "Table"
+        }
+      },
+      "required": [
+        "project",
+        "dataset",
+        "table"
+      ],
+      "title": "BigQueryTable",
+      "type": "object"
+    },
+    "Column": {
+      "additionalProperties": false,
+      "description": "Generic source column definition.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "type": {
+          "type": "string",
+          "title": "Type"
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": true,
+          "title": "Nullable"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
           "default": null,
-          "description": "Decryption method specification",
+          "title": "Description"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "Column",
+      "type": "object"
+    },
+    "ChecksumConfig": {
+      "additionalProperties": false,
+      "description": "Checksum verification configuration.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "title": "Enabled"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "md5",
+            "sha256",
+            "sha512"
+          ],
+          "default": "sha256",
+          "title": "Algorithm"
+        },
+        "checksumFile": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checksum File"
+        }
+      },
+      "title": "ChecksumConfig",
+      "type": "object"
+    },
+    "BusinessKeyHashConfig": {
+      "additionalProperties": false,
+      "description": "Configuration of a derived business-key hash column.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Columns"
+        },
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "md5",
+            "sha256"
+          ],
+          "default": "sha256",
+          "title": "Algorithm"
+        }
+      },
+      "required": [
+        "name",
+        "columns"
+      ],
+      "title": "BusinessKeyHashConfig",
+      "type": "object"
+    },
+    "BronzeTableConfig": {
+      "additionalProperties": false,
+      "description": "Bronze layer BigQuery destination.",
+      "properties": {
+        "table": {
+          "$ref": "#/$defs/BigQueryTable",
+          "title": "Table"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Column"
+          },
+          "title": "Columns"
+        }
+      },
+      "required": [
+        "table",
+        "columns"
+      ],
+      "title": "BronzeTableConfig",
+      "type": "object"
+    },
+    "ConverterConfig": {
+      "additionalProperties": false,
+      "description": "Converter component used to normalize source files.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "title": "Enabled"
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": [
+                "parquet"
+              ],
+              "default": "parquet",
+              "title": "Format"
+            },
+            "path": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Path"
+            }
+          },
+          "title": "Output"
+        },
+        "destinationPartition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DestPartitionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional destination partitioning configuration.",
+          "title": "Destination Partition"
+        },
+        "techColumns": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TechColumnsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional technical columns emitted by the converter.",
+          "title": "Tech Columns"
+        }
+      },
+      "title": "ConverterConfig",
+      "type": "object"
+    },
+    "DecryptConfig": {
+      "additionalProperties": false,
+      "description": "Decryption configuration. When enabled, a concrete decryption specification is required.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "description": "Enable decryption.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "spec": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OpenPgpDecrypt"
+            },
+            {
+              "$ref": "#/$defs/OpenSslDes3Decrypt"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Decryption method specification.",
           "title": "Spec"
         }
       },
@@ -292,22 +530,16 @@
           "title": "Filename Pattern"
         },
         "fixedWidth": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/FixedWidthConfig"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Required when source_type is fixed_width",
+          "$ref": "#/$defs/FixedWidthConfig",
+          "description": "Fixed-width parser configuration required for fixed_width sources.",
           "title": "Fixed Width"
         }
       },
       "required": [
+        "sourceType",
         "dataDanych",
-        "systemZrodlowy"
+        "systemZrodlowy",
+        "fixedWidth"
       ],
       "title": "FixedWidthSourceConfig",
       "type": "object"
@@ -509,6 +741,7 @@
         }
       },
       "required": [
+        "sourceType",
         "sourceTable",
         "jdbcConnectionName",
         "dataDanych",
@@ -589,6 +822,7 @@
         }
       },
       "required": [
+        "sourceType",
         "dataDanych",
         "systemZrodlowy"
       ],
@@ -1262,7 +1496,7 @@
                     "$ref": "#/$defs/Column"
                   },
                   {
-                    "$ref": "#/$defs/FixedWidthSourceConfig"
+                    "$ref": "#/$defs/FixedWidthColumnConfig"
                   }
                 ]
               },
@@ -1385,6 +1619,7 @@
         }
       },
       "required": [
+        "sourceType",
         "dataDanych",
         "systemZrodlowy",
         "encoding"
@@ -1458,205 +1693,6 @@
           }
         }
       ]
-    },
-    "BigQueryTable": {
-      "title": "BigQueryTable",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "BigQuery destination table coordinates.",
-      "properties": {
-        "project": {
-          "type": "string",
-          "title": "Project",
-          "description": "GCP project identifier"
-        },
-        "dataset": {
-          "type": "string",
-          "title": "Dataset",
-          "description": "BigQuery dataset name"
-        },
-        "table": {
-          "type": "string",
-          "title": "Table",
-          "description": "BigQuery table name"
-        }
-      },
-      "required": [
-        "project",
-        "dataset",
-        "table"
-      ]
-    },
-    "Column": {
-      "title": "Column",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Generic source column definition.",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name"
-        },
-        "type": {
-          "type": "string",
-          "title": "Type"
-        },
-        "nullable": {
-          "type": "boolean",
-          "default": true,
-          "title": "Nullable"
-        },
-        "description": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Description"
-        }
-      },
-      "required": [
-        "name",
-        "type"
-      ]
-    },
-    "ChecksumConfig": {
-      "title": "ChecksumConfig",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Checksum verification settings.",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false,
-          "title": "Enabled"
-        },
-        "algorithm": {
-          "type": "string",
-          "enum": [
-            "md5",
-            "sha256",
-            "sha512"
-          ],
-          "default": "sha256",
-          "title": "Algorithm"
-        },
-        "checksumFile": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Checksum File"
-        }
-      }
-    },
-    "BusinessKeyHashConfig": {
-      "title": "BusinessKeyHashConfig",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Compound business key hash definition.",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name"
-        },
-        "columns": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "title": "Columns"
-        },
-        "algorithm": {
-          "type": "string",
-          "enum": [
-            "md5",
-            "sha256",
-            "sha512"
-          ],
-          "default": "sha256",
-          "title": "Algorithm"
-        }
-      },
-      "required": [
-        "name",
-        "columns"
-      ]
-    },
-    "BronzeTableConfig": {
-      "title": "BronzeTableConfig",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Bronze destination table and optional column definitions.",
-      "properties": {
-        "table": {
-          "$ref": "#/$defs/BigQueryTable",
-          "title": "Table"
-        },
-        "columns": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Column"
-          },
-          "title": "Columns"
-        }
-      },
-      "required": [
-        "table",
-        "columns"
-      ]
-    },
-    "ConverterConfig": {
-      "title": "ConverterConfig",
-      "type": "object",
-      "additionalProperties": false,
-      "description": "Optional source-to-Parquet converter configuration. Temporary compatibility definition for the supplied contract snapshot.",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": true,
-          "title": "Enabled"
-        },
-        "outputFormat": {
-          "type": "string",
-          "default": "parquet",
-          "title": "Output Format"
-        },
-        "destPartition": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/DestPartitionConfig"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Destination Partition"
-        },
-        "techColumns": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TechColumnsConfig"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Technical Columns"
-        }
-      }
     }
   },
   "additionalProperties": false,
@@ -1749,11 +1785,30 @@
       "default": null,
       "description": "Optional: mart tables with historization (Gold layer)",
       "title": "Gold"
+    },
+    "source": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/JdbcSourceConfig"
+        },
+        {
+          "$ref": "#/$defs/JsonSourceConfig"
+        },
+        {
+          "$ref": "#/$defs/TxtSourceConfig"
+        },
+        {
+          "$ref": "#/$defs/FixedWidthSourceConfig"
+        }
+      ],
+      "description": "Source data configuration. sourceType selects the concrete source model.",
+      "title": "Source"
     }
   },
   "required": [
     "metadata",
-    "orchestration"
+    "orchestration",
+    "source"
   ],
   "title": "IntegrationPipelineConfig",
   "type": "object",
@@ -1801,17 +1856,5 @@
       "pydantic_validator": "<ClassName>.<validator_method>"
     },
     "version": "1.0"
-  },
-  "x-adcm-contract-repair": {
-    "source": "contract.input.json",
-    "note": "The supplied snapshot contained dangling local $refs. These compatibility definitions are temporary and must be replaced by authoritative schemas when provided.",
-    "addedDefs": [
-      "BigQueryTable",
-      "Column",
-      "ChecksumConfig",
-      "BusinessKeyHashConfig",
-      "BronzeTableConfig",
-      "ConverterConfig"
-    ]
   }
 }

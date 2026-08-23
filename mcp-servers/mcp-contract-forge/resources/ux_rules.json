@@ -1,5 +1,6 @@
 {
-  "version": "3",
+  "version": "5",
+
   "rules": [
     {
       "id": "global.source_system.metadata_id",
@@ -12,24 +13,76 @@
       },
       "priority": 100
     },
+
     {
-      "id": "global.source_system.technical_metadata",
+      "id": "global.source_system.source_metadata",
       "scope": "global",
-      "pathPattern": "/**/systemZrodlowy",
+      "path": "/source/systemZrodlowy",
       "value": "{/metadata/sourceSystemGcpId}",
       "when": {
-        "path": "/metadata/sourceSystemGcpId",
+        "path": "/source/sourceType",
         "exists": true
       },
       "priority": 100
     },
+
     {
-      "id": "example.sap.silver_dataset",
+      "id": "global.enable_silver",
+      "scope": "global",
+      "path": "/silver/enabled",
+      "value": true,
+      "when": {
+        "path": "/source/sourceType",
+        "exists": true
+      },
+      "priority": 50
+    },
+
+    {
+      "id": "global.enable_gold",
+      "scope": "global",
+      "path": "/gold/enabled",
+      "value": true,
+      "when": {
+        "path": "/source/sourceType",
+        "exists": true
+      },
+      "priority": 50
+    },
+
+    {
+      "id": "sap.enable_converter",
+      "scope": "system",
+      "system": "sap",
+      "path": "/converter/enabled",
+      "value": true,
+      "when": {
+        "path": "/source/sourceType",
+        "exists": true
+      },
+      "priority": 100
+    },
+
+    {
+      "id": "sap.enable_preparator",
+      "scope": "system",
+      "system": "sap",
+      "path": "/preparator/enabled",
+      "value": true,
+      "when": {
+        "path": "/source/sourceType",
+        "exists": true
+      },
+      "priority": 100
+    },
+
+    {
+      "id": "sap.silver_dataset",
       "scope": "system",
       "system": "sap",
       "path": "/silver/tables/0/table/dataset",
       "value": "silver_sap",
-      "priority": 10
+      "priority": 110
     }
   ]
 }
