@@ -1,15 +1,28 @@
 [build-system]
-requires=["hatchling"]
-build-backend="hatchling.build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name="mcp-contract-forge"
-version="0.4.0"
-requires-python=">=3.11"
-dependencies=["pydantic>=2.8","pydantic-settings>=2.4","jsonschema>=4.23","mcp>=2,<3"]
+name = "mcp-contract-forge"
+version = "0.4.0"
+requires-python = ">=3.11"
+
+dependencies = [
+  "pydantic>=2.8,<3",
+  "pydantic-settings>=2.4,<3",
+  "jsonschema>=4.23,<5",
+  "mcp>=2,<3",
+]
+
 [project.optional-dependencies]
-dev=["pytest>=8","pytest-asyncio>=0.24"]
+dev = [
+  "pytest>=8,<9",
+  "pytest-asyncio>=0.24,<1",
+]
+
 [tool.hatch.build.targets.wheel]
-packages=["src/contract_forge"]
+packages = ["src/contract_forge"]
+
 [tool.pytest.ini_options]
-pythonpath=["src"]
-asyncio_mode="auto"
+pythonpath = ["src"]
+asyncio_mode = "auto"
