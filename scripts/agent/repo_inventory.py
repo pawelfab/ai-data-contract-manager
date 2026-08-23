@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -10,6 +9,7 @@ from typing import Any
 
 from common import (
     ROOT,
+    content_digest,
     load_config,
     read_staged_file,
     rel,
@@ -81,6 +81,9 @@ def generic_symbols(text: str) -> list[dict[str, Any]]:
 
 
 def inspect_bytes(path: str, raw: bytes) -> dict[str, Any]:
+    # Normalize first so the inventory is identical whether it was generated from the Git
+    # index (LF) or from a core.autocrlf working tree (CRLF).
+    raw = raw.replace(b"\r\n", b"\n")
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError:
@@ -92,7 +95,7 @@ def inspect_bytes(path: str, raw: bytes) -> dict[str, Any]:
         "language": LANGUAGE_BY_SUFFIX.get(suffix, suffix.lstrip(".").upper() or "Unknown"),
         "bytes": len(raw),
         "lines": text.count("\n") + (1 if text else 0),
-        "sha256": hashlib.sha256(raw).hexdigest(),
+        "sha256": content_digest(raw),
         "symbols": symbols,
     }
 

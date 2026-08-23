@@ -56,12 +56,14 @@ def index_files() -> list[str]:
     return [line.strip().replace("\\", "/") for line in result.stdout.splitlines() if line.strip()]
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+def content_digest(data: bytes) -> str:
+    """Hash content independently of the checkout's line endings.
+
+    Git stores LF in the index while core.autocrlf writes CRLF into the working tree, so the
+    staged and working-tree hashes of an unmodified file would otherwise differ.
+    """
+
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
 
 
 def is_excluded(path: Path, config: dict[str, Any]) -> bool:
@@ -138,12 +140,12 @@ def read_staged_file(path: str) -> bytes:
 
 
 def current_source_hashes(config: dict[str, Any]) -> dict[str, str]:
-    return {rel(path): sha256_file(path) for path in source_files(config)}
+    return {rel(path): content_digest(path.read_bytes()) for path in source_files(config)}
 
 
 def staged_source_hashes(config: dict[str, Any]) -> dict[str, str]:
     return {
-        path: hashlib.sha256(read_staged_file(path)).hexdigest()
+        path: content_digest(read_staged_file(path))
         for path in staged_source_paths(config)
     }
 

@@ -7,44 +7,11 @@ Input: `staged Git index`
 
 ## Changed source paths
 
-- `AGENTS.md`
-- `DOCS_MIGRATION_PLAN.md`
-- `ai-data-contract-manager/docs/architecture.md`
-- `ai-data-contract-manager/docs/planned/logging.md`
-- `docs/ARCHITECTURE.md`
-- `docs/CURRENT_STATE.md`
-- `docs/active-task/2026-08-23_task-doc-gate/IMPLEMENTATION.md`
-- `docs/active-task/2026-08-23_task-doc-gate/TASK.md`
-- `docs/active-tasks/README.md`
-- `docs/agent/START_HERE.md`
-- `docs/architecture-guardrails.md`
+- `docs/active-task/2026-08-23_freshness-eol/IMPLEMENTATION.md`
+- `docs/active-task/2026-08-23_freshness-eol/TASK.md`
 - `docs/documentation-automation.md`
-- `docs/history/architecture/CONSOLIDATED_ANALYSIS.md`
-- `docs/history/migrations/MIGRATION_V4_TO_V5.md`
-- `docs/history/planning/stages.md`
-- `docs/history/planning/stages/stage-01.md`
-- `docs/history/planning/stages/stage-02.md`
-- `docs/history/planning/stages/stage-03.md`
-- `docs/history/planning/stages/stage-04.md`
-- `docs/history/planning/stages/stage-05.md`
-- `docs/history/planning/stages/stage-06.md`
-- `docs/history/planning/stages/stage-07.md`
-- `docs/history/planning/stages/stage-08.md`
-- `docs/history/planning/stages/stage-09.md`
-- `docs/integration-flow.md`
-- `docs/service-boundaries.md`
-- `docs/system-overview.md`
-- `docs/templates/task/IMPLEMENTATION.md`
-- `docs/templates/task/TASK.md`
-- `mcp-servers/mcp-contract-forge/README.md`
-- `mcp-servers/mcp-contract-forge/docs/architecture.md`
-- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
-- `mcp-servers/mcp-contract-forge/docs/history/contract-repair-note.md`
-- `mcp-servers/mcp-contract-forge/docs/normalized-contract.md`
-- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
-- `scripts/agent/config.example.json`
-- `scripts/agent/config.json`
-- `scripts/agent/doc_freshness.py`
+- `scripts/agent/common.py`
+- `scripts/agent/repo_inventory.py`
 
 ## Curated documentation to review
 

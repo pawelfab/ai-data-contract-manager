@@ -39,6 +39,8 @@ The freshness result may be:
 
 A stale result means relevant source changed after the last documentation synchronization. It does not automatically mean every curated document must change.
 
+Source hashes are computed over line-ending-normalized content (`CRLF` collapsed to `LF`). The marker is written from the staged Git index during a commit but compared against working-tree files, and on a `core.autocrlf` checkout those two byte streams differ for every text file Git converted. Without the normalization, a clean working tree reports as stale forever, and because `githooks/pre-push` runs `--check`, pushing is blocked with no command able to resolve it.
+
 ## Staged commit workflow
 
 When documentation-relevant source files are staged, the pre-commit workflow can generate artifacts from the staged Git index and stage those generated artifacts in the same commit.
