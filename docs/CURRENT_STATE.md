@@ -80,7 +80,9 @@ Key invariants:
 - SYSTEM rules require a known matching `EnrichmentContext.source_system`;
 - USER rules require matching user context;
 - GLOBAL rules are system-independent;
-- hidden/later target paths are not materialized early: enrichment is limited to currently visible/eligible paths (or an already-existing target being recomputed);
+- hidden/later deep target paths are not materialized early: enrichment is limited to currently
+  visible/eligible paths, an already-reachable target, or the first leaf that activates one
+  schema-valid optional container;
 - derived values are recomputed from the current Forge result each round; stale SAP values cannot survive a later source-system change.
 
 ### Template/copy syntax
@@ -149,6 +151,9 @@ Checks include:
 6. trial full-document build must succeed;
 7. lower-authority evidence cannot overwrite stronger user evidence.
 
+For equal authority, session evidence order is the deterministic tie-breaker. An older candidate
+cannot undo a value already supported by newer evidence.
+
 A rejected candidate is ephemeral, does not alter `ContractState`, and does not create a user warning. The underlying evidence remains.
 
 `ACCEPTED` does not imply progress. Repeating the same effective value produces `changed=False`, which prevents endless stabilization loops.
@@ -156,6 +161,11 @@ A rejected candidate is ephemeral, does not alter `ContractState`, and does not 
 ## Editing after complete
 
 On the first round of every new user message, the semantic resolver is called even when Forge has no unresolved requirement. This permits explicit edits to existing fields after `valid=True`.
+
+That first pass is focused on evidence collected in the current turn (chat text, inline attachments
+and context evidence). Later fixed-point rounds may inspect the full evidence history. This keeps a
+correction from being diluted by older messages while preserving earlier facts for newly discovered
+requirements.
 
 Later automatic rounds resolve only newly visible missing requirements.
 

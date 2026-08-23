@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_snapshot": "84b8c2c9e24046d41bd3fb821514ca3313225690b381180785de555adb7f5042",
+  "source_snapshot": "49038bdf198923def959433c68c3db75902c5fcbe948ce35236d3e43cbf6c930",
   "repository_root": ".",
   "files": [
     {
@@ -587,9 +587,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/services/value_resolver.py",
       "language": "Python",
-      "bytes": 8034,
-      "lines": 186,
-      "sha256": "9da383dbdc844f6f8d0a3f12f8d9623c4eb51ba80a6a70ea465f38288baeb3d8",
+      "bytes": 8809,
+      "lines": 200,
+      "sha256": "793288f180ac97bbf765b4650ad9019450027555f0ea306cb050a78813cc1efa",
       "symbols": [
         {
           "kind": "class",
@@ -611,22 +611,22 @@
         {
           "kind": "function",
           "name": "_matching_requirement",
-          "line": 148
+          "line": 162
         },
         {
           "kind": "function",
           "name": "_destroys_container",
-          "line": 156
+          "line": 170
         },
         {
           "kind": "function",
           "name": "_type_matches",
-          "line": 168
+          "line": 182
         },
         {
           "kind": "function",
           "name": "_decision",
-          "line": 184
+          "line": 198
         }
       ]
     },
@@ -719,9 +719,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/use_cases/handle_message.py",
       "language": "Python",
-      "bytes": 3948,
-      "lines": 111,
-      "sha256": "2aa04755629e190f728365c306bd965c47b133987087b97e903a688358b5d513",
+      "bytes": 4092,
+      "lines": 113,
+      "sha256": "4076fa9f5e6e1c2f1da4a7e52669b87aea136e6f759182f492854d979dcf3628",
       "symbols": [
         {
           "kind": "class",
@@ -749,16 +749,16 @@
         {
           "kind": "function",
           "name": "_missing",
-          "line": 107
+          "line": 109
         }
       ]
     },
     {
       "path": "ai-data-contract-manager/src/adcm/application/use_cases/stabilize_contract.py",
       "language": "Python",
-      "bytes": 3328,
-      "lines": 88,
-      "sha256": "9bca53af41bf2114a38f5d3a3e0e6551b688086851ce578062c9a6667b093c57",
+      "bytes": 3698,
+      "lines": 98,
+      "sha256": "19d4de4ef955a61b53ced03a877d0750bce9bd1a2807c5ccccc926acb31faa89",
       "symbols": [
         {
           "kind": "class",
@@ -786,12 +786,12 @@
         {
           "kind": "function",
           "name": "_missing",
-          "line": 73
+          "line": 83
         },
         {
           "kind": "function",
           "name": "_unique",
-          "line": 79
+          "line": 89
         }
       ]
     },
@@ -1913,29 +1913,54 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_paths.py",
       "language": "Python",
-      "bytes": 1807,
-      "lines": 55,
-      "sha256": "b94d47a6ffad716b5914bdc17d9232fb900308cc9fe824183eb9f193eb18fc9c",
+      "bytes": 7015,
+      "lines": 200,
+      "sha256": "1c2a9c0946c30215c29d7bee27dbae1f608ce5a2a087c6eba67c772a3e226a8a",
       "symbols": [
         {
           "kind": "function",
           "name": "pointer_exists_in_schema",
-          "line": 6
+          "line": 16
+        },
+        {
+          "kind": "function",
+          "name": "enrichment_target_reachable",
+          "line": 25
+        },
+        {
+          "kind": "function",
+          "name": "_reachable_in_active_schema",
+          "line": 68
         },
         {
           "kind": "function",
           "name": "_walk",
-          "line": 15
+          "line": 117
+        },
+        {
+          "kind": "function",
+          "name": "_child_schema",
+          "line": 143
+        },
+        {
+          "kind": "function",
+          "name": "_objectish",
+          "line": 168
         },
         {
           "kind": "function",
           "name": "_resolve",
-          "line": 41
+          "line": 182
         },
         {
           "kind": "function",
           "name": "_unescape",
-          "line": 53
+          "line": 194
+        },
+        {
+          "kind": "function",
+          "name": "_escape",
+          "line": 198
         }
       ]
     },
@@ -2069,23 +2094,23 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py",
       "language": "Python",
-      "bytes": 5268,
-      "lines": 116,
-      "sha256": "590719844e534c9cb0fb693878b959111b83fd6e36c54bbb88565fff638912c3",
+      "bytes": 5611,
+      "lines": 123,
+      "sha256": "e5f93b0fc77b6e4f7682a37aef0e82d03da0f31c3302d9acfeac760c334cd88e",
       "symbols": [
         {
           "kind": "class",
           "name": "EvaluateContract",
-          "line": 21,
+          "line": 22,
           "methods": [
             {
               "name": "__init__",
-              "line": 22,
+              "line": 23,
               "async": false
             },
             {
               "name": "execute",
-              "line": 38,
+              "line": 39,
               "async": false
             }
           ]
@@ -2093,17 +2118,17 @@
         {
           "kind": "function",
           "name": "_dedup_issues",
-          "line": 99
-        },
-        {
-          "kind": "function",
-          "name": "_dedup_requirements",
           "line": 106
         },
         {
           "kind": "function",
+          "name": "_dedup_requirements",
+          "line": 113
+        },
+        {
+          "kind": "function",
           "name": "_best_suggestions",
-          "line": 110
+          "line": 117
         }
       ]
     },

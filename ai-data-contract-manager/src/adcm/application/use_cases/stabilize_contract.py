@@ -22,7 +22,12 @@ class StabilizeContract:
         self.max_rounds = max_rounds
         self.values = ValueResolver()
 
-    async def execute(self, session: Session) -> StabilizationResult:
+    async def execute(
+        self,
+        session: Session,
+        *,
+        focus_evidence_ids: set[str] | None = None,
+    ) -> StabilizationResult:
         evaluation = ForgeEvaluation()
 
         for round_no in range(1, self.max_rounds + 1):
@@ -37,10 +42,15 @@ class StabilizeContract:
             # First round also interprets explicit edits to already-filled fields. Later rounds
             # resolve only newly exposed missing requirements.
             if unresolved or round_no == 1:
+                resolution_evidence = session.evidence
+                if round_no == 1 and focus_evidence_ids is not None:
+                    resolution_evidence = [
+                        item for item in session.evidence if item.id in focus_evidence_ids
+                    ]
                 resolved = await self.heuristics.resolve(
                     ResolveRequest(
                         requirements=unresolved,
-                        evidence=session.evidence,
+                        evidence=resolution_evidence,
                         history=session.messages,
                         current_document=current,
                     )

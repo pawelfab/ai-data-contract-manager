@@ -53,6 +53,14 @@ Therefore a user/Jira value is never silently overwritten by enrichment.
 
 Adding a declarative rule does not require Python code. Extending the JSON file format requires only the JSON repository adapter. Replacing JSON with per-user persistence requires a new `EnrichmentRepositoryPort` adapter.
 
+## Optional branch activation
+
+An enrichment may activate a missing optional schema branch by targeting its first leaf, for
+example `/converter/enabled`. Forge verifies that the target exists in the schema and is directly
+inside one missing optional container. A deeper rule such as a nested dataset value remains
+ineligible until its parent branch is active or discovery exposes that requirement. This permits
+declarative component activation without materializing hidden subtrees prematurely.
+
 ## Per-user future
 
 ADCM passes `user_id` to Forge as evaluation context. It is not written into the contract YAML. Forge can then combine global/system rules with user-specific rules. The production user id must originate from authenticated identity.

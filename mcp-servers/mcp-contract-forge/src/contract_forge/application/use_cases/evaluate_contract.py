@@ -13,6 +13,7 @@ from contract_forge.application.services.json_schema_validator import JsonSchema
 from contract_forge.application.services.requirement_discovery import RequirementDiscovery
 from contract_forge.application.services.rule_engine import evaluate_rules
 from contract_forge.application.services.schema_engine import evaluate_schema
+from contract_forge.application.services.schema_paths import enrichment_target_reachable
 from contract_forge.application.services.schema_validation_issue_mapper import map_schema_errors
 from contract_forge.domain.evaluation.models import ForgeEvaluation, ValidationIssue
 from contract_forge.utils.pointer import exists_pointer
@@ -77,12 +78,18 @@ class EvaluateContract:
 
         context = EnrichmentContextBuilder(contract.semantic_paths).build(document, user_id)
         enrichment_rules = self.enrichment_repository.get_rules(context)
+        enrichment_paths = set(visible_paths)
+        enrichment_paths.update(
+            rule.path
+            for rule in enrichment_rules
+            if rule.path and enrichment_target_reachable(contract.raw_schema, document, rule.path)
+        )
         suggestions.extend(
             resolve_enrichment(
                 document,
                 enrichment_rules,
                 context,
-                eligible_paths=visible_paths,
+                eligible_paths=enrichment_paths,
             )
         )
         suggestions = _best_suggestions(suggestions)

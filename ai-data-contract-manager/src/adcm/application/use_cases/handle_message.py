@@ -44,23 +44,21 @@ class HandleMessage:
             raise KeyError(session_id)
 
         session.messages.append(Message(role="user", content=content))
-        session.evidence.append(
+        current_turn_evidence = [
+            EvidenceItem(
+                id=str(uuid4()), source_type="chat", content=content, authority=Authority.USER_DIRECT
+            )
+        ]
+        current_turn_evidence.extend(
             EvidenceItem(
                 id=str(uuid4()),
-                source_type="chat",
-                content=content,
+                source_type="attachment_text",
+                content=text,
                 authority=Authority.USER_DIRECT,
             )
+            for text in attachment_texts or []
         )
-        for text in attachment_texts or []:
-            session.evidence.append(
-                EvidenceItem(
-                    id=str(uuid4()),
-                    source_type="attachment_text",
-                    content=text,
-                    authority=Authority.USER_DIRECT,
-                )
-            )
+        session.evidence.extend(current_turn_evidence)
 
         # Agentic/context MCPs may collect Jira/Wiki/repository/schema evidence or create
         # user-visible tool output. Contract Forge is intentionally not available here.
@@ -73,8 +71,12 @@ class HandleMessage:
             )
         )
         session.evidence.extend(context_result.evidence)
+        current_turn_evidence.extend(context_result.evidence)
 
-        result = await self.stabilizer.execute(session)
+        result = await self.stabilizer.execute(
+            session,
+            focus_evidence_ids={item.id for item in current_turn_evidence},
+        )
         await self.repo.save(session)
 
         document = session.contract.effective_document()

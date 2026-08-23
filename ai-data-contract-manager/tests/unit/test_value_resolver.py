@@ -76,6 +76,40 @@ def test_existing_field_can_be_edited_even_when_not_required():
     assert state.effective_document()["metadata"]["version"] == "1.1.0"
 
 
+def test_older_candidate_cannot_undo_newer_column_correction():
+    old_columns = [{"name": "customer_id", "dataType": "integer"}]
+    corrected_columns = [{"name": "customer_id", "dataType": "string"}]
+    items = [
+        EvidenceItem(id="old", source_type="chat", authority=Authority.USER_DIRECT, content="integer"),
+        EvidenceItem(id="new", source_type="chat", authority=Authority.USER_DIRECT, content="string"),
+    ]
+    state = ContractState()
+    state.set_user(
+        "/silver/tables/0/columns",
+        old_columns,
+        provenance=Provenance(source_type="chat", evidence_id="old"),
+    )
+
+    outcome = ValueResolver().apply_candidates(
+        state,
+        [
+            Candidate(
+                path="/silver/tables/0/columns",
+                value=corrected_columns,
+                evidence_id="new",
+            ),
+            Candidate(path="/silver/tables/0/columns", value=old_columns, evidence_id="old"),
+        ],
+        items,
+        [],
+    )
+
+    assert outcome.changed is True
+    assert outcome.decisions[1].status == CandidateDecisionStatus.SHADOWED
+    assert outcome.decisions[1].reason == "shadowed_by_newer_evidence"
+    assert state.effective_document()["silver"]["tables"][0]["columns"] == corrected_columns
+
+
 def test_lower_authority_candidate_is_shadowed():
     state = ContractState()
     state.set_user("/x", "direct", authority=Authority.USER_DIRECT, provenance=Provenance(source_type="chat"))

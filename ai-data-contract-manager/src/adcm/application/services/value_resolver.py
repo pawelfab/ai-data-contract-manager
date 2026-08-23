@@ -75,6 +75,7 @@ class ValueResolver:
         decisions: list[CandidateDecision] = []
         changed = False
         evidence_by_id = {item.id: item for item in evidence}
+        evidence_order = {item.id: index for index, item in enumerate(evidence)}
 
         for candidate in candidates:
             source = evidence_by_id.get(candidate.evidence_id)
@@ -109,6 +110,19 @@ class ValueResolver:
                     _decision(candidate, CandidateDecisionStatus.SHADOWED, "shadowed_by_higher_authority")
                 )
                 continue
+            if old and _AUTHORITY_RANK[old.authority] == _AUTHORITY_RANK[source.authority]:
+                old_evidence_id = old.provenance.evidence_id
+                old_position = evidence_order.get(old_evidence_id) if old_evidence_id else None
+                new_position = evidence_order.get(source.id)
+                if (
+                    old_position is not None
+                    and new_position is not None
+                    and old_position > new_position
+                ):
+                    decisions.append(
+                        _decision(candidate, CandidateDecisionStatus.SHADOWED, "shadowed_by_newer_evidence")
+                    )
+                    continue
 
             trial = state.model_copy(deep=True)
             trial.set_user(

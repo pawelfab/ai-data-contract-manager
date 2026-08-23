@@ -2,6 +2,7 @@ import pytest
 
 from contract_forge.adapters.outbound.contract_json_v1.parser import ContractJsonV1Parser
 from contract_forge.application.services.schema_engine import evaluate_schema
+from contract_forge.application.services.schema_paths import enrichment_target_reachable
 from contract_forge.application.services.union_branch_selector import (
     BranchSelectionStatus,
     UnionBranchSelector,
@@ -69,6 +70,18 @@ def test_an_undiscriminated_union_stays_atomic():
     req, _, _ = evaluate_schema(schema, DEFS, {})
     # The node itself is the requirement; no branch fields and no invented discriminator.
     assert [r.path for r in req] == ["/thing"]
+
+
+def test_enrichment_reachability_respects_the_selected_union_branch():
+    schema = {
+        "type": "object",
+        "properties": {"thing": UNION},
+        "$defs": DEFS,
+    }
+    document = {"thing": {"kind": "b"}}
+
+    assert enrichment_target_reachable(schema, document, "/thing/b") is True
+    assert enrichment_target_reachable(schema, document, "/thing/a") is False
 
 
 def test_the_contract_linter_rejects_an_ambiguous_union():

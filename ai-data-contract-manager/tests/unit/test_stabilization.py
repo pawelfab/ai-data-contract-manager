@@ -107,6 +107,33 @@ class NoopH:
         return "question"
 
 
+class RecordingH(NoopH):
+    def __init__(self):
+        self.requests = []
+
+    async def resolve(self, req):
+        self.requests.append(req)
+        return ResolveResult()
+
+
+@pytest.mark.asyncio
+async def test_first_round_focuses_on_current_turn_evidence_for_explicit_edits():
+    session = Session(
+        evidence=[
+            EvidenceItem(id="old", source_type="chat", content="old"),
+            EvidenceItem(id="new", source_type="chat", content="correct the column"),
+        ]
+    )
+    heuristics = RecordingH()
+
+    await StabilizeContract(SwitchingForge(), heuristics).execute(
+        session,
+        focus_evidence_ids={"new"},
+    )
+
+    assert [item.id for item in heuristics.requests[0].evidence] == ["new"]
+
+
 @pytest.mark.asyncio
 async def test_derived_values_are_recomputed_after_source_system_change():
     session = Session()

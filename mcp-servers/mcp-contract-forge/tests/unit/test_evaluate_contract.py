@@ -120,6 +120,34 @@ def test_a_complete_document_is_valid():
     assert ev.requirements == []
 
 
+def test_complete_sap_head_activates_optional_sections_without_materializing_deep_values():
+    ev = forge().execute(COMPLETE_HEAD)
+    values = {s.path: s.value for s in ev.suggestions}
+
+    assert values["/silver/enabled"] is True
+    assert values["/gold/enabled"] is True
+    assert values["/converter/enabled"] is True
+    assert values["/preparator/enabled"] is True
+    assert "/silver/tables/0/table/dataset" not in values
+
+
+def test_activated_sections_reveal_their_contract_requirements_on_the_next_evaluation():
+    document = {
+        **COMPLETE_HEAD,
+        "silver": {"enabled": True},
+        "gold": {"enabled": True},
+        "converter": {"enabled": True},
+        "preparator": {"enabled": True},
+    }
+
+    ev = forge().execute(document)
+    paths = {r.path for r in ev.requirements}
+
+    assert "/silver/tables/0/columns" in paths
+    assert "/gold/entries/0/table/table" in paths
+    assert any(i.path == "/preparator/operations" for i in ev.issues)
+
+
 def test_dataset_enrichment_applies_once_the_silver_branch_is_visible():
     ev = forge().execute({**COMPLETE_HEAD, "silver": {"enabled": True}})
     values = {s.path: s.value for s in ev.suggestions}

@@ -1,6 +1,6 @@
 # Generated repository map
 
-Source snapshot: `84b8c2c9e24046d41bd3fb821514ca3313225690b381180785de555adb7f5042`
+Source snapshot: `49038bdf198923def959433c68c3db75902c5fcbe948ce35236d3e43cbf6c930`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -207,15 +207,15 @@ Source files indexed: **119**
 
 ### `ai-data-contract-manager/src/adcm/application/services/value_resolver.py`
 - Language: Python
-- Lines: 186
+- Lines: 200
 - Symbols:
   - `class ValueResolver` — line 28
     - `apply_suggestions` — line 29
     - `apply_candidates` — line 67
-  - `function _matching_requirement` — line 148
-  - `function _destroys_container` — line 156
-  - `function _type_matches` — line 168
-  - `function _decision` — line 184
+  - `function _matching_requirement` — line 162
+  - `function _destroys_container` — line 170
+  - `function _type_matches` — line 182
+  - `function _decision` — line 198
 
 ### `ai-data-contract-manager/src/adcm/application/use_cases/__init__.py`
 - Language: Python
@@ -248,24 +248,24 @@ Source files indexed: **119**
 
 ### `ai-data-contract-manager/src/adcm/application/use_cases/handle_message.py`
 - Language: Python
-- Lines: 111
+- Lines: 113
 - Symbols:
   - `class HandleResult` — line 13
   - `class HandleMessage` — line 23
     - `__init__` — line 24
     - `async execute` — line 36
-  - `function _missing` — line 107
+  - `function _missing` — line 109
 
 ### `ai-data-contract-manager/src/adcm/application/use_cases/stabilize_contract.py`
 - Language: Python
-- Lines: 88
+- Lines: 98
 - Symbols:
   - `class StabilizationResult` — line 10
   - `class StabilizeContract` — line 16
     - `__init__` — line 19
     - `async execute` — line 25
-  - `function _missing` — line 73
-  - `function _unique` — line 79
+  - `function _missing` — line 83
+  - `function _unique` — line 89
 
 ### `ai-data-contract-manager/src/adcm/bootstrap/__init__.py`
 - Language: Python
@@ -682,12 +682,17 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_paths.py`
 - Language: Python
-- Lines: 55
+- Lines: 200
 - Symbols:
-  - `function pointer_exists_in_schema` — line 6
-  - `function _walk` — line 15
-  - `function _resolve` — line 41
-  - `function _unescape` — line 53
+  - `function pointer_exists_in_schema` — line 16
+  - `function enrichment_target_reachable` — line 25
+  - `function _reachable_in_active_schema` — line 68
+  - `function _walk` — line 117
+  - `function _child_schema` — line 143
+  - `function _objectish` — line 168
+  - `function _resolve` — line 182
+  - `function _unescape` — line 194
+  - `function _escape` — line 198
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_validation_issue_mapper.py`
 - Language: Python
@@ -728,14 +733,14 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py`
 - Language: Python
-- Lines: 116
+- Lines: 123
 - Symbols:
-  - `class EvaluateContract` — line 21
-    - `__init__` — line 22
-    - `execute` — line 38
-  - `function _dedup_issues` — line 99
-  - `function _dedup_requirements` — line 106
-  - `function _best_suggestions` — line 110
+  - `class EvaluateContract` — line 22
+    - `__init__` — line 23
+    - `execute` — line 39
+  - `function _dedup_issues` — line 106
+  - `function _dedup_requirements` — line 113
+  - `function _best_suggestions` — line 117
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/__init__.py`
 - Language: Python
