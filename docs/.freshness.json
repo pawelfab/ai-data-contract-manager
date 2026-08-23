@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "marked_at": "2026-08-23T14:05:14.926164+00:00",
+  "marked_at": "2026-08-23T14:05:44.831062+00:00",
   "reason": "post-commit documentation generation",
-  "commit": "4039ad5ae83cf8ef66a73ad572205e34d5524e62",
+  "commit": "6bb31de5f97be9ed762eac2c8adc9220b04c3666",
   "branch": "adcm_v5_consolidated",
   "working_tree_dirty": true,
   "source_hashes": {
