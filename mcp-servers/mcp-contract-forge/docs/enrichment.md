@@ -37,21 +37,58 @@ Therefore a user/Jira value is never silently overwritten by enrichment.
 
 ```json
 {
-  "version": "2",
+  "version": "6",
   "rules": [
     {
-      "id": "example.sap.silver_dataset",
-      "scope": "system",
-      "system": "sap",
+      "id": "example.silver_dataset",
+      "scope": "global",
       "path": "/silver/tables/0/table/dataset",
-      "value": "silver_sap",
-      "priority": 10
+      "value": "{/metadata/sourceSystemGcpId}_silver",
+      "priority": 100
     }
   ]
 }
 ```
 
 Adding a declarative rule does not require Python code. Extending the JSON file format requires only the JSON repository adapter. Replacing JSON with per-user persistence requires a new `EnrichmentRepositoryPort` adapter.
+
+## Requirement completeness
+
+`EnrichmentCondition` supports a fourth predicate beside `equals` and `exists`:
+
+```json
+{
+  "path": "/source",
+  "requirementsComplete": true
+}
+```
+
+It is true when no still-missing formal `Requirement` has that exact path or lies under it.
+`EvaluateContract` derives the set from the complete formal requirement list, before
+`fillable_requirements()` and before discovery, and passes it to `resolve_enrichment()` as the
+mandatory `open_requirement_paths` argument. Completeness is therefore independent of which
+question is currently visible.
+
+This is not a validity check. Formal schema/rule errors are reported as issues and may keep
+`valid=false` even when every requirement under a prefix has been answered.
+
+## Ordering optional branches
+
+Requirement completeness is what makes a layer chain expressible as data:
+
+```text
+/source complete            → /bronzeTable = {}
+/bronzeTable complete       → /silver/enabled, /gold/enabled
+```
+
+An activating scaffold assigns `{}` and requires `exists=false`; every rule that fills that
+container requires `exists=true`. The two groups can never appear in the same evaluation, so a
+scaffold cannot overwrite children that already hold values. Do not rely on priority ordering or
+on consumer-side merge behavior for that guarantee — express it in the conditions.
+
+Values assigned as whole arrays (for example `"/bronzeTable/columns": []`) stay atomic. Enrichment
+never creates `/bronzeTable/columns/0`; array expansion is a contract decision driven by `minItems`
+plus `x-requirement-expand-items`.
 
 ## Optional branch activation
 

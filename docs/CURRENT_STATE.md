@@ -85,6 +85,58 @@ Key invariants:
   schema-valid optional container;
 - derived values are recomputed from the current Forge result each round; stale SAP values cannot survive a later source-system change.
 
+### Requirement-completeness conditions
+
+A rule condition can depend on whether a whole subtree has been answered:
+
+```json
+{
+  "path": "/source",
+  "requirementsComplete": true
+}
+```
+
+True means *no still-missing formal requirement sits at or under that prefix* — deliberately not
+"this subtree is valid". Formal validation errors are a separate signal and can still keep
+`valid=false`.
+
+`EvaluateContract` builds the set from the complete formal requirement list, before the fillable
+filter and before discovery. Completeness therefore describes the contract, not which question
+happens to be on screen right now.
+
+### Layer chain: Source → Bronze → Silver/Gold
+
+`ux_rules.json` uses that condition to order the layers deterministically:
+
+```text
+open requirements under /source
+    ↓ none left
+/bronzeTable = {}                          (scaffold, requires /bronzeTable exists=false)
+    ↓ next evaluation discovers Bronze requirements
+/bronzeTable/table/{project,dataset,table} = {system}_bronze
+/bronzeTable/columns = []                  (all require /bronzeTable exists=true)
+    ↓ Bronze complete
+/silver/enabled = true, /gold/enabled = true
+    ↓ branches active
+/silver/tables/0/table/* = {system}_silver, /silver/tables/0/source = {system}_bronze
+/gold/entries/0/table/*  = {system}_gold
+```
+
+Two properties are load-bearing:
+
+- The scaffold and its children are **mutually exclusive by condition** (`exists=false` versus
+  `exists=true`), never by suggestion ordering. A single evaluation can never return both
+  `/bronzeTable` and a path below it, so an empty object cannot overwrite a filled Bronze.
+- Layer identifiers are a *global* convention derived from `/metadata/sourceSystemGcpId`. There is
+  no per-system dataset rule any more, so changing the source system recomputes every layer name.
+
+`/silver/tables/0/pk` and the atomic `/silver/tables/0/columns` array carry no enrichment: they
+stay questions for the user. Bronze `columns = []` is likewise the whole array — a 1:1 flow
+declaring no explicit column overrides, not an expanded element list.
+
+SAP `converter`/`preparator` activation keeps its own trigger (`/source/sourceType` exists) and is
+independent of this chain.
+
 ### Template/copy syntax
 
 A global enrichment can copy another field:

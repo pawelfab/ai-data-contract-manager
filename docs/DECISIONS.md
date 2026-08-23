@@ -65,3 +65,12 @@ For structured heuristic outputs, use `PromptedOutput` by default to support Ope
 
 ## D-20 Do not implement VALIDATION_REGISTRY prose semantics
 Custom `x-contract-rules` without machine-readable assertion/condition remain unsupported/informational. Do not parse business logic out of `message`, `description` or `notes` text.
+
+## D-21 Enrichment may depend on subtree requirement completeness
+`EnrichmentCondition.requirementsComplete` asks whether any still-missing formal requirement sits at or under a prefix. It is computed from the full formal requirement set — before the fillable filter and before discovery — so a rule can express "Source is answered" without depending on question order or visibility. It is not a validity check: formal validation errors are reported separately and may still keep `valid=false`. `resolve_enrichment()` takes `open_requirement_paths` as a mandatory keyword argument; a default would let such a rule pass fail-open.
+
+## D-22 Optional-branch scaffolds are mutually exclusive with their own children
+A rule that activates an optional container by assigning it an empty object must require `exists=false`, and every rule filling that container must require `exists=true`. The two groups then cannot appear in one evaluation, so the scaffold can never overwrite already-filled children. Structural safety comes from the conditions, not from suggestion priority or `ValueResolver` ordering.
+
+## D-23 Layer identifiers are a global convention
+Bronze/Silver/Gold table identifiers are derived globally from `/metadata/sourceSystemGcpId` (`{system}_bronze` / `_silver` / `_gold`), not from per-system rules. Combined with D-10 this means changing the source system recomputes every layer name. Layer order is data in `ux_rules.json`: complete Source activates Bronze, complete Bronze activates Silver and Gold. No source-system or source-type name appears in Python code.

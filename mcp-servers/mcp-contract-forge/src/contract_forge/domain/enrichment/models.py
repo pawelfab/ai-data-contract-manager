@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EnrichmentScope(IntEnum):
@@ -15,9 +15,17 @@ class EnrichmentScope(IntEnum):
 
 
 class EnrichmentCondition(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     path: str
     equals: Any | None = None
     exists: bool | None = None
+    # "No formal requirement is still open at or under this prefix." Deliberately not
+    # "this subtree is valid": formal validation errors are a separate signal.
+    requirements_complete: bool | None = Field(
+        default=None,
+        alias="requirementsComplete",
+    )
 
 
 class EnrichmentRule(BaseModel):

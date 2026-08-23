@@ -1492,7 +1492,103 @@ Infrastructure leak.
 
 ---
 
-# 46. Rule for LLM coding agents
+# 46. Complexity escalation and assumption checking
+
+Unexpected implementation complexity is a signal to re-check assumptions before adding code.
+
+Before introducing a workaround, special-case logic, compatibility layer, complex transformation, or substantial additional code, verify whether the complexity is caused by:
+
+* an incorrect or inconsistent input, contract, schema, configuration, or existing implementation;
+* an ambiguous, incomplete, or overly literal interpretation of the requirement;
+* a constraint that was assumed to be absolute but conflicts with the intended behavior;
+* an architectural boundary being used to compensate for a defect in another component;
+* a requirement whose implementation cost is disproportionate to the expected business behavior.
+
+A requirement such as:
+
+```text
+do not modify contract.json
+```
+
+must not be interpreted as:
+
+```text
+compensate for any defect in contract.json with arbitrarily complex application code
+```
+
+Constraints define the expected solution space, but they do not make inconsistent inputs or assumptions correct.
+
+## Mandatory stop condition
+
+If a seemingly simple requirement starts requiring:
+
+* significant workaround logic;
+* many special cases;
+* duplicated logic;
+* complex state reconciliation;
+* non-obvious transformations;
+* changes across multiple unrelated components;
+* substantially more code than the requirement appears to justify;
+
+**STOP before implementing that complexity.**
+
+First determine whether the implementation difficulty exposes a problem in the requirement, contract, schema, configuration, architecture, or assumptions.
+
+Report briefly:
+
+1. **Observed problem** — what does not behave as expected.
+2. **Likely cause** — which assumption, input, constraint, or existing design causes it.
+3. **Workaround cost** — what additional complexity would be required to preserve the current assumptions.
+4. **Simpler alternative** — what change or clarification would remove that complexity.
+5. **Recommendation** — whether to continue with the workaround or correct the underlying cause.
+
+Do not hide an upstream defect behind downstream complexity.
+
+Prefer:
+
+```text
+The contract definition is inconsistent with the requested behavior.
+Correcting the contract requires a small change.
+Keeping the contract unchanged would require a complex parser workaround.
+Recommend correcting the contract.
+```
+
+over silently implementing the workaround.
+
+## Proportionality rule
+
+Implementation complexity should be proportional to domain complexity.
+
+If a simple domain rule requires a complicated implementation, investigate why before continuing.
+
+Do not assume that complexity is justified merely because the task can technically be implemented.
+
+## Protected files and immutable inputs
+
+Files or components marked as:
+
+```text
+do not modify
+read-only
+out of scope
+immutable
+```
+
+should normally remain unchanged.
+
+However, if such a component appears incorrect and keeping it unchanged would force disproportionate complexity elsewhere:
+
+1. do not modify it silently;
+2. do not silently compensate for it;
+3. report the inconsistency;
+4. explain the smallest corrective option;
+5. wait for the implementation decision if the choice materially changes scope or architecture.
+
+The purpose of an immutability constraint is to control scope, not to conceal defects.
+
+---
+
+# 47. Rule for LLM coding agents
 
 Before planning or implementing a repository change:
 
@@ -1501,7 +1597,19 @@ Before planning or implementing a repository change:
 3. identify the relevant boundary;
 4. identify files expected to change;
 5. identify files/services expected NOT to change;
-6. identify tests protecting the boundary.
+6. identify tests protecting the boundary;
+7. verify that the requested behavior is consistent with the existing inputs, contracts, schemas and configuration;
+8. estimate whether the straightforward implementation is proportionate to the requirement.
+
+During implementation continuously apply this rule:
+
+> **Unexpected complexity is a signal to investigate assumptions before adding code.**
+
+If the straightforward solution stops being straightforward:
+
+1. identify why;
+2. check whether an input, requirement, schema, configuration or assumption is inconsistent;
+3. avoid introducing compensating complexity until the cause is understood.
 
 If a feature request or local implementation plan conflicts with this document:
 
@@ -1509,11 +1617,41 @@ If a feature request or local implementation plan conflicts with this document:
 2. state the conflict;
 3. propose a solution preserving the architectural boundaries.
 
-Do not optimize a local implementation at the cost of service-boundary erosion.
+If a feature request can only be satisfied through a disproportionately complex workaround:
+
+1. do not silently implement the workaround;
+2. state the underlying inconsistency or uncertainty;
+3. compare the workaround with the smallest corrective alternative;
+4. recommend the simpler design unless there is a documented reason to preserve the workaround.
+
+Do not optimize a local implementation at the cost of:
+
+* service-boundary erosion;
+* hidden technical debt;
+* unnecessary special cases;
+* compensating for incorrect upstream definitions;
+* implementation complexity that is disproportionate to the domain problem.
+
+The agent is expected to challenge implementation assumptions when evidence in the repository shows they are incorrect.
+
+It must distinguish between:
+
+```text
+"This requirement is difficult."
+```
+
+and:
+
+```text
+"This requirement became difficult because one of our assumptions is probably wrong."
+```
+
+The second case must be escalated before substantial complexity is introduced.
+
 
 ---
 
-# 47. Final mental model
+# 48. Final mental model
 
 ```text
                          ┌─────────────────────┐

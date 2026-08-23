@@ -17,16 +17,21 @@ def resolve_enrichment(
     context: EnrichmentContext,
     *,
     eligible_paths: Iterable[str],
+    open_requirement_paths: Iterable[str],
 ) -> list[SuggestedValue]:
     """Resolve only rules relevant to currently discovered/fillable paths.
 
     This prevents enrichment from activating optional/later branches ahead of discovery.
+
+    `open_requirement_paths` is the caller's full set of still-missing formal requirements and
+    is mandatory: a default would let a `requirementsComplete` rule pass fail-open.
     """
 
     eligible = set(eligible_paths)
+    open_paths = set(open_requirement_paths)
     best: dict[str, SuggestedValue] = {}
     for rule in rules:
-        if not _scope_matches(rule, context) or not _matches(document, rule):
+        if not _scope_matches(rule, context) or not _matches(document, rule, open_paths):
             continue
         targets = _targets(rule, eligible, document)
         for target in targets:
@@ -60,13 +65,28 @@ def _scope_matches(rule: EnrichmentRule, context: EnrichmentContext) -> bool:
     return True
 
 
-def _matches(document: dict[str, Any], rule: EnrichmentRule) -> bool:
+def _matches(document: dict[str, Any], rule: EnrichmentRule, open_paths: set[str]) -> bool:
     for condition in rule.conditions:
         if condition.exists is not None and exists_pointer(document, condition.path) != condition.exists:
             return False
         if condition.equals is not None and get_pointer(document, condition.path, None) != condition.equals:
             return False
+        if condition.requirements_complete is not None:
+            complete = requirements_complete(condition.path, open_paths)
+            if complete != condition.requirements_complete:
+                return False
     return True
+
+
+def requirement_is_under(prefix: str, path: str) -> bool:
+    normalized = prefix.rstrip("/")
+    return path == normalized or path.startswith(normalized + "/")
+
+
+def requirements_complete(prefix: str, open_paths: set[str]) -> bool:
+    """True when no still-missing formal requirement sits at or under `prefix`."""
+
+    return not any(requirement_is_under(prefix, path) for path in open_paths)
 
 
 def _targets(rule: EnrichmentRule, eligible: set[str], document: dict[str, Any]) -> list[str]:

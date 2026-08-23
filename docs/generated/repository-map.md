@@ -1,6 +1,6 @@
 # Generated repository map
 
-Source snapshot: `49038bdf198923def959433c68c3db75902c5fcbe948ce35236d3e43cbf6c930`
+Source snapshot: `070963b3c76eb9f343e2bfc013ec9fe18550efa3eab32e433471c02adce49f2f`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -400,7 +400,7 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/resources/ux_rules.json`
 - Language: JSON
-- Lines: 88
+- Lines: 245
 - Symbols: none extracted
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/__init__.py`
@@ -615,17 +615,19 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py`
 - Language: Python
-- Lines: 131
+- Lines: 151
 - Symbols:
   - `function resolve_enrichment` — line 14
-  - `function _scope_matches` — line 51
-  - `function _matches` — line 63
-  - `function _targets` — line 72
-  - `function _resolve_value` — line 83
-  - `function _pointer_glob_match` — line 102
-  - `function _segments` — line 108
-  - `function _glob_segments` — line 112
-  - `function _source_name` — line 125
+  - `function _scope_matches` — line 56
+  - `function _matches` — line 68
+  - `function requirement_is_under` — line 81
+  - `function requirements_complete` — line 86
+  - `function _targets` — line 92
+  - `function _resolve_value` — line 103
+  - `function _pointer_glob_match` — line 122
+  - `function _segments` — line 128
+  - `function _glob_segments` — line 132
+  - `function _source_name` — line 145
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/fillable_requirements.py`
 - Language: Python
@@ -733,14 +735,14 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py`
 - Language: Python
-- Lines: 123
+- Lines: 129
 - Symbols:
   - `class EvaluateContract` — line 22
     - `__init__` — line 23
     - `execute` — line 39
-  - `function _dedup_issues` — line 106
-  - `function _dedup_requirements` — line 113
-  - `function _best_suggestions` — line 117
+  - `function _dedup_issues` — line 112
+  - `function _dedup_requirements` — line 119
+  - `function _best_suggestions` — line 123
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/__init__.py`
 - Language: Python
@@ -799,12 +801,12 @@ Source files indexed: **119**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py`
 - Language: Python
-- Lines: 40
+- Lines: 48
 - Symbols:
   - `class EnrichmentScope` — line 9
   - `class EnrichmentCondition` — line 17
-  - `class EnrichmentRule` — line 23
-  - `class EnrichmentContext` — line 37
+  - `class EnrichmentRule` — line 31
+  - `class EnrichmentContext` — line 45
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/evaluation/__init__.py`
 - Language: Python

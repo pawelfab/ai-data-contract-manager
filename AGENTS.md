@@ -488,6 +488,7 @@ Architecture risks:
 ```
 
 If the requested change conflicts with `docs/architecture-guardrails.md`, do not silently implement it.
+Unexpected complexity is a signal to investigate assumptions before adding code. If a simple requirement requires a complex workaround, escalate the inconsistency instead of implementing the workaround.
 
 Report:
 

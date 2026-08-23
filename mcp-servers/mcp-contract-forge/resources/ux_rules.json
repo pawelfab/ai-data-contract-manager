@@ -1,5 +1,5 @@
 {
-  "version": "5",
+  "version": "6",
 
   "rules": [
     {
@@ -27,14 +27,80 @@
     },
 
     {
+      "id": "global.activate_bronze",
+      "scope": "global",
+      "path": "/bronzeTable",
+      "value": {},
+      "when": [
+        {"path": "/source/sourceType", "exists": true},
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": false}
+      ],
+      "priority": 50
+    },
+
+    {
+      "id": "global.bronze_project",
+      "scope": "global",
+      "path": "/bronzeTable/table/project",
+      "value": "{/metadata/sourceSystemGcpId}_bronze",
+      "when": [
+        {"path": "/source/sourceType", "exists": true},
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.bronze_dataset",
+      "scope": "global",
+      "path": "/bronzeTable/table/dataset",
+      "value": "{/metadata/sourceSystemGcpId}_bronze",
+      "when": [
+        {"path": "/source/sourceType", "exists": true},
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.bronze_table",
+      "scope": "global",
+      "path": "/bronzeTable/table/table",
+      "value": "{/metadata/sourceSystemGcpId}_bronze",
+      "when": [
+        {"path": "/source/sourceType", "exists": true},
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.bronze_columns",
+      "scope": "global",
+      "path": "/bronzeTable/columns",
+      "value": [],
+      "when": [
+        {"path": "/source/sourceType", "exists": true},
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true}
+      ],
+      "priority": 100
+    },
+
+    {
       "id": "global.enable_silver",
       "scope": "global",
       "path": "/silver/enabled",
       "value": true,
-      "when": {
-        "path": "/source/sourceType",
-        "exists": true
-      },
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true}
+      ],
       "priority": 50
     },
 
@@ -43,11 +109,110 @@
       "scope": "global",
       "path": "/gold/enabled",
       "value": true,
-      "when": {
-        "path": "/source/sourceType",
-        "exists": true
-      },
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true}
+      ],
       "priority": 50
+    },
+
+    {
+      "id": "global.silver_project",
+      "scope": "global",
+      "path": "/silver/tables/0/table/project",
+      "value": "{/metadata/sourceSystemGcpId}_silver",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/silver/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.silver_dataset",
+      "scope": "global",
+      "path": "/silver/tables/0/table/dataset",
+      "value": "{/metadata/sourceSystemGcpId}_silver",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/silver/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.silver_table",
+      "scope": "global",
+      "path": "/silver/tables/0/table/table",
+      "value": "{/metadata/sourceSystemGcpId}_silver",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/silver/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.silver_source",
+      "scope": "global",
+      "path": "/silver/tables/0/source",
+      "value": "{/metadata/sourceSystemGcpId}_bronze",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/silver/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.gold_project",
+      "scope": "global",
+      "path": "/gold/entries/0/table/project",
+      "value": "{/metadata/sourceSystemGcpId}_gold",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/gold/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.gold_dataset",
+      "scope": "global",
+      "path": "/gold/entries/0/table/dataset",
+      "value": "{/metadata/sourceSystemGcpId}_gold",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/gold/enabled", "equals": true}
+      ],
+      "priority": 100
+    },
+
+    {
+      "id": "global.gold_table",
+      "scope": "global",
+      "path": "/gold/entries/0/table/table",
+      "value": "{/metadata/sourceSystemGcpId}_gold",
+      "when": [
+        {"path": "/source", "requirementsComplete": true},
+        {"path": "/bronzeTable", "exists": true},
+        {"path": "/bronzeTable", "requirementsComplete": true},
+        {"path": "/gold/enabled", "equals": true}
+      ],
+      "priority": 100
     },
 
     {
@@ -74,15 +239,6 @@
         "exists": true
       },
       "priority": 100
-    },
-
-    {
-      "id": "sap.silver_dataset",
-      "scope": "system",
-      "system": "sap",
-      "path": "/silver/tables/0/table/dataset",
-      "value": "silver_sap",
-      "priority": 110
     }
   ]
 }

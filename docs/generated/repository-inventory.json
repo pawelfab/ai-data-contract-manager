@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_snapshot": "49038bdf198923def959433c68c3db75902c5fcbe948ce35236d3e43cbf6c930",
+  "source_snapshot": "070963b3c76eb9f343e2bfc013ec9fe18550efa3eab32e433471c02adce49f2f",
   "repository_root": ".",
   "files": [
     {
@@ -1127,9 +1127,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/resources/ux_rules.json",
       "language": "JSON",
-      "bytes": 1797,
-      "lines": 88,
-      "sha256": "69b329a270f9b54173e63f693900c0454921521ac7f7ec31a72fbd126a4773b4",
+      "bytes": 6780,
+      "lines": 245,
+      "sha256": "01cabe12b145a5f65d2d7fae150806ff81651dbadd09aec7b3f83d1354f34bb3",
       "symbols": []
     },
     {
@@ -1669,9 +1669,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py",
       "language": "Python",
-      "bytes": 4582,
-      "lines": 131,
-      "sha256": "165d5261d93516efebcb4177784f4b8b0a42ceb435ba93ab4242683574b6e588",
+      "bytes": 5499,
+      "lines": 151,
+      "sha256": "317b661f6d5773069d7da85ef5a6002b849c28b80dda664f45e498b354494f7b",
       "symbols": [
         {
           "kind": "function",
@@ -1681,42 +1681,52 @@
         {
           "kind": "function",
           "name": "_scope_matches",
-          "line": 51
+          "line": 56
         },
         {
           "kind": "function",
           "name": "_matches",
-          "line": 63
+          "line": 68
+        },
+        {
+          "kind": "function",
+          "name": "requirement_is_under",
+          "line": 81
+        },
+        {
+          "kind": "function",
+          "name": "requirements_complete",
+          "line": 86
         },
         {
           "kind": "function",
           "name": "_targets",
-          "line": 72
+          "line": 92
         },
         {
           "kind": "function",
           "name": "_resolve_value",
-          "line": 83
+          "line": 103
         },
         {
           "kind": "function",
           "name": "_pointer_glob_match",
-          "line": 102
+          "line": 122
         },
         {
           "kind": "function",
           "name": "_segments",
-          "line": 108
+          "line": 128
         },
         {
           "kind": "function",
           "name": "_glob_segments",
-          "line": 112
+          "line": 132
         },
         {
           "kind": "function",
           "name": "_source_name",
-          "line": 125
+          "line": 145
         }
       ]
     },
@@ -2094,9 +2104,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py",
       "language": "Python",
-      "bytes": 5611,
-      "lines": 123,
-      "sha256": "e5f93b0fc77b6e4f7682a37aef0e82d03da0f31c3302d9acfeac760c334cd88e",
+      "bytes": 6051,
+      "lines": 129,
+      "sha256": "469e7f865fdaf8400be7fe921537f4a776dc72b6ccf022e42d4bb8c39c913829",
       "symbols": [
         {
           "kind": "class",
@@ -2118,17 +2128,17 @@
         {
           "kind": "function",
           "name": "_dedup_issues",
-          "line": 106
+          "line": 112
         },
         {
           "kind": "function",
           "name": "_dedup_requirements",
-          "line": 113
+          "line": 119
         },
         {
           "kind": "function",
           "name": "_best_suggestions",
-          "line": 117
+          "line": 123
         }
       ]
     },
@@ -2270,9 +2280,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py",
       "language": "Python",
-      "bytes": 893,
-      "lines": 40,
-      "sha256": "b8b32cb69b32282d9a3924075c23de8074082de6399657495c415dd76d19291d",
+      "bytes": 1238,
+      "lines": 48,
+      "sha256": "79dbe30afbd39e8c29833a98724588c22567fc9a1e072467746ea76f1195e108",
       "symbols": [
         {
           "kind": "class",
@@ -2289,13 +2299,13 @@
         {
           "kind": "class",
           "name": "EnrichmentRule",
-          "line": 23,
+          "line": 31,
           "methods": []
         },
         {
           "kind": "class",
           "name": "EnrichmentContext",
-          "line": 37,
+          "line": 45,
           "methods": []
         }
       ]

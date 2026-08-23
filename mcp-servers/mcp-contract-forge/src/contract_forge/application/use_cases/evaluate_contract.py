@@ -53,6 +53,11 @@ class EvaluateContract:
         valid = not schema_errors and not [i for i in rule_issues if i.severity == "error"]
         issues += _dedup_issues(map_schema_errors(schema_errors), issues)
 
+        # Enrichment completeness is a property of the contract, not of the conversation: it is
+        # built from the full formal set, before the fillable filter and before discovery hides
+        # anything. Otherwise "complete" would just mean "nothing is being asked right now".
+        open_requirement_paths = {requirement.path for requirement in formal_requirements}
+
         fillable = fillable_requirements(formal_requirements)
         discovery = RequirementDiscovery(
             self.discovery_policy_repository.get_policy(),
@@ -90,6 +95,7 @@ class EvaluateContract:
                 enrichment_rules,
                 context,
                 eligible_paths=enrichment_paths,
+                open_requirement_paths=open_requirement_paths,
             )
         )
         suggestions = _best_suggestions(suggestions)

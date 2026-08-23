@@ -1,31 +1,35 @@
 # Generated documentation impact
 
-Source snapshot: `49038bdf198923def959433c68c3db75902c5fcbe948ce35236d3e43cbf6c930`
+Source snapshot: `070963b3c76eb9f343e2bfc013ec9fe18550efa3eab32e433471c02adce49f2f`
 Input: `staged Git index`
 
 > This deterministic review aid does not replace curated architecture or service documentation.
 
 ## Changed source paths
 
-- `ai-data-contract-manager/docs/session-flow.md`
-- `ai-data-contract-manager/src/adcm/application/services/value_resolver.py`
-- `ai-data-contract-manager/src/adcm/application/use_cases/handle_message.py`
-- `ai-data-contract-manager/src/adcm/application/use_cases/stabilize_contract.py`
-- `ai-data-contract-manager/tests/unit/test_stabilization.py`
-- `ai-data-contract-manager/tests/unit/test_value_resolver.py`
+- `AGENTS.md`
 - `docs/CURRENT_STATE.md`
+- `docs/DECISIONS.md`
+- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/HANDOFF.md`
+- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/IMPLEMENTATION_GUIDE.md`
+- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/PLAN.md`
+- `docs/architecture-guardrails.md`
 - `mcp-servers/mcp-contract-forge/docs/enrichment.md`
-- `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_paths.py`
+- `mcp-servers/mcp-contract-forge/resources/ux_rules.json`
+- `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py`
 - `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py`
+- `mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py`
+- `mcp-servers/mcp-contract-forge/tests/unit/test_enrichment_repository.py`
 - `mcp-servers/mcp-contract-forge/tests/unit/test_evaluate_contract.py`
-- `mcp-servers/mcp-contract-forge/tests/unit/test_union_branch_selector.py`
 
 ## Curated documentation to review
 
-- `ai-data-contract-manager/docs/`
 - `docs/CURRENT_STATE.md`
 - `docs/architecture.md`
 - `mcp-servers/mcp-contract-forge/docs/`
+- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
+- `mcp-servers/mcp-contract-forge/docs/enrichment.md`
+- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
 
 ## Commit workflow
 
