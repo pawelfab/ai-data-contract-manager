@@ -99,17 +99,47 @@ def check_staged(config: dict[str, Any]) -> dict[str, Any]:
         and not any(re.search(pattern, p, flags=re.IGNORECASE) for pattern in non_evidence_patterns)
     ]
     required = bool(config.get("require_docs_for_staged_relevant_code", True))
-    ok = not required or not relevant_code or bool(docs_changed)
+
+    # The task-lifecycle requirement is deliberately independent of
+    # documentation_evidence_patterns: those cover a wide curated surface, so any arbitrary
+    # service document would otherwise satisfy the one-task-document-per-change rule.
+    task_active_pattern = config.get("task_documentation_active_pattern")
+    task_completed_pattern = config.get("task_documentation_completed_pattern")
+    require_task_doc = bool(config.get("require_task_doc_for_staged_relevant_code", False))
+    task_docs = [
+        p for p in files
+        if (
+            (task_active_pattern and re.search(task_active_pattern, p, flags=re.IGNORECASE))
+            or (task_completed_pattern and re.search(task_completed_pattern, p, flags=re.IGNORECASE))
+        )
+    ]
+
+    curated_ok = not required or not relevant_code or bool(docs_changed)
+    task_ok = not require_task_doc or not relevant_code or bool(task_docs)
+    ok = curated_ok and task_ok
     return {
         "status": "CURRENT" if ok else "STALE",
         "relevant_staged_code": relevant_code,
         "staged_architecture_docs": docs_changed,
+        "staged_task_docs": task_docs,
         "reason": (
             "No staged documentation-relevant code."
             if not relevant_code else
+            "Documentation-relevant code is staged without curated documentation "
+            "and without an active or completed task document."
+            if not curated_ok and not task_ok else
+            "Documentation-relevant code is staged without curated documentation."
+            if not curated_ok else
+            "Documentation-relevant code is staged without an active or completed task "
+            "document under docs/active-task/ or docs/history/."
+            if not task_ok else
+            "Curated documentation and task documentation are staged."
+            if docs_changed and task_docs else
             "Curated documentation is staged."
             if docs_changed else
-            "Documentation-relevant code is staged without curated documentation."
+            "Task documentation is staged."
+            if task_docs else
+            "Documentation requirements are disabled for staged relevant code."
         ),
     }
 
@@ -127,12 +157,21 @@ def print_human(result: dict[str, Any]) -> None:
         print("Staged architecture documentation:")
         for path in docs[:100]:
             print(f"  - {path}")
+    task_docs = result.get("staged_task_docs") or []
+    if task_docs:
+        print("Staged task documentation:")
+        for path in task_docs[:100]:
+            print(f"  - {path}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check or update architecture documentation freshness.")
     parser.add_argument("--check", action="store_true", help="Compare source hashes with the freshness marker.")
-    parser.add_argument("--check-staged", action="store_true", help="Check staged relevant code has staged architecture docs.")
+    parser.add_argument(
+        "--check-staged",
+        action="store_true",
+        help="Check staged relevant code has staged architecture docs and a task document.",
+    )
     parser.add_argument("--mark-current", action="store_true", help="Write the current source hashes as documented.")
     parser.add_argument("--reason", default="manual documentation synchronization")
     parser.add_argument("--json", action="store_true", dest="as_json")

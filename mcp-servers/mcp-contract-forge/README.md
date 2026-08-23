@@ -1,16 +1,31 @@
 # MCP Contract Forge
 
-Deterministic MCP service for contract discovery, defaults/enrichment and validation.
+Deterministic MCP service for contract interpretation, requirement discovery, enrichment/defaults and validation.
 
-It intentionally does **not** depend on PydanticAI. The service uses Pydantic for typed models and the MCP Python SDK for transport.
+It intentionally does **not** depend on PydanticAI. Identical relevant inputs should produce identical Forge outputs.
 
-Only the `contract_json_v1` adapter knows the supplied raw `contract.json` structure. A future structural change should be handled by replacing/adding this adapter while preserving normalized domain models and Forge API v1.
+Only the concrete `contract_json_v1` adapter understands the current raw `contract.json` layout. Contract-format evolution should remain behind that adapter whenever normalized semantics remain compatible.
 
+## Runtime configuration sources
 
-## Discovery and enrichment
+- `resources/contract.json` — formal contract/schema/rule semantics;
+- `resources/discovery_rules.json` — progressive requirement visibility/presentation;
+- `resources/ux_rules.json` — enrichment configuration.
 
-`resources/discovery_rules.json` controls which formal requirements are visible now; it does not define validity. `resources/ux_rules.json` contains normalized enrichment data. Global rules support JSON-pointer value copying/interpolation and path patterns, while system rules are activated only when the semantic source-system context matches.
+These sources have separate responsibilities.
 
-The source-system-first gate is a semantic anchor from `contract_json_v1/semantic_paths.py`, not a hard-coded ADCM path.
+## Documentation
 
-See `docs/requirement-discovery.md`, `docs/enrichment.md` and `docs/contract-repair-note.md`.
+Start with:
+
+`docs/architecture.md`
+
+It routes to detailed documents for:
+- contract format;
+- requirements/discovery/schema validation;
+- enrichment;
+- rules;
+- ports/adapters;
+- MCP API.
+
+Historical repair notes are under `docs/history/` and are not normal implementation guidance.

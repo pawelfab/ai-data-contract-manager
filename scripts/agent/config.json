@@ -63,50 +63,91 @@
     "^githooks/"
   ],
   "documentation_evidence_patterns": [
-    "^docs/(architecture|CURRENT_STATE|DECISIONS|service-boundaries|integration-flow|system-overview|documentation-automation)\\.md$",
+    "^docs/(architecture|CURRENT_STATE|DECISIONS|KNOWN_ISSUES|documentation-automation)\\.md$",
+    "^docs/active-task/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
+    "^docs/history/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
     "^ai-data-contract-manager/docs/",
     "^mcp-servers/mcp-contract-forge/docs/"
   ],
   "documentation_non_evidence_patterns": [
-    "^docs/generated/"
+    "^docs/generated/",
+    "^docs/history/(architecture|migrations|planning)/"
   ],
+  "task_documentation_active_pattern": "^docs/active-task/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
+  "task_documentation_completed_pattern": "^docs/history/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
+  "require_task_doc_for_staged_relevant_code": true,
   "documentation_map": [
     {
       "source_pattern": "^ai-data-contract-manager/src/adcm/",
       "docs": [
-        "docs/architecture.md",
         "docs/CURRENT_STATE.md",
-        "ai-data-contract-manager/docs/"
+        "ai-data-contract-manager/docs/architecture.md",
+        "ai-data-contract-manager/docs/session-flow.md",
+        "ai-data-contract-manager/docs/contract-state.md",
+        "ai-data-contract-manager/docs/llm-heuristics.md",
+        "ai-data-contract-manager/docs/ports-and-adapters.md"
       ]
     },
     {
       "source_pattern": "^ai-data-contract-manager/pyproject\\.toml$",
       "docs": [
-        "docs/CURRENT_STATE.md"
+        "docs/CURRENT_STATE.md",
+        "ai-data-contract-manager/README.md"
       ]
     },
     {
       "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
       "docs": [
-        "docs/architecture.md",
         "docs/CURRENT_STATE.md",
-        "mcp-servers/mcp-contract-forge/docs/"
+        "mcp-servers/mcp-contract-forge/docs/architecture.md",
+        "mcp-servers/mcp-contract-forge/docs/contract-format.md",
+        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md",
+        "mcp-servers/mcp-contract-forge/docs/enrichment.md",
+        "mcp-servers/mcp-contract-forge/docs/rules-engine.md",
+        "mcp-servers/mcp-contract-forge/docs/ports-and-adapters.md",
+        "mcp-servers/mcp-contract-forge/docs/mcp-api.md"
       ]
     },
     {
-      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/",
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/contract\\.json$",
       "docs": [
         "docs/CURRENT_STATE.md",
         "mcp-servers/mcp-contract-forge/docs/contract-format.md",
-        "mcp-servers/mcp-contract-forge/docs/enrichment.md",
         "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"
       ]
     },
     {
-      "source_pattern": "^(ai-data-contract-manager|mcp-servers/mcp-contract-forge)/pyproject\\.toml$",
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/discovery_rules\\.json$",
       "docs": [
-        "docs/architecture.md",
-        "docs/CURRENT_STATE.md"
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"
+      ]
+    },
+    {
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/ux_rules\\.json$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/docs/enrichment.md"
+      ]
+    },
+    {
+      "source_pattern": "^mcp-servers/mcp-contract-forge/pyproject\\.toml$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/README.md"
+      ]
+    },
+    {
+      "source_pattern": "^scripts/agent/",
+      "docs": [
+        "docs/documentation-automation.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "source_pattern": "^githooks/",
+      "docs": [
+        "docs/documentation-automation.md"
       ]
     }
   ],

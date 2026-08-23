@@ -1,32 +1,69 @@
 # ADCM architecture
 
+ADCM is the conversational service. It understands user intent and owns state/orchestration; it does not understand the physical contract format.
+
+## Main flow
+
+```text
+API / CLI
+    ↓
+application use cases
+    ↓
+Session / EvidenceStore / ContractState
+    ↓
+stabilization
+    ├─ ContractForgePort ── mandatory deterministic call
+    ├─ HeuristicsPort ───── semantic interpretation
+    └─ AgentContextPort ─── optional context MCPs
+```
+
+Contract Forge is never exposed as an optional PydanticAI tool.
+
 ## Domain
 
-- `Session`
-- `ContractState`
-- `EvidenceItem`
-- `Authority` / `Provenance`
-- advisory issues
+Core domain concepts include:
+- `Session`;
+- `ContractState`;
+- `EvidenceItem`;
+- authority/provenance;
+- advisory issues.
 
-## Application
+## Application responsibilities
 
-- create session,
-- handle message,
-- stabilize contract,
-- value resolution.
+Application code owns:
+- session lifecycle;
+- handling user messages/evidence;
+- fixed-point stabilization;
+- deterministic candidate validation/application;
+- deciding when another question/result is required.
 
-## Outbound ports
+## Outbound boundaries
 
-- `ContractForgePort` — mandatory and deterministic,
-- `HeuristicsPort` — PydanticAI semantic behavior,
-- `AgentContextPort` — optional PydanticAI MCP tools,
-- `SessionRepositoryPort` — persistence.
+- `ContractForgePort` — mandatory Forge evaluation;
+- `HeuristicsPort` — semantic LLM behavior;
+- `AgentContextPort` — optional context MCP integration;
+- `SessionRepositoryPort` — session persistence.
 
-## Adapters
+Introduce additional ports only for real I/O or independent change boundaries.
 
-- Forge MCP client,
-- PydanticAI heuristic agents,
-- PydanticAI MCP context agent,
-- memory session repository.
+## Documentation map
 
-The PydanticAI context agent never receives Contract Forge as a tool.
+State model and authority:
+- `contract-state.md`
+
+Fixed-point flow, candidate decisions, editing and warnings:
+- `session-flow.md`
+
+PydanticAI responsibilities:
+- `llm-heuristics.md`
+
+Port/adapter details:
+- `ports-and-adapters.md`
+
+Runtime/startup configuration:
+- service `README.md`
+
+Planned logging:
+- `planned/logging.md`
+
+Use `docs/generated/repository-map.md` at repository root to locate concrete implementations when needed. Verify final behavior in code and tests.

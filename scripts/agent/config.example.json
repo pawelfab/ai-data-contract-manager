@@ -67,6 +67,9 @@
   "documentation_non_evidence_patterns": [
     "^docs/generated/"
   ],
+  "task_documentation_active_pattern": "^docs/active-task/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
+  "task_documentation_completed_pattern": "^docs/history/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
+  "require_task_doc_for_staged_relevant_code": true,
   "documentation_map": [
     {
       "source_pattern": "^ai-data-contract-manager/src/adcm/",

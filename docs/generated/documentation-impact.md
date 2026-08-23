@@ -8,28 +8,48 @@ Input: `staged Git index`
 ## Changed source paths
 
 - `AGENTS.md`
+- `DOCS_MIGRATION_PLAN.md`
+- `ai-data-contract-manager/docs/architecture.md`
+- `ai-data-contract-manager/docs/planned/logging.md`
+- `docs/ARCHITECTURE.md`
 - `docs/CURRENT_STATE.md`
-- `docs/DECISIONS.md`
-- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/HANDOFF.md`
-- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/IMPLEMENTATION_GUIDE.md`
-- `docs/active-tasks/2026-08-23-source-bronze-silver-gold-flow/PLAN.md`
+- `docs/active-task/2026-08-23_task-doc-gate/IMPLEMENTATION.md`
+- `docs/active-task/2026-08-23_task-doc-gate/TASK.md`
+- `docs/active-tasks/README.md`
+- `docs/agent/START_HERE.md`
 - `docs/architecture-guardrails.md`
-- `mcp-servers/mcp-contract-forge/docs/enrichment.md`
-- `mcp-servers/mcp-contract-forge/resources/ux_rules.json`
-- `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py`
-- `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py`
-- `mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py`
-- `mcp-servers/mcp-contract-forge/tests/unit/test_enrichment_repository.py`
-- `mcp-servers/mcp-contract-forge/tests/unit/test_evaluate_contract.py`
+- `docs/documentation-automation.md`
+- `docs/history/architecture/CONSOLIDATED_ANALYSIS.md`
+- `docs/history/migrations/MIGRATION_V4_TO_V5.md`
+- `docs/history/planning/stages.md`
+- `docs/history/planning/stages/stage-01.md`
+- `docs/history/planning/stages/stage-02.md`
+- `docs/history/planning/stages/stage-03.md`
+- `docs/history/planning/stages/stage-04.md`
+- `docs/history/planning/stages/stage-05.md`
+- `docs/history/planning/stages/stage-06.md`
+- `docs/history/planning/stages/stage-07.md`
+- `docs/history/planning/stages/stage-08.md`
+- `docs/history/planning/stages/stage-09.md`
+- `docs/integration-flow.md`
+- `docs/service-boundaries.md`
+- `docs/system-overview.md`
+- `docs/templates/task/IMPLEMENTATION.md`
+- `docs/templates/task/TASK.md`
+- `mcp-servers/mcp-contract-forge/README.md`
+- `mcp-servers/mcp-contract-forge/docs/architecture.md`
+- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
+- `mcp-servers/mcp-contract-forge/docs/history/contract-repair-note.md`
+- `mcp-servers/mcp-contract-forge/docs/normalized-contract.md`
+- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
+- `scripts/agent/config.example.json`
+- `scripts/agent/config.json`
+- `scripts/agent/doc_freshness.py`
 
 ## Curated documentation to review
 
-- `docs/CURRENT_STATE.md`
-- `docs/architecture.md`
-- `mcp-servers/mcp-contract-forge/docs/`
-- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
-- `mcp-servers/mcp-contract-forge/docs/enrichment.md`
-- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
+- `AGENTS.md`
+- `docs/documentation-automation.md`
 
 ## Commit workflow
 
