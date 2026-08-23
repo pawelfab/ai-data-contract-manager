@@ -1,6 +1,6 @@
 # Generated repository map
 
-Generated: `2026-08-23T12:12:39.958018+00:00`
+Generated: `2026-08-23T14:05:13.389325+00:00`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 

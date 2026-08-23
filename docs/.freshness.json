@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "marked_at": "2026-08-23T12:12:42.806489+00:00",
+  "marked_at": "2026-08-23T14:05:14.926164+00:00",
   "reason": "post-commit documentation generation",
-  "commit": null,
-  "branch": null,
-  "working_tree_dirty": null,
+  "commit": "4039ad5ae83cf8ef66a73ad572205e34d5524e62",
+  "branch": "adcm_v5_consolidated",
+  "working_tree_dirty": true,
   "source_hashes": {
     "ai-data-contract-manager/pyproject.toml": "e2f2c55675c2fb0da174fd6f4ae2de672e97649243ee920a398f92330dd9b13d",
     "ai-data-contract-manager/src/adcm/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
