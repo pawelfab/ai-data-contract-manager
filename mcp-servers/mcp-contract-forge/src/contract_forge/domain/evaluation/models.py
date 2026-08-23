@@ -35,7 +35,7 @@ class ValidationIssue(BaseModel):
 class ForgeEvaluation(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     api_version: str = Field("1", alias="apiVersion")
-    forge_version: str = Field("0.4.0", alias="forgeVersion")
+    forge_version: str = Field("0.4.1", alias="forgeVersion")
     schema_version: str | None = Field(None, alias="schemaVersion")
     rules_spec_version: str | None = Field(None, alias="rulesSpecVersion")
     requirements: list[Requirement] = Field(default_factory=list)

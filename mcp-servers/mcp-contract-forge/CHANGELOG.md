@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Requirement Engine now enters required arrays, so enabling a component (`silver.enabled = true`) discovers its table instead of stopping at `/silver/tables`. Previously those requirements appeared only once enrichment had materialised element 0.
+- An absent array is distinguished from a present but empty one; `minItems` is enforced as a cardinality error when a present array is too short. This closes a gap where `files: []` passed as valid because expanding a string array yields no requirements.
+- Element expansion requires the explicit `x-requirement-expand-items` annotation: `minItems` states cardinality, the annotation states discoverability. An array is atomic by default and filled as a whole.
+- `SilverConfig.tables` and `GoldConfig.entries` are annotated for expansion with `minItems: 1`; `SilverTableConfig.columns` gets `minItems: 1` only, so a column list is still supplied in one piece.
+
 ## 0.4.0
 
 - Added progressive requirement discovery with configurable JSON policy and semantic path tokens.

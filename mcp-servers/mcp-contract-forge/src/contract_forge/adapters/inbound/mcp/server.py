@@ -3,7 +3,7 @@ from mcp.server import MCPServer
 from contract_forge.bootstrap.container import build_container
 
 container = build_container()
-mcp = MCPServer("mcp-contract-forge", version="0.4.0")
+mcp = MCPServer("mcp-contract-forge", version="0.4.1")
 
 
 @mcp.tool()

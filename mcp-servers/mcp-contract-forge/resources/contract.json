@@ -559,6 +559,8 @@
           "items": {
             "$ref": "#/$defs/GoldEntryConfig"
           },
+          "minItems": 1,
+          "x-requirement-expand-items": true,
           "title": "Entries",
           "type": "array"
         }
@@ -1240,6 +1242,8 @@
           "items": {
             "$ref": "#/$defs/SilverTableConfig"
           },
+          "minItems": 1,
+          "x-requirement-expand-items": true,
           "title": "Tables",
           "type": "array"
         }
@@ -1312,6 +1316,7 @@
           "items": {
             "$ref": "#/$defs/TransformedColumn"
           },
+          "minItems": 1,
           "title": "Columns",
           "type": "array"
         }

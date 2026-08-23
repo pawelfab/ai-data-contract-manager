@@ -37,3 +37,43 @@ def test_structural_parents_are_not_exposed_after_source():
     paths = {r.path for r in ev.requirements}
     assert "/metadata" not in paths
     assert "/orchestration" not in paths
+
+
+COMPLETE_HEAD = {
+    "metadata": {"id": "sap", "version": "1.0.0", "sourceSystemGcpId": "sap", "dataFileId": "sap_pipeline"},
+    "orchestration": {"schedule": "@daily", "startDate": "2025-01-01"},
+    "source": {
+        "sourceType": "jdbc",
+        "sourceTable": "CUSTOMER",
+        "jdbcConnectionName": "SAP",
+        "dataDanych": "2025-01-01",
+        "systemZrodlowy": "sap",
+        "sourceName": "CUSTOMER",
+    },
+}
+
+
+def test_enabling_silver_reveals_the_first_table_through_the_whole_pipeline():
+    # Covers schema engine + fillable filter + discovery together: enabling the component is
+    # enough, nothing has to materialise silver.tables[0] for its fields to be discovered.
+    ev = forge().execute({**COMPLETE_HEAD, "silver": {"enabled": True}})
+    paths = {r.path for r in ev.requirements}
+
+    assert {
+        "/silver/tables/0/table/project",
+        "/silver/tables/0/table/table",
+        "/silver/tables/0/source",
+        "/silver/tables/0/pk",
+        "/silver/tables/0/columns",
+    } <= paths
+    # The array itself is a structural parent once its element is expanded.
+    assert "/silver/tables" not in paths
+    # The column list stays atomic.
+    assert not [p for p in paths if p.startswith("/silver/tables/0/columns/")]
+
+
+def test_dataset_enrichment_applies_once_the_silver_branch_is_visible():
+    ev = forge().execute({**COMPLETE_HEAD, "silver": {"enabled": True}})
+    values = {s.path: s.value for s in ev.suggestions}
+    # The source system is known here, so system enrichment is legitimate.
+    assert values["/silver/tables/0/table/dataset"] == "silver_sap"
