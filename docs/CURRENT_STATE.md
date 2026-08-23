@@ -212,15 +212,11 @@ Each element becomes its own `EvidenceItem(source_type="attachment_text")`.
 
 There is no file upload in this version. Future upload must be implemented as a new inbound upload adapter plus `FileContentExtractorPort`, producing the same Evidence model without changing the stabilization loop/heuristics.
 
-## Contract snapshot caveat
+## Contract source
 
-The supplied `contract_poprawiony1.json` still contains dangling local `$ref` values in the actual file available to this package. The exact input is preserved as:
+Forge has one runtime contract source: `mcp-servers/mcp-contract-forge/resources/contract.json`.
 
-```text
-mcp-contract-forge/resources/contract.input.json
-```
-
-The runtime `contract.json` contains conservative compatibility `$defs` additions, documented in `docs/contract-repair-note.md`. Replace those definitions with authoritative ones when supplied by the contract-producing module.
+`test_source_linter.py` verifies that the checked-in source has no dangling local `$ref` values. `contract.input.json` is no longer present in runtime resources, so there is no competing historical contract file for Forge to load.
 
 ## Known future work
 
@@ -232,5 +228,4 @@ Not implemented yet:
 - `NEEDS_USER_DECISION` conflict-resolution policy;
 - production user-enrichment storage (current user repository is no-op/reference memory adapter);
 - deterministic partial-fact store for incomplete column lists; current LLM can form structured candidates but partial column-name-only facts are not yet a separate durable model;
-- authoritative repair of the missing contract `$defs`;
 - real E2E verification against the user's concrete local OpenAI-compatible server and deployed MCP endpoints.

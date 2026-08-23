@@ -1,10 +1,10 @@
 {
   "source_roots": [
-    "src",
-    "app",
-    "lib",
-    "packages",
-    "services"
+    "ai-data-contract-manager/src",
+    "ai-data-contract-manager/pyproject.toml",
+    "mcp-servers/mcp-contract-forge/src",
+    "mcp-servers/mcp-contract-forge/resources",
+    "mcp-servers/mcp-contract-forge/pyproject.toml"
   ],
   "source_extensions": [
     ".py",
@@ -42,21 +42,42 @@
     ".mypy_cache",
     ".ruff_cache",
     "__pycache__",
-    "docs/architecture/generated",
-    "docs/architecture",
+    "docs/generated",
     ".github",
     ".vscode",
     "scripts/agent",
     "githooks"
   ],
-  "architecture_docs_dir": "docs/architecture",
-  "inventory_json": "docs/architecture/generated/repository-inventory.json",
-  "repository_map": "docs/architecture/generated/repository-map.md",
-  "freshness_file": "docs/architecture/.freshness.json",
+  "architecture_docs_dir": "docs",
+  "inventory_json": "docs/generated/repository-inventory.json",
+  "repository_map": "docs/generated/repository-map.md",
+  "documentation_impact_report": "docs/generated/documentation-impact.md",
+  "freshness_file": "docs/.freshness.json",
   "documentation_relevant_patterns": [
-    "(^|/)(src|app|lib|packages|services)/",
-    "(^|/)migrations?/",
-    "(^|/)(api|schemas?|models?|domain|core|config)/"
+    "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
+    "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)"
+  ],
+  "documentation_evidence_patterns": [
+    "^docs/(architecture|CURRENT_STATE|DECISIONS|service-boundaries|integration-flow|system-overview|documentation-automation)\\.md$",
+    "^ai-data-contract-manager/docs/",
+    "^mcp-servers/mcp-contract-forge/docs/"
+  ],
+  "documentation_non_evidence_patterns": [
+    "^docs/generated/"
+  ],
+  "documentation_map": [
+    {
+      "source_pattern": "^ai-data-contract-manager/src/adcm/",
+      "docs": ["docs/architecture.md", "docs/CURRENT_STATE.md", "ai-data-contract-manager/docs/"]
+    },
+    {
+      "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
+      "docs": ["docs/architecture.md", "docs/CURRENT_STATE.md", "mcp-servers/mcp-contract-forge/docs/"]
+    },
+    {
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/",
+      "docs": ["docs/CURRENT_STATE.md", "mcp-servers/mcp-contract-forge/docs/contract-format.md", "mcp-servers/mcp-contract-forge/docs/enrichment.md", "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"]
+    }
   ],
   "quality_commands": {
     "format_check": [],

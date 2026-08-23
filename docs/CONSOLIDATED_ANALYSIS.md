@@ -33,7 +33,7 @@ No runtime imports cross the service boundary.
 
 Raw `contract.json` is isolated behind `ContractSourcePort -> ContractParserPort -> contract_json_v1`. ADCM never knows `$defs`, `$ref`, rule layout or canonical contract paths. Semantic anchors such as `source_system` belong to the format adapter.
 
-The currently supplied latest contract file still contains dangling local `$ref` references. This package preserves it unchanged as `resources/contract.input.json` and uses a separately documented runtime repair. The inferred repaired definitions are a compatibility fixture, not authoritative business schema.
+Forge now has one runtime contract source, `resources/contract.json`, and `test_source_linter.py` verifies that it has no dangling local `$ref` values. The earlier two-file compatibility arrangement is no longer present in runtime resources.
 
 ## 4. Progressive discovery
 

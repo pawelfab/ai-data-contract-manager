@@ -90,8 +90,13 @@ def check_staged(config: dict[str, Any]) -> dict[str, Any]:
         if documentation_relevant(p, config)
         and not p.startswith(config["architecture_docs_dir"].rstrip("/") + "/")
     ]
-    doc_prefix = config["architecture_docs_dir"].rstrip("/") + "/"
-    docs_changed = [p for p in files if p.startswith(doc_prefix)]
+    evidence_patterns = config.get("documentation_evidence_patterns", [])
+    non_evidence_patterns = config.get("documentation_non_evidence_patterns", [])
+    docs_changed = [
+        p for p in files
+        if any(re.search(pattern, p, flags=re.IGNORECASE) for pattern in evidence_patterns)
+        and not any(re.search(pattern, p, flags=re.IGNORECASE) for pattern in non_evidence_patterns)
+    ]
     required = bool(config.get("require_docs_for_staged_relevant_code", True))
     ok = not required or not relevant_code or bool(docs_changed)
     return {
@@ -101,9 +106,9 @@ def check_staged(config: dict[str, Any]) -> dict[str, Any]:
         "reason": (
             "No staged documentation-relevant code."
             if not relevant_code else
-            "Architecture documentation is staged."
+            "Curated documentation is staged."
             if docs_changed else
-            "Documentation-relevant code is staged without architecture documentation."
+            "Documentation-relevant code is staged without curated documentation."
         ),
     }
 

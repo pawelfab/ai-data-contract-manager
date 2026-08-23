@@ -3,7 +3,7 @@
     "ai-data-contract-manager/src",
     "ai-data-contract-manager/pyproject.toml",
     "mcp-servers/mcp-contract-forge/src",
-    "mcp-servers/mcp-contract-forge/config",
+    "mcp-servers/mcp-contract-forge/resources",
     "mcp-servers/mcp-contract-forge/pyproject.toml"
   ],
   "source_extensions": [
@@ -58,10 +58,12 @@
   "session_state_max_age_hours": 168,
   "documentation_relevant_patterns": [
     "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
-    "^mcp-servers/mcp-contract-forge/(src/|config/|contracts/|pyproject\\.toml$)"
+    "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)"
   ],
   "documentation_evidence_patterns": [
-    "^docs/(ARCHITECTURE|ADCM_CONTEXT|CURRENT_STATE|DECISIONS|RULE_COMPATIBILITY)\\.md$"
+    "^docs/(architecture|CURRENT_STATE|DECISIONS|service-boundaries|integration-flow|system-overview|documentation-automation)\\.md$",
+    "^ai-data-contract-manager/docs/",
+    "^mcp-servers/mcp-contract-forge/docs/"
   ],
   "documentation_non_evidence_patterns": [
     "^docs/generated/"
@@ -70,9 +72,9 @@
     {
       "source_pattern": "^ai-data-contract-manager/src/adcm/",
       "docs": [
-        "docs/ARCHITECTURE.md",
-        "docs/ADCM_CONTEXT.md",
-        "docs/CURRENT_STATE.md"
+        "docs/architecture.md",
+        "docs/CURRENT_STATE.md",
+        "ai-data-contract-manager/docs/"
       ]
     },
     {
@@ -84,22 +86,24 @@
     {
       "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
       "docs": [
-        "docs/ARCHITECTURE.md",
-        "docs/ADCM_CONTEXT.md",
-        "docs/CURRENT_STATE.md"
+        "docs/architecture.md",
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/docs/"
       ]
     },
     {
-      "source_pattern": "^mcp-servers/mcp-contract-forge/(config|contracts)/",
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/",
       "docs": [
-        "docs/RULE_COMPATIBILITY.md",
-        "docs/CURRENT_STATE.md"
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/docs/contract-format.md",
+        "mcp-servers/mcp-contract-forge/docs/enrichment.md",
+        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"
       ]
     },
     {
       "source_pattern": "^(ai-data-contract-manager|mcp-servers/mcp-contract-forge)/pyproject\\.toml$",
       "docs": [
-        "docs/ARCHITECTURE.md",
+        "docs/architecture.md",
         "docs/CURRENT_STATE.md"
       ]
     }

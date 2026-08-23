@@ -23,4 +23,4 @@ Coding agents should also read [`AGENTS.md`](AGENTS.md). A structural change to 
 
 The current package includes progressive source-system-first discovery, fillable requirements, data-driven global/system enrichment, deterministic ADCM candidate validation, edit-after-complete behavior and fixed-point convergence guards. See `docs/CURRENT_STATE.md`, `docs/DECISIONS.md` and `docs/KNOWN_ISSUES.md` before extending it.
 
-The supplied latest contract artifact is preserved unchanged by Forge as `resources/contract.input.json`. The runtime `resources/contract.json` contains a documented minimal repair for dangling local `$ref` definitions in that artifact; see `mcp-servers/mcp-contract-forge/docs/contract-repair-note.md`. Replace those inferred definitions with authoritative schema definitions when available.
+Forge has one runtime contract source: `mcp-servers/mcp-contract-forge/resources/contract.json`. The source-linter test verifies that it has no dangling local `$ref` values; `contract.input.json` is not a runtime resource.

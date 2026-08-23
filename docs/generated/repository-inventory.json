@@ -1,0 +1,2411 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-23T12:12:39.958018+00:00",
+  "repository_root": "G:\\mojeDokMar2016\\Documents\\python\\ai-data-contract-manager",
+  "files": [
+    {
+      "path": "ai-data-contract-manager/pyproject.toml",
+      "language": "TOML",
+      "bytes": 1583,
+      "lines": 68,
+      "sha256": "e2f2c55675c2fb0da174fd6f4ae2de672e97649243ee920a398f92330dd9b13d",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/inbound/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/app.py",
+      "language": "Python",
+      "bytes": 301,
+      "lines": 10,
+      "sha256": "12902e7a999be0ac0dd117858f9a578143a39fb4f278e932921747955f1439e2",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "create_app",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/routes.py",
+      "language": "Python",
+      "bytes": 1381,
+      "lines": 47,
+      "sha256": "f30f3278d6ddade8ae0e5b362204566761c6099fa998b39c1226fb3a5003d9a7",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CreateSessionRequest",
+          "line": 7,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "MessageRequest",
+          "line": 11,
+          "methods": []
+        },
+        {
+          "kind": "async_function",
+          "name": "health",
+          "line": 21
+        },
+        {
+          "kind": "async_function",
+          "name": "create_session",
+          "line": 26
+        },
+        {
+          "kind": "async_function",
+          "name": "get_session",
+          "line": 32
+        },
+        {
+          "kind": "async_function",
+          "name": "message",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/__init__.py",
+      "language": "Python",
+      "bytes": 1,
+      "lines": 2,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/noop.py",
+      "language": "Python",
+      "bytes": 293,
+      "lines": 7,
+      "sha256": "63ee212f760b102247d76e14630713a942cea508e8e0c5dbe4ec2b1d2c1e9ed1",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "NoopContextAgent",
+          "line": 4,
+          "methods": [
+            {
+              "name": "collect",
+              "line": 5,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/pydantic_ai_agent.py",
+      "language": "Python",
+      "bytes": 2522,
+      "lines": 68,
+      "sha256": "1ce6a340122931b1217f02631353b3c06afdac444ae1ed5ac4839b0f180f0fdb",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CollectedEvidence",
+          "line": 14,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContextAgentOutput",
+          "line": 21,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "PydanticAiMcpContextAdapter",
+          "line": 37,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 38,
+              "async": false
+            },
+            {
+              "name": "collect",
+              "line": 50,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/forge_mcp/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/forge_mcp/client.py",
+      "language": "Python",
+      "bytes": 1424,
+      "lines": 42,
+      "sha256": "4dbfcf95dd8da3012290cb15be01aef63daa2b57520f2031c0bbec9ac601676a",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ForgeMcpAdapter",
+          "line": 8,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 9,
+              "async": false
+            },
+            {
+              "name": "evaluate",
+              "line": 12,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_tool_payload",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/llm/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/llm/heuristics.py",
+      "language": "Python",
+      "bytes": 1747,
+      "lines": 46,
+      "sha256": "56f3f7cc8a31558e500509cf2cbbfb8af8efb5345a7a487cde81caaa66a488c8",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ConservativeLocalHeuristics",
+          "line": 16,
+          "methods": [
+            {
+              "name": "resolve",
+              "line": 17,
+              "async": true
+            },
+            {
+              "name": "inspect_consistency",
+              "line": 34,
+              "async": true
+            },
+            {
+              "name": "compose_question",
+              "line": 37,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/llm/pydantic_ai_heuristics.py",
+      "language": "Python",
+      "bytes": 5415,
+      "lines": 124,
+      "sha256": "5909ec08db51876df8a07e737486e6e21c05f3a094cdc9ce19045224c22e31a6",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "PydanticAiHeuristicsAdapter",
+          "line": 69,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 70,
+              "async": false
+            },
+            {
+              "name": "resolve",
+              "line": 97,
+              "async": true
+            },
+            {
+              "name": "inspect_consistency",
+              "line": 101,
+              "async": true
+            },
+            {
+              "name": "compose_question",
+              "line": 111,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_model_spec",
+          "line": 116
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/session_memory/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/outbound/session_memory/repository.py",
+      "language": "Python",
+      "bytes": 419,
+      "lines": 8,
+      "sha256": "8430fafc77b9ece19be653e4294a8ced8c46d5eb7cf90ebf2d185babcc3e3714",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "MemorySessionRepository",
+          "line": 3,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 4,
+              "async": false
+            },
+            {
+              "name": "create",
+              "line": 5,
+              "async": true
+            },
+            {
+              "name": "get",
+              "line": 6,
+              "async": true
+            },
+            {
+              "name": "save",
+              "line": 7,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/context_agent.py",
+      "language": "Python",
+      "bytes": 956,
+      "lines": 28,
+      "sha256": "458599be9eecec216fe958b5c29357b4c409ab28f8da1800013b500c5451b9e7",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContextCollectionRequest",
+          "line": 7,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContextCollectionResult",
+          "line": 15,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "AgentContextPort",
+          "line": 20,
+          "methods": [
+            {
+              "name": "collect",
+              "line": 27,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/context_provider.py",
+      "language": "Python",
+      "bytes": 335,
+      "lines": 11,
+      "sha256": "1405c511dfdf2b43a68efd6c561299db9620302be2492051182f4f834c66cd64",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContextRequest",
+          "line": 5,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContextProviderPort",
+          "line": 9,
+          "methods": [
+            {
+              "name": "collect",
+              "line": 10,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/forge.py",
+      "language": "Python",
+      "bytes": 1802,
+      "lines": 54,
+      "sha256": "79aec2a58bedc7d6ee0a887203858ecb30346790de3d618c585946929b40c0f2",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Requirement",
+          "line": 6,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SuggestedValue",
+          "line": 20,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationIssue",
+          "line": 30,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ForgeEvaluation",
+          "line": 38,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ContractForgePort",
+          "line": 47,
+          "methods": [
+            {
+              "name": "evaluate",
+              "line": 48,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/llm.py",
+      "language": "Python",
+      "bytes": 1258,
+      "lines": 46,
+      "sha256": "c7e478975f5e9bc27d709bdd680d029ca50b317776e224c45ebefa7ed4272228",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Candidate",
+          "line": 8,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ResolveRequest",
+          "line": 15,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ResolveResult",
+          "line": 22,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "QuestionRequest",
+          "line": 27,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "QuestionResult",
+          "line": 34,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "HeuristicsPort",
+          "line": 38,
+          "methods": [
+            {
+              "name": "resolve",
+              "line": 39,
+              "async": true
+            },
+            {
+              "name": "inspect_consistency",
+              "line": 41,
+              "async": true
+            },
+            {
+              "name": "compose_question",
+              "line": 45,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/ports/session_repository.py",
+      "language": "Python",
+      "bytes": 296,
+      "lines": 8,
+      "sha256": "9ab06050cf9f29914cd196d710655bfe7520a04321a6a7a37d073fc9c0d6fed3",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SessionRepositoryPort",
+          "line": 4,
+          "methods": [
+            {
+              "name": "create",
+              "line": 5,
+              "async": true
+            },
+            {
+              "name": "get",
+              "line": 6,
+              "async": true
+            },
+            {
+              "name": "save",
+              "line": 7,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/services/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/services/candidate_decision.py",
+      "language": "Python",
+      "bytes": 566,
+      "lines": 24,
+      "sha256": "cb5dd9bd205c4255ed23c37b6c9873f45ecb32d0a01d91bcb5efe60b4b392f10",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CandidateDecisionStatus",
+          "line": 8,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CandidateDecision",
+          "line": 15,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CandidateOutcome",
+          "line": 21,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/services/value_resolver.py",
+      "language": "Python",
+      "bytes": 8219,
+      "lines": 186,
+      "sha256": "5f9650b0f3b035564cf1b034bd34d318364af31127594b3a62fa2f390429ce59",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ValueResolver",
+          "line": 28,
+          "methods": [
+            {
+              "name": "apply_suggestions",
+              "line": 29,
+              "async": false
+            },
+            {
+              "name": "apply_candidates",
+              "line": 67,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_matching_requirement",
+          "line": 148
+        },
+        {
+          "kind": "function",
+          "name": "_destroys_container",
+          "line": 156
+        },
+        {
+          "kind": "function",
+          "name": "_type_matches",
+          "line": 168
+        },
+        {
+          "kind": "function",
+          "name": "_decision",
+          "line": 184
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/change_value.py",
+      "language": "Python",
+      "bytes": 691,
+      "lines": 15,
+      "sha256": "e1edb7dc476e9e3bcecbfacf4979dd2ebcb0206d3dbc98461901d8899b947367",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ChangeValue",
+          "line": 5,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 6,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 7,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/collect_context.py",
+      "language": "Python",
+      "bytes": 504,
+      "lines": 11,
+      "sha256": "0002e3923e87d286ca62f5f92b0971c90b36250971fabc5b9f407df238b3a30f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CollectContext",
+          "line": 4,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 5,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 6,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/create_session.py",
+      "language": "Python",
+      "bytes": 357,
+      "lines": 11,
+      "sha256": "cb6dae9a4599ede2dde5d5db7fcd95000c7d98a0d92b62b5fa4d45ee9f06e7f3",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CreateSession",
+          "line": 5,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 6,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 9,
+              "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/handle_message.py",
+      "language": "Python",
+      "bytes": 4058,
+      "lines": 111,
+      "sha256": "020c1ebc264f69c641950c80857d683191eb485d027ad27494fede887582c710",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "HandleResult",
+          "line": 13,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "HandleMessage",
+          "line": 23,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 24,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 36,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_missing",
+          "line": 107
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/use_cases/stabilize_contract.py",
+      "language": "Python",
+      "bytes": 3415,
+      "lines": 88,
+      "sha256": "0d860b8cd423c8f2c58104d690e7dca063de785ba07613442e50a81013559696",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "StabilizationResult",
+          "line": 10,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "StabilizeContract",
+          "line": 16,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 19,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 25,
+              "async": true
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_missing",
+          "line": 73
+        },
+        {
+          "kind": "function",
+          "name": "_unique",
+          "line": 79
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/bootstrap/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/bootstrap/container.py",
+      "language": "Python",
+      "bytes": 1940,
+      "lines": 49,
+      "sha256": "e554f536bc0d9c32fc24e485b191dd1a5e590a345cec495b2004655f42f127b1",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Container",
+          "line": 12,
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "build_container",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/bootstrap/settings.py",
+      "language": "Python",
+      "bytes": 995,
+      "lines": 31,
+      "sha256": "c929073138811c0e40270bd5e795cdc3054faadb8c41d1e2e93603e981d282a1",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Settings",
+          "line": 11,
+          "methods": [
+            {
+              "name": "parse_context_urls",
+              "line": 25,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/contract/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/contract/path.py",
+      "language": "Python",
+      "bytes": 3897,
+      "lines": 115,
+      "sha256": "4ec8a9110c3817047fed185dddaa5867e002d92ae5e8c61c4299e1b2b66ef01b",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonPointerError",
+          "line": 7,
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "_parts",
+          "line": 11
+        },
+        {
+          "kind": "function",
+          "name": "set_pointer",
+          "line": 19
+        },
+        {
+          "kind": "function",
+          "name": "get_pointer",
+          "line": 79
+        },
+        {
+          "kind": "function",
+          "name": "exists_pointer",
+          "line": 89
+        },
+        {
+          "kind": "function",
+          "name": "delete_pointer",
+          "line": 94
+        },
+        {
+          "kind": "function",
+          "name": "_escape",
+          "line": 113
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/contract/state.py",
+      "language": "Python",
+      "bytes": 2149,
+      "lines": 62,
+      "sha256": "8ba7dc7904c7a4aab501f30b6fb8ad85000b194b04e74429a5f6231ee670c717",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractState",
+          "line": 9,
+          "methods": [
+            {
+              "name": "set_user",
+              "line": 13,
+              "async": false
+            },
+            {
+              "name": "latest_user_values",
+              "line": 26,
+              "async": false
+            },
+            {
+              "name": "set_derived",
+              "line": 33,
+              "async": false
+            },
+            {
+              "name": "replace_derived",
+              "line": 41,
+              "async": false
+            },
+            {
+              "name": "clear_derived",
+              "line": 46,
+              "async": false
+            },
+            {
+              "name": "user_document",
+              "line": 49,
+              "async": false
+            },
+            {
+              "name": "effective_document",
+              "line": 55,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/contract/value.py",
+      "language": "Python",
+      "bytes": 1068,
+      "lines": 42,
+      "sha256": "77871ad60fd1b0595fb7b60143e3666b95145f06e7a7dedefaffe2bfea1e63e9",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Authority",
+          "line": 7,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Provenance",
+          "line": 21,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "UserValueEvent",
+          "line": 28,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DerivedValue",
+          "line": 36,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/evidence/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/evidence/models.py",
+      "language": "Python",
+      "bytes": 504,
+      "lines": 19,
+      "sha256": "c3a29d10bc4f019c25630a72d9662f6c426802fe35001f31c5c08edecc6bb5e4",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "EvidenceItem",
+          "line": 6,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "Message",
+          "line": 16,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/issues/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/issues/models.py",
+      "language": "Python",
+      "bytes": 269,
+      "lines": 10,
+      "sha256": "20b74ddd3d95fec0263e719fac32c75aca82a8903e51d1646e37fb9511c99122",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AdvisoryIssue",
+          "line": 4,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/session/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/domain/session/models.py",
+      "language": "Python",
+      "bytes": 483,
+      "lines": 15,
+      "sha256": "ab0807989db6c26b9b26661439ab6f8cfcb10097b5a823b92f8665a5baed639b",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Session",
+          "line": 9,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/main.py",
+      "language": "Python",
+      "bytes": 644,
+      "lines": 24,
+      "sha256": "10d091d9a5181402cdb0e4067dcda068c09ab2a45cf50fdc4bb7562a15816be1",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "main",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/rendering/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/rendering/yaml_renderer.py",
+      "language": "Python",
+      "bytes": 126,
+      "lines": 5,
+      "sha256": "fd0c745abc8edd9e410f0338b502c0272ea8791673cefda7c9d376ff879e0f62",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "render_yaml",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/pyproject.toml",
+      "language": "TOML",
+      "bytes": 498,
+      "lines": 28,
+      "sha256": "36ae41fd6d6f14e36485a84511cafdbc91442a61aed047e6fed2f9b263ed4a64",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/resources/contract.json",
+      "language": "JSON",
+      "bytes": 54003,
+      "lines": 1869,
+      "sha256": "6f655ea7e3186499b218d0d18632f26f101e45a65dcffeb4d08379a937c2cabf",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/resources/discovery_rules.json",
+      "language": "JSON",
+      "bytes": 2521,
+      "lines": 108,
+      "sha256": "a5ddf6aa6c5bb96720ab87c55d7fd9250debb311a572be3c09263ac66d8b31cd",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/resources/ux_rules.json",
+      "language": "JSON",
+      "bytes": 1884,
+      "lines": 88,
+      "sha256": "3254fee1dfe5a901aca22c803b4fd73fbc1a93ecba90b4d58877050e5d1b04b8",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/mcp/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/mcp/server.py",
+      "language": "Python",
+      "bytes": 663,
+      "lines": 20,
+      "sha256": "967f56e2414bbccef479539b3a129ecaedeff35da3767247d0e9ea25d0ab2820",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "evaluate_contract",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_file/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_file/source.py",
+      "language": "Python",
+      "bytes": 355,
+      "lines": 14,
+      "sha256": "39b8f67eb356a469eceff8f739347430e3924cfa024c9bc4c4551d806f253036",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonFileContractSource",
+          "line": 6,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 9,
+              "async": false
+            },
+            {
+              "name": "load_raw",
+              "line": 12,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/loader.py",
+      "language": "Python",
+      "bytes": 579,
+      "lines": 18,
+      "sha256": "b632d0cc77d081f50fb6494d5fc9e1d8954bf01001665b768919da04bcbe238d",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractJsonV1Adapter",
+          "line": 9,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 12,
+              "async": false
+            },
+            {
+              "name": "load",
+              "line": 16,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/parser.py",
+      "language": "Python",
+      "bytes": 979,
+      "lines": 28,
+      "sha256": "6207c12b2506b4561dc93b8e8c2e1f1ff63d67040974e01ae7db93af85f0316d",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractJsonV1Parser",
+          "line": 11,
+          "methods": [
+            {
+              "name": "parse",
+              "line": 14,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/ref_resolver.py",
+      "language": "Python",
+      "bytes": 183,
+      "lines": 5,
+      "sha256": "57fccb0884056a8e947a77e7ad768607b8991bf15f81354ae6fb41cf6b274c96",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "resolve_ref",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/rule_parser.py",
+      "language": "Python",
+      "bytes": 670,
+      "lines": 10,
+      "sha256": "b56ebf0a5c1af903faa1a831096ea92d9d7ecafacbe7f680e8fb53c30facbae1",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "parse_rules",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/schema_parser.py",
+      "language": "Python",
+      "bytes": 1040,
+      "lines": 21,
+      "sha256": "72399979420b163282cb9ba1a95b72a57f48eff9c3bc5adc027776ea56fc2d6b",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "parse_schema",
+          "line": 4
+        },
+        {
+          "kind": "function",
+          "name": "_node",
+          "line": 7
+        },
+        {
+          "kind": "function",
+          "name": "_esc",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/semantic_paths.py",
+      "language": "Python",
+      "bytes": 207,
+      "lines": 8,
+      "sha256": "2e96b1c9e76e2a26f4e9443c0e4e6cfe18b69781ae9f025cd91c656dd69ae224",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/source_linter.py",
+      "language": "Python",
+      "bytes": 2567,
+      "lines": 67,
+      "sha256": "dae9db41ca9e30e1371a7f037016fd24937ede240c7113518415069c4fad112f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SourceProblem",
+          "line": 11,
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "lint_source",
+          "line": 16
+        },
+        {
+          "kind": "function",
+          "name": "_lint_union",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/discovery_json/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/discovery_json/repository.py",
+      "language": "Python",
+      "bytes": 446,
+      "lines": 15,
+      "sha256": "19fe95786a6197f732fc1c7c3f91274c41124d1efdf81ad293e2250cbd5f89be",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonDiscoveryPolicyRepository",
+          "line": 7,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 8,
+              "async": false
+            },
+            {
+              "name": "get_policy",
+              "line": 11,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_composite/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_composite/repository.py",
+      "language": "Python",
+      "bytes": 644,
+      "lines": 16,
+      "sha256": "8befaaa2c1bcf4ac73738d364857c5e10129ec8469f93a9b82f9570a2c664850",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "CompositeEnrichmentRepository",
+          "line": 5,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 8,
+              "async": false
+            },
+            {
+              "name": "get_rules",
+              "line": 11,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_json/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_json/adapter.py",
+      "language": "Python",
+      "bytes": 2533,
+      "lines": 75,
+      "sha256": "550ccdda6d8fa14ffd16295c3a65a4966f0671bc0fa59624b7025cb21130df5e",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "JsonEnrichmentRepository",
+          "line": 15,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 22,
+              "async": false
+            },
+            {
+              "name": "get_rules",
+              "line": 25,
+              "async": false
+            },
+            {
+              "name": "_parse",
+              "line": 31,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_conditions",
+          "line": 56
+        },
+        {
+          "kind": "function",
+          "name": "_scope",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/memory.py",
+      "language": "Python",
+      "bytes": 1045,
+      "lines": 28,
+      "sha256": "1663f2d5f6c177ae9e06082e09eeb8682d00740ce75d8cf63efb48abe4d013f1",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "InMemoryUserEnrichmentRepository",
+          "line": 8,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 15,
+              "async": false
+            },
+            {
+              "name": "get_rules",
+              "line": 18,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/noop.py",
+      "language": "Python",
+      "bytes": 293,
+      "lines": 9,
+      "sha256": "800d9c8b9be7fd7e5814a3477ed9dd67d8c3973ac2ac12c4cc630d8fb5b6e6b9",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "NoopUserEnrichmentRepository",
+          "line": 4,
+          "methods": [
+            {
+              "name": "get_rules",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/contract_parser.py",
+      "language": "Python",
+      "bytes": 295,
+      "lines": 10,
+      "sha256": "aea11fe2c48ea7b156eb06e4fec96c2ac25f1cd56b2b85de69af9e511bec3976",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractParserPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "parse",
+              "line": 9,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/contract_source.py",
+      "language": "Python",
+      "bytes": 201,
+      "lines": 8,
+      "sha256": "30392efc3dfdd813ccffcb713f8bb6630f1b1999f96ea8ee82934c6ce35c9fd9",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractSourcePort",
+          "line": 4,
+          "methods": [
+            {
+              "name": "load_raw",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/discovery_policy.py",
+      "language": "Python",
+      "bytes": 201,
+      "lines": 8,
+      "sha256": "905977709758afe3c8363edd2c8abc5205b68bfcd20c6b13ba4eb181f4a01fce",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "DiscoveryPolicyRepositoryPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "get_policy",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/enrichment_source.py",
+      "language": "Python",
+      "bytes": 332,
+      "lines": 10,
+      "sha256": "31a13fbb7a5eff5d6a1c21716573de0acfa314ef89309bf6f089d967fda908d0",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "EnrichmentRepositoryPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "get_rules",
+              "line": 9,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_context.py",
+      "language": "Python",
+      "bytes": 613,
+      "lines": 16,
+      "sha256": "1f45d3076d647ee9f1eff4a8557a2f568435ee2d1373d914d8f226124a4ac4d2",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "EnrichmentContextBuilder",
+          "line": 6,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 7,
+              "async": false
+            },
+            {
+              "name": "build",
+              "line": 10,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py",
+      "language": "Python",
+      "bytes": 4712,
+      "lines": 131,
+      "sha256": "718162f43af9d4bf450d9d1e03c02a7b52e8397611a4c7d171738cbd2e9df7ae",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "resolve_enrichment",
+          "line": 14
+        },
+        {
+          "kind": "function",
+          "name": "_scope_matches",
+          "line": 51
+        },
+        {
+          "kind": "function",
+          "name": "_matches",
+          "line": 63
+        },
+        {
+          "kind": "function",
+          "name": "_targets",
+          "line": 72
+        },
+        {
+          "kind": "function",
+          "name": "_resolve_value",
+          "line": 83
+        },
+        {
+          "kind": "function",
+          "name": "_pointer_glob_match",
+          "line": 102
+        },
+        {
+          "kind": "function",
+          "name": "_segments",
+          "line": 108
+        },
+        {
+          "kind": "function",
+          "name": "_glob_segments",
+          "line": 112
+        },
+        {
+          "kind": "function",
+          "name": "_source_name",
+          "line": 125
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/fillable_requirements.py",
+      "language": "Python",
+      "bytes": 598,
+      "lines": 14,
+      "sha256": "4ae502ea15b0fc4da4fdec36cdcee6090c1c9e69ca9cbfb6880b0b7d839c9bb7",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "fillable_requirements",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/json_schema_validator.py",
+      "language": "Python",
+      "bytes": 3055,
+      "lines": 80,
+      "sha256": "7376655c007be361de849425ba0d056ecad5bd153564534cc489c17994c535e4",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SchemaError",
+          "line": 14,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "JsonSchemaValidator",
+          "line": 22,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 33,
+              "async": false
+            },
+            {
+              "name": "validate",
+              "line": 36,
+              "async": false
+            },
+            {
+              "name": "_expand",
+              "line": 45,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_error",
+          "line": 70
+        },
+        {
+          "kind": "function",
+          "name": "_escape",
+          "line": 78
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/requirement_discovery.py",
+      "language": "Python",
+      "bytes": 6006,
+      "lines": 142,
+      "sha256": "aa4d78b6cc7b949c45a879c7fe5b4dad86b0d41fabceb479f9be5937dd97ded6",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "RequirementDiscovery",
+          "line": 17,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 18,
+              "async": false
+            },
+            {
+              "name": "discover",
+              "line": 32,
+              "async": false
+            },
+            {
+              "name": "_with_presentation",
+              "line": 89,
+              "async": false
+            },
+            {
+              "name": "_validate_policy",
+              "line": 105,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_unique_issues",
+          "line": 133
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/rule_engine.py",
+      "language": "Python",
+      "bytes": 3997,
+      "lines": 74,
+      "sha256": "d24ff8b267c9bfe998d60d57531d9e4b3bbca89c7fb6cf8ae9305e4c736afb46",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "evaluate_rules",
+          "line": 6
+        },
+        {
+          "kind": "function",
+          "name": "_expr",
+          "line": 22
+        },
+        {
+          "kind": "function",
+          "name": "_wildcard_values",
+          "line": 46
+        },
+        {
+          "kind": "function",
+          "name": "_find_model_scopes",
+          "line": 53
+        },
+        {
+          "kind": "function",
+          "name": "_uniq_req",
+          "line": 72
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_engine.py",
+      "language": "Python",
+      "bytes": 7172,
+      "lines": 126,
+      "sha256": "edcea06fdf1a821547ea7f1c498381dae11493ffa89a10f6cf0b3dbe519fdc33",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "evaluate_schema",
+          "line": 19
+        },
+        {
+          "kind": "function",
+          "name": "_walk",
+          "line": 24
+        },
+        {
+          "kind": "function",
+          "name": "_objectish",
+          "line": 99
+        },
+        {
+          "kind": "function",
+          "name": "_type",
+          "line": 104
+        },
+        {
+          "kind": "function",
+          "name": "_allowed_values",
+          "line": 110
+        },
+        {
+          "kind": "function",
+          "name": "_discriminator_type",
+          "line": 114
+        },
+        {
+          "kind": "function",
+          "name": "_esc",
+          "line": 116
+        },
+        {
+          "kind": "function",
+          "name": "_dedup_req",
+          "line": 117
+        },
+        {
+          "kind": "function",
+          "name": "_dedup_sug",
+          "line": 121
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_paths.py",
+      "language": "Python",
+      "bytes": 1861,
+      "lines": 55,
+      "sha256": "fa152ac970a9eb16657ad5d669ea6e03e180348071a75f78f7f19467319864b9",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "pointer_exists_in_schema",
+          "line": 6
+        },
+        {
+          "kind": "function",
+          "name": "_walk",
+          "line": 15
+        },
+        {
+          "kind": "function",
+          "name": "_resolve",
+          "line": 41
+        },
+        {
+          "kind": "function",
+          "name": "_unescape",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_validation_issue_mapper.py",
+      "language": "Python",
+      "bytes": 1159,
+      "lines": 26,
+      "sha256": "bce6f4758086fb8ced165c14705fd5518a6dcff3bdf82878010ce9d84da8c87b",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "map_schema_errors",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/semantic_path_resolver.py",
+      "language": "Python",
+      "bytes": 947,
+      "lines": 31,
+      "sha256": "4b12629c7167bd1dd7a2d4279152ef005db82130c028cbcc0b9ecdff3e1d98b0",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "UnknownSemanticPath",
+          "line": 9,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SemanticPathResolver",
+          "line": 13,
+          "methods": [
+            {
+              "name": "resolve",
+              "line": 14,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_camel_to_snake",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/services/union_branch_selector.py",
+      "language": "Python",
+      "bytes": 4609,
+      "lines": 133,
+      "sha256": "034a73ef1bfcdd9458b7f3924d92e03b4460c1362f17b7f367a429d97911ccaa",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "BranchSelectionStatus",
+          "line": 15,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "BranchSelection",
+          "line": 22,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "UnionBranchSelector",
+          "line": 29,
+          "methods": [
+            {
+              "name": "selects",
+              "line": 36,
+              "async": false
+            },
+            {
+              "name": "select",
+              "line": 39,
+              "async": false
+            },
+            {
+              "name": "select_value",
+              "line": 50,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "discriminator_values",
+          "line": 92
+        },
+        {
+          "kind": "function",
+          "name": "_allowed",
+          "line": 98
+        },
+        {
+          "kind": "function",
+          "name": "_resolve",
+          "line": 110
+        },
+        {
+          "kind": "function",
+          "name": "_segments",
+          "line": 122
+        },
+        {
+          "kind": "function",
+          "name": "_join",
+          "line": 126
+        },
+        {
+          "kind": "function",
+          "name": "_escape",
+          "line": 131
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py",
+      "language": "Python",
+      "bytes": 5383,
+      "lines": 116,
+      "sha256": "55603f8cab3dfd1f49728adb05fba70d67ac553b7eda2af8523093dce69923da",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "EvaluateContract",
+          "line": 21,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 22,
+              "async": false
+            },
+            {
+              "name": "execute",
+              "line": 38,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_dedup_issues",
+          "line": 99
+        },
+        {
+          "kind": "function",
+          "name": "_dedup_requirements",
+          "line": 106
+        },
+        {
+          "kind": "function",
+          "name": "_best_suggestions",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/container.py",
+      "language": "Python",
+      "bytes": 1637,
+      "lines": 37,
+      "sha256": "98c40cf3b90733d7e8365ad21b456ecbe6d9e57cfe46b018b1f0c557dc48055a",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Container",
+          "line": 15,
+          "methods": []
+        },
+        {
+          "kind": "function",
+          "name": "build_container",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/settings.py",
+      "language": "Python",
+      "bytes": 623,
+      "lines": 18,
+      "sha256": "d3a0377d79a8189e5bb678edd41de96fcf5f3ab08e15d81848bace0eea0f1e69",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Settings",
+          "line": 9,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/contract/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/contract/models.py",
+      "language": "Python",
+      "bytes": 756,
+      "lines": 23,
+      "sha256": "b8d57ed0139ff078b8a451f97a8650f7aa0ee3c8fbe5dd7e4abe6c0a1636dcff",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "ContractSemanticPaths",
+          "line": 7,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "NormalizedContract",
+          "line": 16,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/discovery/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/discovery/models.py",
+      "language": "Python",
+      "bytes": 1368,
+      "lines": 37,
+      "sha256": "dc0e5c7378f7b591fc4223156a55cda7725b52d4262b53c024a6231f10e8a490",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "DiscoveryStep",
+          "line": 6,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "RequirementPresentation",
+          "line": 16,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DiscoveryPolicy",
+          "line": 22,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DiscoveryPolicyIssue",
+          "line": 28,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "DiscoveryOutcome",
+          "line": 34,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py",
+      "language": "Python",
+      "bytes": 932,
+      "lines": 40,
+      "sha256": "f2d2eceb724d2e10329ae38b0e305873d2624523adbef0f2f84c26e030542b70",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "EnrichmentScope",
+          "line": 9,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "EnrichmentCondition",
+          "line": 17,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "EnrichmentRule",
+          "line": 23,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "EnrichmentContext",
+          "line": 37,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/evaluation/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/evaluation/models.py",
+      "language": "Python",
+      "bytes": 1758,
+      "lines": 48,
+      "sha256": "df60c2d5c3f01ffdcd7f6e632089be05f7c27ca864887b6e057f0a1d46902731",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "Requirement",
+          "line": 6,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "SuggestedValue",
+          "line": 20,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ValidationIssue",
+          "line": 30,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "ForgeEvaluation",
+          "line": 38,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/rules/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/rules/models.py",
+      "language": "Python",
+      "bytes": 398,
+      "lines": 14,
+      "sha256": "c04eab91fbab03c393bac010b301764a60ed5478eb430344841f9c41d2546b64",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "NormalizedRule",
+          "line": 3,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/schema/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/domain/schema/models.py",
+      "language": "Python",
+      "bytes": 489,
+      "lines": 17,
+      "sha256": "4ca2fe6b52c6fe03159ce8ccf8fb83360acc39992a76dd6cf228800c35ad9960",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SchemaNode",
+          "line": 3,
+          "methods": []
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/main.py",
+      "language": "Python",
+      "bytes": 267,
+      "lines": 5,
+      "sha256": "e8884524d62dc0708baab412a9434a7e0bc19578ee2bb2c30a07166523b29b54",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/utils/__init__.py",
+      "language": "Python",
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/utils/pointer.py",
+      "language": "Python",
+      "bytes": 705,
+      "lines": 18,
+      "sha256": "b28a4b18251c697dae4b8ec641eb93704b30b960ce332d91ed1b9f47df7f0e87",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "parts",
+          "line": 3
+        },
+        {
+          "kind": "function",
+          "name": "get_pointer",
+          "line": 6
+        },
+        {
+          "kind": "function",
+          "name": "exists_pointer",
+          "line": 12
+        },
+        {
+          "kind": "function",
+          "name": "join",
+          "line": 14
+        }
+      ]
+    }
+  ]
+}
