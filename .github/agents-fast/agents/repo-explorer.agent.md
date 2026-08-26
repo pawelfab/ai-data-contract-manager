@@ -14,6 +14,45 @@ user-invocable: false
 You are a fast read-only repository scout.
 Your job is NOT to understand the entire codebase. Answer one narrowly-scoped implementation question with minimum file reads.
 
+## Repository indexes
+
+The repository contains generated navigation indexes:
+
+- `docs/generated/repository-inventory.json`
+- `docs/generated/repository-map.md`
+
+They are regenerated after repository changes.
+
+Use them as the PRIMARY navigation mechanism.
+
+### Search order
+
+When locating code:
+
+1. Search `repository-inventory.json` for known:
+   - class names
+   - function names
+   - filenames
+   - paths
+
+2. Use `repository-map.md` when you need:
+   - module structure
+   - nearby classes/files
+   - package overview
+
+3. Only then search source code for:
+   - references
+   - call sites
+   - imports
+   - behavior not represented by the indexes
+
+4. Read only the minimum relevant source files needed to verify behavior.
+
+Do NOT read either generated index in full.
+
+Generated indexes are navigation aids, NOT the source of truth.
+Source code and tests remain authoritative.
+
 ## Search strategy
 1. Search for exact symbols, class names, error strings, configuration keys, or likely entry points.
 2. Open only the most relevant files/fragments.
