@@ -1,0 +1,6 @@
+{
+  "chat.subagents.allowInvocationsFromSubagents": false,
+  "chat.subagents.useRichRendering": true,
+  "chat.useAgentsMdFile": true,
+  "chat.useNestedAgentsMdFiles": false
+}
