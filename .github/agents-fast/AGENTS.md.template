@@ -1,0 +1,21 @@
+# Repository instructions for coding agents
+
+Keep this file short. It is always-on context.
+
+## Mandatory boundaries
+- Respect service/module ownership and existing architecture boundaries.
+- Inspect actual code before changing behavior.
+- Prefer the smallest coherent change.
+- Do not introduce complex workarounds to bypass a broken requirement or contradictory contract.
+- If a task requires materially broader architecture changes than requested, report the conflict before implementing.
+- Do not perform unrelated refactors.
+- Add or update tests for changed behavior when practical.
+
+## Context discipline
+- Search before broad reading.
+- Read only files relevant to the current task.
+- Do not load large generated files or historical documentation unless required.
+- Summaries passed between agents must contain conclusions and exact file/symbol references, not source dumps.
+
+## Project-specific rules
+Add only stable, high-value architecture rules here. Put detailed service-specific rules in scoped instruction files rather than growing this file.
