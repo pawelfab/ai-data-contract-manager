@@ -1,88 +1,44 @@
-# ADCM current state
+# Current state — baseline 0.1
 
-This document is a concise cross-service snapshot. Detailed behavior belongs to service-specific documentation.
+## Implemented
 
-## Runtime services
+- dwa niezależne serwisy Python: ADCM i Contract Forge,
+- osobne `pyproject.toml`, requirements i Dockerfile,
+- komunikacja ADCM -> Forge przez MCP Streamable HTTP,
+- Forge tools `contract_analyze` i `contract_describe`,
+- generyczny dokument JSON w ADCM; brak modelu konkretnego kontraktu,
+- provenance i append-only `MutationEvent` log w sesji,
+- generyczne operacje add/replace/remove po JSON Pointer,
+- deterministyczny `ConventionRulesEngine` dla defaultowego `ux_rules.json`,
+- global/system scope, conditions `exists`, `equals`, `requirementsComplete`, template `{/json/pointer}` i priorytety,
+- rozstrzyganie USER > USER_RULE > APP_RULE > Forge enrichment > Forge default,
+- wykrywanie konfliktu równorzędnych propozycji,
+- automatyczne wycofywanie wartości pochodnych po wygaśnięciu producenta,
+- fixed-point z limitem rund,
+- automatyczne usuwanie `foreign` zgłoszonych przez Forge,
+- pusty `ExternalCheckCoordinator`,
+- in-memory session repository,
+- heurystyczny resolver intencji do smoke testów,
+- opcjonalny adapter PydanticAI przygotowany za `IntentResolverPort`,
+- podstawowa odpowiedź tekstowa i YAML dla `valid && complete`,
+- testy jednostkowe obu usług i test kompatybilności wire-format.
 
-```text
-ai-data-contract-manager
-        |
-        | ContractForgePort / MCP
-        v
-mcp-contract-forge
-```
+## Intentionally not implemented yet
 
-The services are independently versioned and have no runtime Python imports between them.
+- pełne dopasowanie do produkcyjnego, zewnętrznego `contract.json`,
+- pełna semantyka jego `x-contract-enrichment`, oneOf/discriminator i wszystkich x-contract-rules,
+- user-specific `ux_rules` z przeglądarki i merge z default rules,
+- regex/valueFrom/concat/lower/upper oraz bogatszy expression engine,
+- `fieldPolicies` i external check capabilities,
+- Schema Explorer MCP i inne Context MCP,
+- trwały storage sesji,
+- semantyczne restore typu „wróć do dataFileId, które podałem wcześniej”,
+- semantic advisor,
+- pełny PydanticAI intent resolver jako domyślny tryb,
+- bezpieczne wycofanie automatycznie aktywowanego całego subtree, jeżeli ma potomka o wyższym autorytecie,
+- pełne SC-01..SC-22 / EC-01..EC-13 jako E2E.
 
-## ADCM
+## Known baseline limitations
 
-Current ADCM behavior includes:
-- conversation/session and evidence handling;
-- user and derived state layers;
-- evidence/provenance and authority-aware value history;
-- mandatory Contract Forge stabilization;
-- evidence-grounded PydanticAI candidate extraction;
-- deterministic candidate validation before state mutation;
-- fixed-point progress based on actual state changes;
-- recomputation of Forge-derived values;
-- editing existing values after `valid=True`;
-- optional context MCP integration;
-- inline text attachments as evidence.
-
-Detailed ADCM behavior:
-- `ai-data-contract-manager/docs/architecture.md`
-- `ai-data-contract-manager/docs/contract-state.md`
-- `ai-data-contract-manager/docs/session-flow.md`
-- `ai-data-contract-manager/docs/llm-heuristics.md`
-
-## Contract Forge
-
-Current Forge behavior includes:
-- one runtime contract source;
-- isolated `contract_json_v1` parsing into `NormalizedContract`;
-- full supported JSON Schema validation;
-- deterministic contract-rule evaluation;
-- formal/fillable requirement derivation;
-- configurable progressive requirement discovery;
-- semantic path anchors owned by the contract adapter;
-- generic discriminated `oneOf` handling;
-- explicit array expansion semantics;
-- deterministic global/system enrichment;
-- recomputable derived suggestions;
-- stable MCP evaluation response.
-
-Current discovery starts from the semantic source-system anchor and then exposes later requirements progressively according to Forge discovery policy.
-
-Detailed Forge behavior:
-- `mcp-servers/mcp-contract-forge/docs/architecture.md`
-- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
-- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
-- `mcp-servers/mcp-contract-forge/docs/enrichment.md`
-- `mcp-servers/mcp-contract-forge/docs/rules-engine.md`
-
-## Integration invariants
-
-- Contract Forge is called deterministically by ADCM and is not an optional LLM tool.
-- Context MCPs are optional and provide evidence/context/actions.
-- LLM output never mutates `ContractState` directly.
-- Formal validation and requirement discovery remain separate.
-- `valid=True` is not a terminal workflow state.
-- Derived values must be recalculated when relevant user context changes.
-
-## Current known limitations
-
-See `docs/KNOWN_ISSUES.md`.
-
-Notable areas still deferred include persistent production sessions/audit logging, generic conflict-resolution policy and a durable partial-fact mechanism for incomplete column information.
-
-## Documentation workflow
-
-Current feature/fix/refactor work lives under:
-
-`docs/active-task/YYYY-MM-DD_task-name/`
-
-After completion and documentation synchronization the entire task directory moves to:
-
-`docs/history/YYYY-MM-DD_task-name/`
-
-Generated repository maps and documentation-impact files live under `docs/generated/` and are navigation aids, not architecture authority.
+`resources/contract.example.json` w Forge jest wyłącznie lokalnym fixture. Nie jest zamiennikiem ani kopią właścicielskiego `contract.json`.
+`ContractDefinitionNormalizer` jest celowym adapterem/seamem, który trzeba dopasować do rzeczywistego formatu bez przenoszenia tej wiedzy do ADCM.

@@ -1,0 +1,55 @@
+{
+  "version": "1",
+  "systemSelectorPath": "/metadata/sourceSystemGcpId",
+  "rules": [
+    {
+      "id": "global.source_system.metadata_id",
+      "scope": "global",
+      "path": "/metadata/id",
+      "value": "{/metadata/sourceSystemGcpId}",
+      "when": {"path": "/metadata/sourceSystemGcpId", "exists": true},
+      "priority": 100
+    },
+    {
+      "id": "sap.source_type",
+      "scope": "system",
+      "system": "sap",
+      "path": "/source/sourceType",
+      "value": "csv",
+      "when": {"path": "/metadata/sourceSystemGcpId", "exists": true},
+      "priority": 100
+    },
+    {
+      "id": "global.source_system.source_metadata",
+      "scope": "global",
+      "path": "/source/systemZrodlowy",
+      "value": "{/metadata/sourceSystemGcpId}",
+      "when": {"path": "/source/sourceType", "exists": true},
+      "priority": 100
+    },
+    {
+      "id": "sap.activate_converter",
+      "scope": "system",
+      "system": "sap",
+      "path": "/converter",
+      "value": {},
+      "when": [
+        {"path": "/source/sourceType", "equals": "csv"},
+        {"path": "/converter", "exists": false}
+      ],
+      "priority": 50
+    },
+    {
+      "id": "sap.converter_filename",
+      "scope": "system",
+      "system": "sap",
+      "path": "/converter/outputFilename",
+      "value": "{/metadata/id}_{{data_danych}}.csv",
+      "when": [
+        {"path": "/converter", "exists": true},
+        {"path": "/metadata/id", "exists": true}
+      ],
+      "priority": 100
+    }
+  ]
+}

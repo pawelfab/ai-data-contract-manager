@@ -1,0 +1,8 @@
+from typing import Protocol
+
+from adcm.domain.session import SessionState
+
+
+class SessionRepositoryPort(Protocol):
+    async def get_or_create(self, session_id: str) -> SessionState: ...
+    async def save(self, session: SessionState) -> None: ...

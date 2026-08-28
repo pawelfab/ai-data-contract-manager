@@ -1,16 +1,16 @@
 # Generated repository map
 
-Source snapshot: `070963b3c76eb9f343e2bfc013ec9fe18550efa3eab32e433471c02adce49f2f`
+Source snapshot: `4b0ce259c52574616ce4bbf859667ebeb026c160a959608fa20979b5f0b7690f`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **119**
+Source files indexed: **53**
 
 ## `ai-data-contract-manager/`
 
 ### `ai-data-contract-manager/pyproject.toml`
 - Language: TOML
-- Lines: 68
+- Lines: 28
 - Symbols: none extracted
 
 ### `ai-data-contract-manager/src/adcm/__init__.py`
@@ -23,384 +23,294 @@ Source files indexed: **119**
 - Lines: 0
 - Symbols: none extracted
 
-### `ai-data-contract-manager/src/adcm/adapters/inbound/__init__.py`
+### `ai-data-contract-manager/src/adcm/adapters/api/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/__init__.py`
+### `ai-data-contract-manager/src/adcm/adapters/api/app.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/app.py`
-- Language: Python
-- Lines: 10
+- Lines: 85
 - Symbols:
-  - `function create_app` — line 5
+  - `class TurnRequest` — line 22
+  - `function _build_intent_resolver` — line 29
+  - `async_function health` — line 70
+  - `async_function turn` — line 75
+  - `async_function get_session` — line 83
 
-### `ai-data-contract-manager/src/adcm/adapters/inbound/fastapi/routes.py`
+### `ai-data-contract-manager/src/adcm/adapters/forge_mcp.py`
 - Language: Python
-- Lines: 47
+- Lines: 27
 - Symbols:
-  - `class CreateSessionRequest` — line 7
-  - `class MessageRequest` — line 11
-  - `async_function health` — line 21
-  - `async_function create_session` — line 26
-  - `async_function get_session` — line 32
-  - `async_function message` — line 40
+  - `class ForgeMcpAdapter` — line 6
+    - `__init__` — line 7
+    - `async analyze` — line 10
+    - `async describe` — line 19
 
-### `ai-data-contract-manager/src/adcm/adapters/outbound/__init__.py`
+### `ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/__init__.py`
-- Language: Python
-- Lines: 2
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/noop.py`
-- Language: Python
-- Lines: 7
+- Lines: 58
 - Symbols:
-  - `class NoopContextAgent` — line 4
-    - `async collect` — line 5
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/context_mcp/pydantic_ai_agent.py`
-- Language: Python
-- Lines: 68
-- Symbols:
-  - `class CollectedEvidence` — line 14
-  - `class ContextAgentOutput` — line 21
-  - `class PydanticAiMcpContextAdapter` — line 37
-    - `__init__` — line 38
-    - `async collect` — line 50
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/forge_mcp/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/forge_mcp/client.py`
-- Language: Python
-- Lines: 42
-- Symbols:
-  - `class ForgeMcpAdapter` — line 8
-    - `__init__` — line 9
-    - `async evaluate` — line 12
-  - `function _tool_payload` — line 21
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/llm/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/llm/heuristics.py`
-- Language: Python
-- Lines: 46
-- Symbols:
-  - `class ConservativeLocalHeuristics` — line 16
+  - `class HeuristicIntentResolver` — line 14
     - `async resolve` — line 17
-    - `async inspect_consistency` — line 34
-    - `async compose_question` — line 37
+    - `_parse_value` — line 52
 
-### `ai-data-contract-manager/src/adcm/adapters/outbound/llm/pydantic_ai_heuristics.py`
+### `ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py`
 - Language: Python
-- Lines: 124
+- Lines: 25
 - Symbols:
-  - `class PydanticAiHeuristicsAdapter` — line 69
-    - `__init__` — line 70
-    - `async resolve` — line 97
-    - `async inspect_consistency` — line 101
-    - `async compose_question` — line 111
-  - `function _model_spec` — line 116
+  - `class PydanticAIIntentResolver` — line 9
+    - `__init__` — line 10
+    - `async resolve` — line 20
 
-### `ai-data-contract-manager/src/adcm/adapters/outbound/session_memory/__init__.py`
+### `ai-data-contract-manager/src/adcm/adapters/response_basic.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/adapters/outbound/session_memory/repository.py`
-- Language: Python
-- Lines: 8
+- Lines: 21
 - Symbols:
-  - `class MemorySessionRepository` — line 3
-    - `__init__` — line 4
-    - `async create` — line 5
-    - `async get` — line 6
-    - `async save` — line 7
+  - `class BasicResponseComposer` — line 6
+    - `async compose` — line 7
+
+### `ai-data-contract-manager/src/adcm/adapters/rules_file.py`
+- Language: Python
+- Lines: 15
+- Symbols:
+  - `class FileRulesRepository` — line 7
+    - `__init__` — line 8
+    - `async load` — line 11
+
+### `ai-data-contract-manager/src/adcm/adapters/session_memory.py`
+- Language: Python
+- Lines: 21
+- Symbols:
+  - `class InMemorySessionRepository` — line 7
+    - `__init__` — line 8
+    - `async get_or_create` — line 12
+    - `async save` — line 18
 
 ### `ai-data-contract-manager/src/adcm/application/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `ai-data-contract-manager/src/adcm/application/ports/__init__.py`
+### `ai-data-contract-manager/src/adcm/application/candidate_policy.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/application/ports/context_agent.py`
-- Language: Python
-- Lines: 28
+- Lines: 41
 - Symbols:
-  - `class ContextCollectionRequest` — line 7
-  - `class ContextCollectionResult` — line 15
-  - `class AgentContextPort` — line 20
-    - `async collect` — line 27
+  - `class CandidatePolicy` — line 8
+    - `__init__` — line 9
+    - `decide` — line 12
 
-### `ai-data-contract-manager/src/adcm/application/ports/context_provider.py`
+### `ai-data-contract-manager/src/adcm/application/document_engine.py`
 - Language: Python
-- Lines: 11
+- Lines: 135
 - Symbols:
-  - `class ContextRequest` — line 5
-  - `class ContextProviderPort` — line 9
-    - `async collect` — line 10
+  - `class DocumentEngine` — line 10
+    - `apply` — line 11
+    - `_apply_one` — line 19
+    - `_add` — line 72
+    - `_replace` — line 89
+    - `_remove` — line 105
+    - `_prune_empty_ancestors` — line 117
+    - `_drop_provenance_at_or_below` — line 131
 
-### `ai-data-contract-manager/src/adcm/application/ports/forge.py`
+### `ai-data-contract-manager/src/adcm/application/external_check_coordinator.py`
 - Language: Python
-- Lines: 54
+- Lines: 9
 - Symbols:
-  - `class Requirement` — line 6
-  - `class SuggestedValue` — line 20
-  - `class ValidationIssue` — line 30
-  - `class ForgeEvaluation` — line 38
-  - `class ContractForgePort` — line 47
-    - `async evaluate` — line 48
+  - `class ExternalCheckCoordinator` — line 4
+    - `async run` — line 7
 
-### `ai-data-contract-manager/src/adcm/application/ports/llm.py`
+### `ai-data-contract-manager/src/adcm/application/json_pointer.py`
 - Language: Python
-- Lines: 46
+- Lines: 73
 - Symbols:
-  - `class Candidate` — line 8
-  - `class ResolveRequest` — line 15
-  - `class ResolveResult` — line 22
-  - `class QuestionRequest` — line 27
-  - `class QuestionResult` — line 34
-  - `class HeuristicsPort` — line 38
-    - `async resolve` — line 39
-    - `async inspect_consistency` — line 41
-    - `async compose_question` — line 45
+  - `class JsonPointerError` — line 6
+  - `function _tokens` — line 10
+  - `function _index` — line 18
+  - `function get` — line 30
+  - `function exists` — line 47
+  - `function parent_and_token` — line 55
 
-### `ai-data-contract-manager/src/adcm/application/ports/session_repository.py`
+### `ai-data-contract-manager/src/adcm/application/proposal_reconciler.py`
 - Language: Python
-- Lines: 8
+- Lines: 103
 - Symbols:
-  - `class SessionRepositoryPort` — line 4
-    - `async create` — line 5
-    - `async get` — line 6
-    - `async save` — line 7
+  - `class ProposalConflict` — line 11
+  - `class ProposalReconciler` — line 15
+    - `reconcile` — line 23
+    - `_winner` — line 87
 
-### `ai-data-contract-manager/src/adcm/application/services/__init__.py`
+### `ai-data-contract-manager/src/adcm/application/rules_engine.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/application/services/candidate_decision.py`
-- Language: Python
-- Lines: 24
+- Lines: 106
 - Symbols:
-  - `class CandidateDecisionStatus` — line 8
-  - `class CandidateDecision` — line 15
-  - `class CandidateOutcome` — line 21
+  - `class ConventionRulesEngine` — line 15
+    - `evaluate` — line 16
+    - `_conditions_match` — line 43
+    - `_condition_matches` — line 49
+    - `_render_value` — line 76
+    - `_condition_dependencies` — line 94
+    - `_read_optional` — line 101
 
-### `ai-data-contract-manager/src/adcm/application/services/value_resolver.py`
+### `ai-data-contract-manager/src/adcm/application/stabilization_engine.py`
 - Language: Python
-- Lines: 200
+- Lines: 101
 - Symbols:
-  - `class ValueResolver` — line 28
-    - `apply_suggestions` — line 29
-    - `apply_candidates` — line 67
-  - `function _matching_requirement` — line 162
-  - `function _destroys_container` — line 170
-  - `function _type_matches` — line 182
-  - `function _decision` — line 198
+  - `class StabilizationEngine` — line 15
+    - `__init__` — line 16
+    - `async stabilize` — line 31
+    - `_forge_proposals` — line 66
+    - `_foreign_cleanup_commands` — line 88
 
-### `ai-data-contract-manager/src/adcm/application/use_cases/__init__.py`
+### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/application/use_cases/change_value.py`
-- Language: Python
-- Lines: 15
+- Lines: 80
 - Symbols:
-  - `class ChangeValue` — line 5
-    - `__init__` — line 6
-    - `async execute` — line 7
-
-### `ai-data-contract-manager/src/adcm/application/use_cases/collect_context.py`
-- Language: Python
-- Lines: 11
-- Symbols:
-  - `class CollectContext` — line 4
-    - `__init__` — line 5
-    - `async execute` — line 6
-
-### `ai-data-contract-manager/src/adcm/application/use_cases/create_session.py`
-- Language: Python
-- Lines: 11
-- Symbols:
-  - `class CreateSession` — line 5
-    - `__init__` — line 6
-    - `async execute` — line 9
-
-### `ai-data-contract-manager/src/adcm/application/use_cases/handle_message.py`
-- Language: Python
-- Lines: 113
-- Symbols:
-  - `class HandleResult` — line 13
-  - `class HandleMessage` — line 23
-    - `__init__` — line 24
-    - `async execute` — line 36
-  - `function _missing` — line 109
-
-### `ai-data-contract-manager/src/adcm/application/use_cases/stabilize_contract.py`
-- Language: Python
-- Lines: 98
-- Symbols:
-  - `class StabilizationResult` — line 10
-  - `class StabilizeContract` — line 16
-    - `__init__` — line 19
-    - `async execute` — line 25
-  - `function _missing` — line 83
-  - `function _unique` — line 89
-
-### `ai-data-contract-manager/src/adcm/bootstrap/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/bootstrap/container.py`
-- Language: Python
-- Lines: 49
-- Symbols:
-  - `class Container` — line 12
-  - `function build_container` — line 18
-
-### `ai-data-contract-manager/src/adcm/bootstrap/settings.py`
-- Language: Python
-- Lines: 31
-- Symbols:
-  - `class Settings` — line 11
-    - `parse_context_urls` — line 25
+  - `class TurnOrchestrator` — line 15
+    - `__init__` — line 16
+    - `async run_turn` — line 39
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `ai-data-contract-manager/src/adcm/domain/contract/__init__.py`
+### `ai-data-contract-manager/src/adcm/domain/common.py`
+- Language: Python
+- Lines: 5
+- Symbols: none extracted
+
+### `ai-data-contract-manager/src/adcm/domain/contract.py`
+- Language: Python
+- Lines: 20
+- Symbols:
+  - `class ContractState` — line 10
+    - `snapshot_document` — line 18
+
+### `ai-data-contract-manager/src/adcm/domain/external.py`
+- Language: Python
+- Lines: 18
+- Symbols:
+  - `class CheckState` — line 6
+  - `class ExternalChecksStatus` — line 12
+
+### `ai-data-contract-manager/src/adcm/domain/forge.py`
+- Language: Python
+- Lines: 87
+- Symbols:
+  - `class WritableTarget` — line 6
+  - `class MissingRequirement` — line 17
+  - `class ForeignLocation` — line 26
+  - `class ForgeProposal` — line 33
+  - `class Diagnostic` — line 44
+  - `class ContractStatus` — line 53
+  - `class ForgeAnalysis` — line 60
+  - `class FieldDescriptor` — line 72
+  - `class ForgeDescription` — line 82
+
+### `ai-data-contract-manager/src/adcm/domain/mutations.py`
+- Language: Python
+- Lines: 60
+- Symbols:
+  - `class CandidateAction` — line 10
+  - `class MutationOperation` — line 15
+  - `class MutationCandidate` — line 21
+  - `class MutationCommand` — line 32
+  - `class MutationEvent` — line 45
+
+### `ai-data-contract-manager/src/adcm/domain/proposals.py`
+- Language: Python
+- Lines: 43
+- Symbols:
+  - `class ProposalMode` — line 9
+  - `class ProposalAction` — line 14
+  - `class Proposal` — line 21
+  - `class ProposalDecision` — line 36
+
+### `ai-data-contract-manager/src/adcm/domain/provenance.py`
+- Language: Python
+- Lines: 32
+- Symbols:
+  - `class ValueSource` — line 6
+  - `class ValueProvenance` — line 25
+
+### `ai-data-contract-manager/src/adcm/domain/rules.py`
+- Language: Python
+- Lines: 47
+- Symbols:
+  - `class RuleScope` — line 7
+  - `class RuleCondition` — line 13
+    - `path_is_pointer` — line 23
+  - `class ConventionRule` — line 29
+  - `class RulesDocument` — line 41
+
+### `ai-data-contract-manager/src/adcm/domain/session.py`
+- Language: Python
+- Lines: 20
+- Symbols:
+  - `class TurnSnapshot` — line 6
+  - `class SessionState` — line 13
+
+### `ai-data-contract-manager/src/adcm/domain/turn.py`
+- Language: Python
+- Lines: 32
+- Symbols:
+  - `class IntentResolution` — line 8
+  - `class StabilizationReport` — line 14
+  - `class TurnOutcome` — line 22
+
+### `ai-data-contract-manager/src/adcm/ports/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `ai-data-contract-manager/src/adcm/domain/contract/path.py`
+### `ai-data-contract-manager/src/adcm/ports/forge.py`
 - Language: Python
-- Lines: 115
+- Lines: 9
 - Symbols:
-  - `class JsonPointerError` — line 7
-  - `function _parts` — line 11
-  - `function set_pointer` — line 19
-  - `function get_pointer` — line 79
-  - `function exists_pointer` — line 89
-  - `function delete_pointer` — line 94
-  - `function _escape` — line 113
+  - `class ContractForgePort` — line 6
+    - `async analyze` — line 7
+    - `async describe` — line 8
 
-### `ai-data-contract-manager/src/adcm/domain/contract/state.py`
-- Language: Python
-- Lines: 62
-- Symbols:
-  - `class ContractState` — line 9
-    - `set_user` — line 13
-    - `latest_user_values` — line 26
-    - `set_derived` — line 33
-    - `replace_derived` — line 41
-    - `clear_derived` — line 46
-    - `user_document` — line 49
-    - `effective_document` — line 55
-
-### `ai-data-contract-manager/src/adcm/domain/contract/value.py`
-- Language: Python
-- Lines: 42
-- Symbols:
-  - `class Authority` — line 7
-  - `class Provenance` — line 21
-  - `class UserValueEvent` — line 28
-  - `class DerivedValue` — line 36
-
-### `ai-data-contract-manager/src/adcm/domain/evidence/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/domain/evidence/models.py`
-- Language: Python
-- Lines: 19
-- Symbols:
-  - `class EvidenceItem` — line 6
-  - `class Message` — line 16
-
-### `ai-data-contract-manager/src/adcm/domain/issues/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/domain/issues/models.py`
-- Language: Python
-- Lines: 10
-- Symbols:
-  - `class AdvisoryIssue` — line 4
-
-### `ai-data-contract-manager/src/adcm/domain/session/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/domain/session/models.py`
+### `ai-data-contract-manager/src/adcm/ports/intent.py`
 - Language: Python
 - Lines: 15
 - Symbols:
-  - `class Session` — line 9
+  - `class IntentResolverPort` — line 7
+    - `async resolve` — line 8
 
-### `ai-data-contract-manager/src/adcm/main.py`
+### `ai-data-contract-manager/src/adcm/ports/response.py`
 - Language: Python
-- Lines: 24
+- Lines: 8
 - Symbols:
-  - `function main` — line 8
+  - `class ResponseComposerPort` — line 6
+    - `async compose` — line 7
 
-### `ai-data-contract-manager/src/adcm/rendering/__init__.py`
+### `ai-data-contract-manager/src/adcm/ports/rules_repository.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `ai-data-contract-manager/src/adcm/rendering/yaml_renderer.py`
-- Language: Python
-- Lines: 5
+- Lines: 8
 - Symbols:
-  - `function render_yaml` — line 3
+  - `class RulesRepositoryPort` — line 6
+    - `async load` — line 7
+
+### `ai-data-contract-manager/src/adcm/ports/session_repository.py`
+- Language: Python
+- Lines: 9
+- Symbols:
+  - `class SessionRepositoryPort` — line 6
+    - `async get_or_create` — line 7
+    - `async save` — line 8
 
 ## `mcp-servers/`
 
 ### `mcp-servers/mcp-contract-forge/pyproject.toml`
 - Language: TOML
-- Lines: 28
+- Lines: 26
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/resources/contract.json`
+### `mcp-servers/mcp-contract-forge/resources/contract.example.json`
 - Language: JSON
-- Lines: 1869
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/resources/discovery_rules.json`
-- Language: JSON
-- Lines: 108
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/resources/ux_rules.json`
-- Language: JSON
-- Lines: 245
+- Lines: 64
 - Symbols: none extracted
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/__init__.py`
@@ -413,452 +323,103 @@ Source files indexed: **119**
 - Lines: 0
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/mcp/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/inbound/mcp/server.py`
-- Language: Python
-- Lines: 20
-- Symbols:
-  - `function evaluate_contract` — line 10
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_file/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_file/source.py`
-- Language: Python
-- Lines: 14
-- Symbols:
-  - `class JsonFileContractSource` — line 6
-    - `__init__` — line 9
-    - `load_raw` — line 12
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/loader.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/file_definition.py`
 - Language: Python
 - Lines: 18
 - Symbols:
-  - `class ContractJsonV1Adapter` — line 9
-    - `__init__` — line 12
-    - `load` — line 16
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/parser.py`
-- Language: Python
-- Lines: 28
-- Symbols:
-  - `class ContractJsonV1Parser` — line 11
-    - `parse` — line 14
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/ref_resolver.py`
-- Language: Python
-- Lines: 5
-- Symbols:
-  - `function resolve_ref` — line 1
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/rule_parser.py`
-- Language: Python
-- Lines: 10
-- Symbols:
-  - `function parse_rules` — line 3
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/schema_parser.py`
-- Language: Python
-- Lines: 21
-- Symbols:
-  - `function parse_schema` — line 4
-  - `function _node` — line 7
-  - `function _esc` — line 20
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/semantic_paths.py`
-- Language: Python
-- Lines: 8
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/contract_json_v1/source_linter.py`
-- Language: Python
-- Lines: 67
-- Symbols:
-  - `class SourceProblem` — line 11
-  - `function lint_source` — line 16
-  - `function _lint_union` — line 33
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/discovery_json/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/discovery_json/repository.py`
-- Language: Python
-- Lines: 15
-- Symbols:
-  - `class JsonDiscoveryPolicyRepository` — line 7
-    - `__init__` — line 8
-    - `get_policy` — line 11
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_composite/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_composite/repository.py`
-- Language: Python
-- Lines: 16
-- Symbols:
-  - `class CompositeEnrichmentRepository` — line 5
-    - `__init__` — line 8
-    - `get_rules` — line 11
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_json/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_json/adapter.py`
-- Language: Python
-- Lines: 75
-- Symbols:
-  - `class JsonEnrichmentRepository` — line 15
-    - `__init__` — line 22
-    - `get_rules` — line 25
-    - `_parse` — line 31
-  - `function _conditions` — line 56
-  - `function _scope` — line 66
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/memory.py`
-- Language: Python
-- Lines: 28
-- Symbols:
-  - `class InMemoryUserEnrichmentRepository` — line 8
-    - `__init__` — line 15
-    - `get_rules` — line 18
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/outbound/enrichment_user_store/noop.py`
-- Language: Python
-- Lines: 9
-- Symbols:
-  - `class NoopUserEnrichmentRepository` — line 4
-    - `get_rules` — line 7
+  - `class FileContractDefinitionRepository` — line 8
+    - `__init__` — line 11
+    - `load` — line 15
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/__init__.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/analyzer.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/contract_parser.py`
-- Language: Python
-- Lines: 10
+- Lines: 230
 - Symbols:
-  - `class ContractParserPort` — line 6
-    - `parse` — line 9
+  - `class ContractAnalyzer` — line 24
+    - `__init__` — line 25
+    - `analyze` — line 28
+    - `_missing` — line 53
+    - `_missing_for_absent_required` — line 71
+    - `_foreign` — line 90
+    - `_diagnostics` — line 115
+    - `_writable` — line 131
+    - `_default_proposals` — line 154
+    - `_enrichment_proposals` — line 179
+    - `_when_matches` — line 202
+    - `_render` — line 215
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/contract_source.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/definition_normalizer.py`
 - Language: Python
-- Lines: 8
+- Lines: 20
 - Symbols:
-  - `class ContractSourcePort` — line 4
-    - `load_raw` — line 7
+  - `class ContractDefinitionNormalizer` — line 6
+    - `normalize` — line 13
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/discovery_policy.py`
-- Language: Python
-- Lines: 8
-- Symbols:
-  - `class DiscoveryPolicyRepositoryPort` — line 6
-    - `get_policy` — line 7
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/ports/enrichment_source.py`
-- Language: Python
-- Lines: 10
-- Symbols:
-  - `class EnrichmentRepositoryPort` — line 6
-    - `get_rules` — line 9
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_context.py`
-- Language: Python
-- Lines: 16
-- Symbols:
-  - `class EnrichmentContextBuilder` — line 6
-    - `__init__` — line 7
-    - `build` — line 10
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/enrichment_resolver.py`
-- Language: Python
-- Lines: 151
-- Symbols:
-  - `function resolve_enrichment` — line 14
-  - `function _scope_matches` — line 56
-  - `function _matches` — line 68
-  - `function requirement_is_under` — line 81
-  - `function requirements_complete` — line 86
-  - `function _targets` — line 92
-  - `function _resolve_value` — line 103
-  - `function _pointer_glob_match` — line 122
-  - `function _segments` — line 128
-  - `function _glob_segments` — line 132
-  - `function _source_name` — line 145
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/fillable_requirements.py`
-- Language: Python
-- Lines: 14
-- Symbols:
-  - `function fillable_requirements` — line 4
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/json_schema_validator.py`
-- Language: Python
-- Lines: 80
-- Symbols:
-  - `class SchemaError` — line 14
-  - `class JsonSchemaValidator` — line 22
-    - `__init__` — line 33
-    - `validate` — line 36
-    - `_expand` — line 45
-  - `function _error` — line 70
-  - `function _escape` — line 78
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/requirement_discovery.py`
-- Language: Python
-- Lines: 142
-- Symbols:
-  - `class RequirementDiscovery` — line 17
-    - `__init__` — line 18
-    - `discover` — line 32
-    - `_with_presentation` — line 89
-    - `_validate_policy` — line 105
-  - `function _unique_issues` — line 133
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/rule_engine.py`
-- Language: Python
-- Lines: 74
-- Symbols:
-  - `function evaluate_rules` — line 6
-  - `function _expr` — line 22
-  - `function _wildcard_values` — line 46
-  - `function _find_model_scopes` — line 53
-  - `function _uniq_req` — line 72
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_engine.py`
-- Language: Python
-- Lines: 126
-- Symbols:
-  - `function evaluate_schema` — line 19
-  - `function _walk` — line 24
-  - `function _objectish` — line 99
-  - `function _type` — line 104
-  - `function _allowed_values` — line 110
-  - `function _discriminator_type` — line 114
-  - `function _esc` — line 116
-  - `function _dedup_req` — line 117
-  - `function _dedup_sug` — line 121
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_paths.py`
-- Language: Python
-- Lines: 200
-- Symbols:
-  - `function pointer_exists_in_schema` — line 16
-  - `function enrichment_target_reachable` — line 25
-  - `function _reachable_in_active_schema` — line 68
-  - `function _walk` — line 117
-  - `function _child_schema` — line 143
-  - `function _objectish` — line 168
-  - `function _resolve` — line 182
-  - `function _unescape` — line 194
-  - `function _escape` — line 198
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/schema_validation_issue_mapper.py`
-- Language: Python
-- Lines: 26
-- Symbols:
-  - `function map_schema_errors` — line 14
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/semantic_path_resolver.py`
-- Language: Python
-- Lines: 31
-- Symbols:
-  - `class UnknownSemanticPath` — line 9
-  - `class SemanticPathResolver` — line 13
-    - `resolve` — line 14
-  - `function _camel_to_snake` — line 29
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/services/union_branch_selector.py`
-- Language: Python
-- Lines: 133
-- Symbols:
-  - `class BranchSelectionStatus` — line 15
-  - `class BranchSelection` — line 22
-  - `class UnionBranchSelector` — line 29
-    - `selects` — line 36
-    - `select` — line 39
-    - `select_value` — line 50
-  - `function discriminator_values` — line 92
-  - `function _allowed` — line 98
-  - `function _resolve` — line 110
-  - `function _segments` — line 122
-  - `function _join` — line 126
-  - `function _escape` — line 131
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/application/use_cases/evaluate_contract.py`
-- Language: Python
-- Lines: 129
-- Symbols:
-  - `class EvaluateContract` — line 22
-    - `__init__` — line 23
-    - `execute` — line 39
-  - `function _dedup_issues` — line 112
-  - `function _dedup_requirements` — line 119
-  - `function _best_suggestions` — line 123
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/container.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/describer.py`
 - Language: Python
 - Lines: 37
 - Symbols:
-  - `class Container` — line 15
-  - `function build_container` — line 19
+  - `class ContractDescriber` — line 7
+    - `__init__` — line 8
+    - `describe` — line 11
+    - `_fields` — line 16
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/bootstrap/settings.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/schema_utils.py`
 - Language: Python
-- Lines: 18
+- Lines: 47
 - Symbols:
-  - `class Settings` — line 9
+  - `function escape_token` — line 6
+  - `function join_pointer` — line 10
+  - `function resolve_ref` — line 14
+  - `function pointer_get` — line 28
+  - `function pointer_exists` — line 41
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/contract/__init__.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/definition.py`
+- Language: Python
+- Lines: 13
+- Symbols:
+  - `class ContractDefinition` — line 6
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/protocol.py`
+- Language: Python
+- Lines: 89
+- Symbols:
+  - `class WritableTarget` — line 8
+  - `class MissingRequirement` — line 19
+  - `class ForeignLocation` — line 28
+  - `class ForgeProposal` — line 35
+  - `class Diagnostic` — line 46
+  - `class ContractStatus` — line 55
+  - `class ForgeAnalysis` — line 62
+  - `class FieldDescriptor` — line 74
+  - `class ForgeDescription` — line 84
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/ports/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/contract/models.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/ports/definition_repository.py`
 - Language: Python
-- Lines: 23
+- Lines: 8
 - Symbols:
-  - `class ContractSemanticPaths` — line 7
-  - `class NormalizedContract` — line 16
+  - `class ContractDefinitionPort` — line 6
+    - `load` — line 7
 
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/discovery/__init__.py`
+### `mcp-servers/mcp-contract-forge/src/contract_forge/server.py`
 - Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/discovery/models.py`
-- Language: Python
-- Lines: 37
+- Lines: 41
 - Symbols:
-  - `class DiscoveryStep` — line 6
-  - `class RequirementPresentation` — line 16
-  - `class DiscoveryPolicy` — line 22
-  - `class DiscoveryPolicyIssue` — line 28
-  - `class DiscoveryOutcome` — line 34
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/enrichment/models.py`
-- Language: Python
-- Lines: 48
-- Symbols:
-  - `class EnrichmentScope` — line 9
-  - `class EnrichmentCondition` — line 17
-  - `class EnrichmentRule` — line 31
-  - `class EnrichmentContext` — line 45
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/evaluation/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/evaluation/models.py`
-- Language: Python
-- Lines: 48
-- Symbols:
-  - `class Requirement` — line 6
-  - `class SuggestedValue` — line 20
-  - `class ValidationIssue` — line 30
-  - `class ForgeEvaluation` — line 38
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/rules/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/rules/models.py`
-- Language: Python
-- Lines: 14
-- Symbols:
-  - `class NormalizedRule` — line 3
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/schema/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/domain/schema/models.py`
-- Language: Python
-- Lines: 17
-- Symbols:
-  - `class SchemaNode` — line 3
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/main.py`
-- Language: Python
-- Lines: 5
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/utils/__init__.py`
-- Language: Python
-- Lines: 0
-- Symbols: none extracted
-
-### `mcp-servers/mcp-contract-forge/src/contract_forge/utils/pointer.py`
-- Language: Python
-- Lines: 18
-- Symbols:
-  - `function parts` — line 3
-  - `function get_pointer` — line 6
-  - `function exists_pointer` — line 12
-  - `function join` — line 14
+  - `function contract_analyze` — line 22
+  - `function contract_describe` — line 28
+  - `async_function health` — line 34

@@ -1,28 +1,25 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-contract-forge"
-version = "0.5.0"
-requires-python = ">=3.11"
-
+version = "0.1.0"
+requires-python = ">=3.12"
 dependencies = [
-  "pydantic>=2.8,<3",
-  "pydantic-settings>=2.4,<3",
+  "pydantic>=2.11,<3",
   "jsonschema>=4.23,<5",
   "mcp>=2,<3",
+  "uvicorn[standard]>=0.35,<1",
+  "starlette>=0.47,<1",
 ]
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=8,<9",
-  "pytest-asyncio>=0.24,<1",
-]
+dev = ["pytest>=8,<9"]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/contract_forge"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-asyncio_mode = "auto"
+testpaths = ["tests"]

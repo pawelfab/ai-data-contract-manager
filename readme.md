@@ -1,26 +1,50 @@
-# AI Data Contract Manager system
+# ADCM baseline
 
-Monorepo of independently versioned and deployed services.
+Minimalny, działający szkielet monorepo dla dwóch osobnych usług:
 
-- `ai-data-contract-manager/` — conversational ADCM service and the only service that owns the user conversation and PydanticAI orchestration/heuristics.
-- `mcp-servers/mcp-contract-forge/` — deterministic Contract Forge MCP service.
-- `docs/` — system-level architecture and protocol documentation.
+- `ai-data-contract-manager` — ADCM, właściciel sesji, mutacji, provenance, reguł ADCM i stabilizacji.
+- `mcp-servers/mcp-contract-forge` — bezstanowy MCP Contract Forge, właściciel definicji i formalnej analizy kontraktu.
 
-Each service has its own `pyproject.toml`, `.venv`, dependencies, tests, Dockerfile, documentation and version. Services never import runtime Python code from each other.
+Usługi **nie importują kodu Pythona między sobą**. Granicą jest MCP + wersjonowany model JSON.
+Każda usługa ma własny `pyproject.toml`, `requirements.txt`, Dockerfile i własne środowisko.
 
-Core architecture rule: Contract Forge is a mandatory deterministic dependency of ADCM. Atlassian, repository, schema-explorer and visualizer MCPs are optional/agentic tools available through ADCM's PydanticAI layer. Forge is never placed in the agent's free tool-choice set.
+## Uruchomienie
 
-Forge isolates both contract-format evolution and enrichment evolution behind separate ports. Current enrichment is JSON-backed; a per-user repository can later be added without changing ADCM or Forge evaluation logic.
+Docker:
 
-## Mandatory architecture contract
+```bash
+docker compose up --build
+```
 
-Before any architecture planning, feature implementation or LLM-assisted refactor, read [`docs/architecture-guardrails.md`](docs/architecture-guardrails.md). It defines which service owns each responsibility, how contract/enrichment evolution must remain localized, how PydanticAI and MCPs are split, and the anti-patterns that require redesign.
+Lokalne, niezależne venv:
 
-Coding agents should also read [`AGENTS.md`](AGENTS.md). A structural change to `contract.json` must normally be contained in the Contract Forge contract-format adapter; a change of enrichment persistence must normally be contained behind `EnrichmentRepositoryPort`. Neither should propagate through ADCM.
+```bash
+./scripts/bootstrap_local.sh
+```
+
+Skrypt tworzy osobne `.venv` w `ai-data-contract-manager` i `mcp-servers/mcp-contract-forge`; żadna usługa nie korzysta z venv drugiej.
+
+ADCM: `http://localhost:8080`
+Forge MCP: `http://localhost:8000/mcp`
+
+Przykład:
+
+```bash
+curl -X POST http://localhost:8080/v1/sessions/demo/turn \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"system sap"}'
+```
+
+Wersja bazowa ma heurystyczny resolver intencji, aby działała bez klucza LLM. Port `IntentResolverPort`
+pozwala w następnej iteracji włączyć adapter PydanticAI bez zmiany core.
+
+Zobacz `docs/ARCHITECTURE_BASELINE.md` i `docs/NEXT_ITERATIONS.md`.
 
 
-## Consolidated v0.4 behavior
+## Weryfikacja bez Docker
 
-The current package includes progressive source-system-first discovery, fillable requirements, data-driven global/system enrichment, deterministic ADCM candidate validation, edit-after-complete behavior and fixed-point convergence guards. See `docs/CURRENT_STATE.md`, `docs/DECISIONS.md` and `docs/KNOWN_ISSUES.md` before extending it.
+```bash
+./scripts/test_all.sh
+```
 
-Forge has one runtime contract source: `mcp-servers/mcp-contract-forge/resources/contract.json`. The source-linter test verifies that it has no dangling local `$ref` values; `contract.input.json` is not a runtime resource.
+Uruchamia testy obu serwisów osobno oraz serializuje odpowiedź Forge do JSON i waliduje ją modelem ADCM, bez wspólnych importów.

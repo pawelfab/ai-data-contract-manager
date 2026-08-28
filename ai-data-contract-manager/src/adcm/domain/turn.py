@@ -1,0 +1,31 @@
+from pydantic import BaseModel, ConfigDict, Field
+
+from .external import ExternalChecksStatus
+from .forge import ForgeAnalysis
+from .mutations import MutationCandidate, MutationEvent
+
+
+class IntentResolution(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    candidates: list[MutationCandidate] = Field(default_factory=list)
+    knowledge_query: str | None = None
+
+
+class StabilizationReport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    rounds: int
+    converged: bool
+    proposal_decisions: list[dict] = Field(default_factory=list)
+    foreign_removed: list[str] = Field(default_factory=list)
+
+
+class TurnOutcome(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    session_id: str
+    turn_no: int
+    message: str
+    document: dict
+    forge: ForgeAnalysis
+    external_checks: ExternalChecksStatus
+    new_events: list[MutationEvent]
+    stabilization: StabilizationReport

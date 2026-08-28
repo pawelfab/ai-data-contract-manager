@@ -1,0 +1,96 @@
+{
+  "$defs": {
+    "FieldDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "path_pattern": {
+          "title": "Path Pattern",
+          "type": "string"
+        },
+        "value_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Type"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "allowed_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Values"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "path_pattern"
+      ],
+      "title": "FieldDescriptor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "definition_version": {
+      "title": "Definition Version",
+      "type": "string"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/$defs/FieldDescriptor"
+      },
+      "title": "Fields",
+      "type": "array"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "definition_version"
+  ],
+  "title": "ForgeDescription",
+  "type": "object"
+}

@@ -1,0 +1,348 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "clean": {
+          "title": "Clean",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "valid",
+        "complete",
+        "clean"
+      ],
+      "title": "ContractStatus",
+      "type": "object"
+    },
+    "Diagnostic": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "severity": {
+          "default": "error",
+          "enum": [
+            "error",
+            "warning"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "actual_value": {
+          "default": null,
+          "title": "Actual Value"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "Diagnostic",
+      "type": "object"
+    },
+    "ForeignLocation": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "admissible_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Admissible Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "path",
+        "reason"
+      ],
+      "title": "ForeignLocation",
+      "type": "object"
+    },
+    "ForgeProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value"
+        },
+        "origin": {
+          "enum": [
+            "enrichment",
+            "default"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "rule_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rule Id"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "derived_from": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Derived From",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "value",
+        "origin"
+      ],
+      "title": "ForgeProposal",
+      "type": "object"
+    },
+    "MissingRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "code": {
+          "default": "required",
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        },
+        "expected_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Type"
+        },
+        "allowed_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Values"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "MissingRequirement",
+      "type": "object"
+    },
+    "WritableTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "value_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Type"
+        },
+        "allowed_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Values"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "activatable": {
+          "default": false,
+          "title": "Activatable",
+          "type": "boolean"
+        },
+        "operations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Operations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "WritableTarget",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "title": "Protocol Version",
+      "type": "string"
+    },
+    "definition_version": {
+      "title": "Definition Version",
+      "type": "string"
+    },
+    "writable": {
+      "items": {
+        "$ref": "#/$defs/WritableTarget"
+      },
+      "title": "Writable",
+      "type": "array"
+    },
+    "missing": {
+      "items": {
+        "$ref": "#/$defs/MissingRequirement"
+      },
+      "title": "Missing",
+      "type": "array"
+    },
+    "foreign": {
+      "items": {
+        "$ref": "#/$defs/ForeignLocation"
+      },
+      "title": "Foreign",
+      "type": "array"
+    },
+    "proposals": {
+      "items": {
+        "$ref": "#/$defs/ForgeProposal"
+      },
+      "title": "Proposals",
+      "type": "array"
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      },
+      "title": "Diagnostics",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus"
+    }
+  },
+  "required": [
+    "protocol_version",
+    "definition_version",
+    "status"
+  ],
+  "title": "ForgeAnalysis",
+  "type": "object"
+}

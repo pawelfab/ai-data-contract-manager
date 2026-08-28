@@ -1,9 +1,9 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 COPY src ./src
 COPY resources ./resources
-RUN pip install --no-cache-dir .
-ENV FORGE_CONTRACT_PATH=/app/resources/contract.json
-ENV FORGE_ENRICHMENT_PATH=/app/resources/ux_rules.json
-CMD ["python", "-m", "contract_forge.main"]
+RUN cp ./resources/contract.example.json ./resources/contract.json
+ENV PYTHONPATH=/app/src
+CMD ["uvicorn", "contract_forge.server:app", "--host", "0.0.0.0", "--port", "8000"]

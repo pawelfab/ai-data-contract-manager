@@ -1,0 +1,2 @@
+-r requirements.txt
+pydantic-ai>=2.33,<3

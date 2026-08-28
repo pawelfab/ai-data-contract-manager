@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adcm-baseline-contract-v1",
+  "x-contract-version": "baseline-1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["metadata", "source"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceSystemGcpId", "id", "version", "dataFileId"],
+      "properties": {
+        "sourceSystemGcpId": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "default": "1.0.0"},
+        "dataFileId": {"type": "string", "minLength": 1}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceType", "systemZrodlowy"],
+      "properties": {
+        "sourceType": {"type": "string", "enum": ["csv", "txt", "json", "jdbc", "fixed_width"]},
+        "systemZrodlowy": {"type": "string"},
+        "encoding": {"type": "string"}
+      }
+    },
+    "converter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outputFilename"],
+      "properties": {
+        "outputFilename": {"type": "string"}
+      }
+    },
+    "silver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {"name": {"type": "string"}}
+          }
+        }
+      }
+    }
+  },
+  "x-contract-enrichment": [
+    {
+      "id": "csv.default_encoding",
+      "path": "/source/encoding",
+      "value": "UTF-8",
+      "when": {"path": "/source/sourceType", "equals": "csv"},
+      "reason": "CSV sources use UTF-8 by convention in the baseline"
+    }
+  ]
+}

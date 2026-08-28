@@ -2,7 +2,8 @@
 name: Feature Coordinator
 description: Routes repository questions, planning, implementation, review, and documentation through specialized subagents.
 argument-hint: Describe current behavior to explain, a change to plan, or a change to implement.
-tools: ['agent', 'read', 'search', 'edit', 'execute', 'todos']
+model: 
+tools: ['agent', 'read', 'search', 'edit', 'execute', 'todo']
 agents:
   - Repository Guide
   - Code Verifier
