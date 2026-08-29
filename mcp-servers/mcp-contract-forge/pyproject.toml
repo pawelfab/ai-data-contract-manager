@@ -23,3 +23,6 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[project.scripts]
+contract-forge = "contract_forge.main:main"

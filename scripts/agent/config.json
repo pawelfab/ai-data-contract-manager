@@ -1,6 +1,7 @@
 {
   "source_roots": [
     "ai-data-contract-manager/src",
+    "ai-data-contract-manager/resources",
     "ai-data-contract-manager/pyproject.toml",
     "mcp-servers/mcp-contract-forge/src",
     "mcp-servers/mcp-contract-forge/resources",
@@ -54,20 +55,19 @@
   "repository_map": "docs/generated/repository-map.md",
   "documentation_impact_report": "docs/generated/documentation-impact.md",
   "freshness_file": "docs/.freshness.json",
-  "session_state_dir": ".agent-state",
-  "session_state_max_age_hours": 168,
   "documentation_relevant_patterns": [
-    "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
+    "^ai-data-contract-manager/(src/|resources/|pyproject\\.toml$)",
     "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)",
-    "^scripts/agent/",
+    "^scripts/agent/[^/]*\\.(py|json)$",
     "^githooks/"
   ],
   "documentation_evidence_patterns": [
-    "^docs/(architecture|CURRENT_STATE|DECISIONS|KNOWN_ISSUES|documentation-automation)\\.md$",
-    "^docs/active-task/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
-    "^docs/history/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
-    "^ai-data-contract-manager/docs/",
-    "^mcp-servers/mcp-contract-forge/docs/"
+    "^docs/(ARCHITECTURE_BASELINE|BUSINESS_BEHAVIOR|CORE_INVARIANTS|CURRENT_STATE|MODULE_CONTRACTS|NEXT_ITERATIONS)\\.md$",
+    "^docs/protocol/",
+    "^docs/(active-task|history)/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
+    "^(ai-data-contract-manager|mcp-servers/mcp-contract-forge)/README\\.md$",
+    "^AGENTS\\.md$",
+    "^scripts/agent/README\\.md$"
   ],
   "documentation_non_evidence_patterns": [
     "^docs/generated/",
@@ -81,11 +81,16 @@
       "source_pattern": "^ai-data-contract-manager/src/adcm/",
       "docs": [
         "docs/CURRENT_STATE.md",
-        "ai-data-contract-manager/docs/architecture.md",
-        "ai-data-contract-manager/docs/session-flow.md",
-        "ai-data-contract-manager/docs/contract-state.md",
-        "ai-data-contract-manager/docs/llm-heuristics.md",
-        "ai-data-contract-manager/docs/ports-and-adapters.md"
+        "docs/ARCHITECTURE_BASELINE.md",
+        "docs/MODULE_CONTRACTS.md",
+        "docs/CORE_INVARIANTS.md"
+      ]
+    },
+    {
+      "source_pattern": "^ai-data-contract-manager/resources/ux_rules\\.json$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "docs/BUSINESS_BEHAVIOR.md"
       ]
     },
     {
@@ -99,35 +104,16 @@
       "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
       "docs": [
         "docs/CURRENT_STATE.md",
-        "mcp-servers/mcp-contract-forge/docs/architecture.md",
-        "mcp-servers/mcp-contract-forge/docs/contract-format.md",
-        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md",
-        "mcp-servers/mcp-contract-forge/docs/enrichment.md",
-        "mcp-servers/mcp-contract-forge/docs/rules-engine.md",
-        "mcp-servers/mcp-contract-forge/docs/ports-and-adapters.md",
-        "mcp-servers/mcp-contract-forge/docs/mcp-api.md"
+        "docs/ARCHITECTURE_BASELINE.md",
+        "docs/MODULE_CONTRACTS.md",
+        "docs/protocol/README.md"
       ]
     },
     {
       "source_pattern": "^mcp-servers/mcp-contract-forge/resources/contract\\.json$",
       "docs": [
         "docs/CURRENT_STATE.md",
-        "mcp-servers/mcp-contract-forge/docs/contract-format.md",
-        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"
-      ]
-    },
-    {
-      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/discovery_rules\\.json$",
-      "docs": [
-        "docs/CURRENT_STATE.md",
-        "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"
-      ]
-    },
-    {
-      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/ux_rules\\.json$",
-      "docs": [
-        "docs/CURRENT_STATE.md",
-        "mcp-servers/mcp-contract-forge/docs/enrichment.md"
+        "docs/BUSINESS_BEHAVIOR.md"
       ]
     },
     {
@@ -140,14 +126,15 @@
     {
       "source_pattern": "^scripts/agent/",
       "docs": [
-        "docs/documentation-automation.md",
-        "AGENTS.md"
+        "AGENTS.md",
+        "scripts/agent/README.md"
       ]
     },
     {
       "source_pattern": "^githooks/",
       "docs": [
-        "docs/documentation-automation.md"
+        "AGENTS.md",
+        "scripts/agent/README.md"
       ]
     }
   ],
@@ -173,13 +160,15 @@
   "stop_quality_stages": [],
   "strict_stop_gate": true,
   "require_docs_for_staged_relevant_code": true,
-  "require_freshness_marker_for_staged_relevant_code": true,
   "protected_agent_paths": [
     ".github/hooks/",
     ".github/agents/",
     ".github/prompts/",
     ".github/copilot-instructions.md",
+    ".codex/agents/",
+    ".codex/config.toml",
     ".codex/skills/",
+    ".claude/",
     ".vscode/",
     "AGENTS.md",
     "scripts/agent/",

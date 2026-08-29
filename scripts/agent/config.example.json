@@ -1,6 +1,7 @@
 {
   "source_roots": [
     "ai-data-contract-manager/src",
+    "ai-data-contract-manager/resources",
     "ai-data-contract-manager/pyproject.toml",
     "mcp-servers/mcp-contract-forge/src",
     "mcp-servers/mcp-contract-forge/resources",
@@ -54,18 +55,22 @@
   "documentation_impact_report": "docs/generated/documentation-impact.md",
   "freshness_file": "docs/.freshness.json",
   "documentation_relevant_patterns": [
-    "^ai-data-contract-manager/(src/|pyproject\\.toml$)",
+    "^ai-data-contract-manager/(src/|resources/|pyproject\\.toml$)",
     "^mcp-servers/mcp-contract-forge/(src/|resources/|pyproject\\.toml$)",
-    "^scripts/agent/",
+    "^scripts/agent/[^/]*\\.(py|json)$",
     "^githooks/"
   ],
   "documentation_evidence_patterns": [
-    "^docs/(architecture|CURRENT_STATE|DECISIONS|service-boundaries|integration-flow|system-overview|documentation-automation)\\.md$",
-    "^ai-data-contract-manager/docs/",
-    "^mcp-servers/mcp-contract-forge/docs/"
+    "^docs/(ARCHITECTURE_BASELINE|BUSINESS_BEHAVIOR|CORE_INVARIANTS|CURRENT_STATE|MODULE_CONTRACTS|NEXT_ITERATIONS)\\.md$",
+    "^docs/protocol/",
+    "^docs/(active-task|history)/\\d{4}-\\d{2}-\\d{2}_[^/]+/(TASK|IMPLEMENTATION)\\.md$",
+    "^(ai-data-contract-manager|mcp-servers/mcp-contract-forge)/README\\.md$",
+    "^AGENTS\\.md$",
+    "^scripts/agent/README\\.md$"
   ],
   "documentation_non_evidence_patterns": [
-    "^docs/generated/"
+    "^docs/generated/",
+    "^docs/history/(architecture|migrations|planning)/"
   ],
   "task_documentation_active_pattern": "^docs/active-task/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
   "task_documentation_completed_pattern": "^docs/history/\\d{4}-\\d{2}-\\d{2}_[^/]+/IMPLEMENTATION\\.md$",
@@ -73,15 +78,63 @@
   "documentation_map": [
     {
       "source_pattern": "^ai-data-contract-manager/src/adcm/",
-      "docs": ["docs/architecture.md", "docs/CURRENT_STATE.md", "ai-data-contract-manager/docs/"]
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "docs/ARCHITECTURE_BASELINE.md",
+        "docs/MODULE_CONTRACTS.md",
+        "docs/CORE_INVARIANTS.md"
+      ]
+    },
+    {
+      "source_pattern": "^ai-data-contract-manager/resources/ux_rules\\.json$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "docs/BUSINESS_BEHAVIOR.md"
+      ]
+    },
+    {
+      "source_pattern": "^ai-data-contract-manager/pyproject\\.toml$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "ai-data-contract-manager/README.md"
+      ]
     },
     {
       "source_pattern": "^mcp-servers/mcp-contract-forge/src/contract_forge/",
-      "docs": ["docs/architecture.md", "docs/CURRENT_STATE.md", "mcp-servers/mcp-contract-forge/docs/"]
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "docs/ARCHITECTURE_BASELINE.md",
+        "docs/MODULE_CONTRACTS.md",
+        "docs/protocol/README.md"
+      ]
     },
     {
-      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/",
-      "docs": ["docs/CURRENT_STATE.md", "mcp-servers/mcp-contract-forge/docs/contract-format.md", "mcp-servers/mcp-contract-forge/docs/enrichment.md", "mcp-servers/mcp-contract-forge/docs/requirement-discovery.md"]
+      "source_pattern": "^mcp-servers/mcp-contract-forge/resources/contract\\.json$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "docs/BUSINESS_BEHAVIOR.md"
+      ]
+    },
+    {
+      "source_pattern": "^mcp-servers/mcp-contract-forge/pyproject\\.toml$",
+      "docs": [
+        "docs/CURRENT_STATE.md",
+        "mcp-servers/mcp-contract-forge/README.md"
+      ]
+    },
+    {
+      "source_pattern": "^scripts/agent/",
+      "docs": [
+        "AGENTS.md",
+        "scripts/agent/README.md"
+      ]
+    },
+    {
+      "source_pattern": "^githooks/",
+      "docs": [
+        "AGENTS.md",
+        "scripts/agent/README.md"
+      ]
     }
   ],
   "quality_commands": {
@@ -106,7 +159,13 @@
   "protected_agent_paths": [
     ".github/hooks/",
     ".github/agents/",
+    ".github/prompts/",
     ".github/copilot-instructions.md",
+    ".codex/agents/",
+    ".codex/config.toml",
+    ".codex/skills/",
+    ".claude/",
+    ".vscode/",
     "AGENTS.md",
     "scripts/agent/",
     "githooks/"
@@ -125,6 +184,11 @@
     "\\bDELETE\\s+FROM\\b",
     "\\bDROP\\s+TABLE\\b",
     "\\bdocker\\s+system\\s+prune\\b",
-    "\\bhelm\\s+uninstall\\b"
+    "\\bhelm\\s+uninstall\\b",
+    "\\bRemove-Item\\b(?=[^\\r\\n]*-Recurse\\b)",
+    "\\b(?:rd|rmdir)\\b[^\\r\\n]*(?:/s|-s)\\b",
+    "\\bdel\\b[^\\r\\n]*(?:/s|-s)\\b",
+    "\\bgit\\s+restore\\b",
+    "\\bgit\\s+checkout\\s+--(?:\\s|$)"
   ]
 }

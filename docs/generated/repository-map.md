@@ -1,16 +1,21 @@
 # Generated repository map
 
-Source snapshot: `4b0ce259c52574616ce4bbf859667ebeb026c160a959608fa20979b5f0b7690f`
+Source snapshot: `280079b7d2dcc13b70dd0ad4322adf54b727a9d9132bbd2e369b5afc6480983f`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **53**
+Source files indexed: **54**
 
 ## `ai-data-contract-manager/`
 
 ### `ai-data-contract-manager/pyproject.toml`
 - Language: TOML
-- Lines: 28
+- Lines: 30
+- Symbols: none extracted
+
+### `ai-data-contract-manager/resources/ux_rules.json`
+- Language: JSON
+- Lines: 56
 - Symbols: none extracted
 
 ### `ai-data-contract-manager/src/adcm/__init__.py`
@@ -57,11 +62,11 @@ Source files indexed: **53**
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py`
 - Language: Python
-- Lines: 25
+- Lines: 26
 - Symbols:
   - `class PydanticAIIntentResolver` — line 9
     - `__init__` — line 10
-    - `async resolve` — line 20
+    - `async resolve` — line 21
 
 ### `ai-data-contract-manager/src/adcm/adapters/response_basic.py`
 - Language: Python
@@ -305,10 +310,10 @@ Source files indexed: **53**
 
 ### `mcp-servers/mcp-contract-forge/pyproject.toml`
 - Language: TOML
-- Lines: 26
+- Lines: 28
 - Symbols: none extracted
 
-### `mcp-servers/mcp-contract-forge/resources/contract.example.json`
+### `mcp-servers/mcp-contract-forge/resources/contract.json`
 - Language: JSON
 - Lines: 64
 - Symbols: none extracted

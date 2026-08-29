@@ -5,18 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-data-contract-manager"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = "==3.12.10"
 dependencies = [
-  "fastapi>=0.116,<1",
-  "uvicorn[standard]>=0.35,<1",
-  "pydantic>=2.11,<3",
-  "mcp>=2,<3",
-  "PyYAML>=6,<7",
+  "fastapi==0.141.1",
+  "uvicorn[standard]==0.35.0",
+  "pydantic==2.13.5",
+  "mcp==2.1.1",
+  "PyYAML==6.0.2",
 ]
 
 [project.optional-dependencies]
-ai = ["pydantic-ai>=2.33,<3"]
-dev = ["pytest>=8,<9", "pytest-asyncio>=0.25,<1"]
+ai = ["pydantic-ai-slim[openai]==2.35.1"]
+dev = ["pytest==8.4.1", "pytest-asyncio==0.25.3"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -25,3 +25,6 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[project.scripts]
+adcm = "adcm.main:main"

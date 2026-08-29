@@ -5,7 +5,7 @@ from contract_forge.application.analyzer import ContractAnalyzer
 from contract_forge.application.describer import ContractDescriber
 
 
-CONTRACT = Path(__file__).parents[1] / "resources" / "contract.example.json"
+CONTRACT = Path(__file__).parents[1] / "resources" / "contract.json"
 
 
 def analyzer() -> ContractAnalyzer:

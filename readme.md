@@ -16,13 +16,19 @@ Docker:
 docker compose up --build
 ```
 
-Lokalne, niezależne venv:
+Lokalne, niezależne venv — po jednym na usługę, żadna nie korzysta z venv drugiej:
 
 ```bash
-./scripts/bootstrap_local.sh
+python -m venv ai-data-contract-manager/.venv
+ai-data-contract-manager/.venv/Scripts/python.exe -m pip install -r ai-data-contract-manager/requirements.txt -r ai-data-contract-manager/requirements-dev.txt
+ai-data-contract-manager/.venv/Scripts/python.exe -m pip install -e ai-data-contract-manager
+
+python -m venv mcp-servers/mcp-contract-forge/.venv
+mcp-servers/mcp-contract-forge/.venv/Scripts/python.exe -m pip install -r mcp-servers/mcp-contract-forge/requirements.txt -r mcp-servers/mcp-contract-forge/requirements-dev.txt
+mcp-servers/mcp-contract-forge/.venv/Scripts/python.exe -m pip install -e mcp-servers/mcp-contract-forge
 ```
 
-Skrypt tworzy osobne `.venv` w `ai-data-contract-manager` i `mcp-servers/mcp-contract-forge`; żadna usługa nie korzysta z venv drugiej.
+Opcjonalny adapter PydanticAI: `ai-data-contract-manager/requirements-ai.txt`.
 
 ADCM: `http://localhost:8080`
 Forge MCP: `http://localhost:8000/mcp`
@@ -43,8 +49,20 @@ Zobacz `docs/ARCHITECTURE_BASELINE.md` i `docs/NEXT_ITERATIONS.md`.
 
 ## Weryfikacja bez Docker
 
+Testy obu usług, każda we własnym venv (te same komendy uruchamia `quality_gate.py --profile pre-push`):
+
 ```bash
-./scripts/test_all.sh
+ai-data-contract-manager/.venv/Scripts/python.exe -m pytest ai-data-contract-manager/tests -q
+mcp-servers/mcp-contract-forge/.venv/Scripts/python.exe -m pytest mcp-servers/mcp-contract-forge/tests -q
 ```
 
-Uruchamia testy obu serwisów osobno oraz serializuje odpowiedź Forge do JSON i waliduje ją modelem ADCM, bez wspólnych importów.
+albo zbiorczo:
+
+```bash
+python scripts/agent/quality_gate.py --profile pre-push
+```
+
+## Automatyka dokumentacji
+
+`scripts/agent/` generuje mapę repozytorium i pilnuje świeżości dokumentacji; opis w `scripts/agent/README.md`.
+Instalacja hooków Git: `python scripts/agent/install_git_hooks.py`.

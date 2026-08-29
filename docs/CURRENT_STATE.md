@@ -40,5 +40,5 @@
 
 ## Known baseline limitations
 
-`resources/contract.example.json` w Forge jest wyłącznie lokalnym fixture. Nie jest zamiennikiem ani kopią właścicielskiego `contract.json`.
+`resources/contract.json` w Forge jest wyłącznie lokalnym fixture. Nie jest zamiennikiem ani kopią właścicielskiego `contract.json`.
 `ContractDefinitionNormalizer` jest celowym adapterem/seamem, który trzeba dopasować do rzeczywistego formatu bez przenoszenia tej wiedzy do ADCM.

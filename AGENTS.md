@@ -1,156 +1,210 @@
-# ADCM — mandatory instructions for coding agents
+# ADCM repository instructions
 
-This file defines how coding agents work in this repository.
+Before planning or implementation read:
 
-The authoritative architecture contract is:
-
-`docs/architecture-guardrails.md`
-
-## 1. Read before changing code
-
-Always read:
-
-1. `docs/architecture-guardrails.md`
-2. `docs/CURRENT_STATE.md`
-3. the current task under `docs/active-task/<task>/`
-4. the relevant service `docs/architecture.md`
-5. the actual code and tests that implement the affected behavior
-
-Then read only documentation relevant to the task.
-
-### Read conditionally
-
-Architecture or ownership change:
-- `docs/architecture.md`
-- `docs/DECISIONS.md`
-
-Known limitation or regression:
-- `docs/KNOWN_ISSUES.md`
-
-ADCM state, stabilization, semantic resolution or LLM behavior:
-- `ai-data-contract-manager/docs/contract-state.md`
-- `ai-data-contract-manager/docs/session-flow.md`
-- `ai-data-contract-manager/docs/llm-heuristics.md`
-
-Contract parsing, schema, requirements, discovery, arrays or unions:
-- `mcp-servers/mcp-contract-forge/docs/contract-format.md`
-- `mcp-servers/mcp-contract-forge/docs/requirement-discovery.md`
-
-Enrichment:
-- `mcp-servers/mcp-contract-forge/docs/enrichment.md`
-
-Rules:
-- `mcp-servers/mcp-contract-forge/docs/rules-engine.md`
-
-Ports, adapters or transport:
-- the relevant service `docs/ports-and-adapters.md`
-- Forge `docs/mcp-api.md` when MCP protocol/transport changes
-
-Deployment, logging or documentation tooling:
-- the corresponding specialized document
-
-Historical rationale:
-- `docs/history/`
-- service `CHANGELOG.md`
-- service `docs/history/`
-
-Do not load unrelated documentation by default.
-
-## 2. Generated repository documentation
-
-`docs/generated/` contains deterministic navigation aids, not architecture authority.
+1. docs/CURRENT_STATE.md
+2. docs/ARCHITECTURE_BASELINE.md
+3. docs/CORE_INVARIANTS.md
+4. docs/MODULE_CONTRACTS.md
+5. docs/BUSINESS_BEHAVIOR.md
 
 Use:
-- `docs/generated/repository-map.md` to locate files/classes/functions;
-- `docs/generated/repository-inventory.json` for machine-readable repository inventory;
-- `docs/generated/documentation-impact.md` to identify curated documentation that may require review.
+- docs/generated/repository-map.md
+- docs/generated/repository-inventory.json
 
-Do not read the complete generated repository map unless necessary. Inspect only the relevant sections and then verify behavior in actual code and tests.
+before doing broad repository searches.
 
-Generated files never replace curated architecture or service documentation.
+## Architecture boundaries
 
-## 3. Core invariant
+- ADCM owns conversation, session state, semantic resolution and orchestration.
+- Contract Forge owns contract interpretation, deterministic validation and requirement discovery.
+- No direct Python imports between services.
+- ADCM must not contain concrete contract paths unless explicitly required by an adapter.
+- LLM must not directly mutate ContractState.
 
-> **ADCM understands the user. Contract Forge understands the contract.**
+## Working rules
 
-If a proposed change makes this false, stop and redesign.
+Prefer:
+1. repository map
+2. targeted grep
+3. reading individual files
 
-## 4. Non-negotiable boundaries
+Do not recursively inspect the entire repository unless necessary.
 
-- No runtime Python imports between ADCM and Contract Forge.
-- ADCM does not parse or interpret `contract.json`, JSON Schema structure or contract DSL details.
-- Contract Forge does not own conversation/session state or LLM semantic interpretation.
-- Contract Forge is a mandatory deterministic dependency, not an optional LLM-selected tool.
-- Context MCPs provide context/evidence/actions and do not mutate `ContractState`.
-- LLM output is a proposal. Only deterministic ADCM application logic mutates `ContractState`.
-- Formal validation remains separate from requirement discovery.
-- Derived values are recomputable and must not silently override accepted user values.
-- `valid=True` does not lock the session; existing values remain editable.
+When implementation becomes substantially more complex than the requirement suggests,
+stop and explain the architectural problem before introducing a workaround.
 
-## 5. Complexity escalation
+## Agent delegation policy
 
-Unexpected complexity is a signal to investigate assumptions before adding code.
+The main agent is the coordinator and final decision maker.
 
-If a simple requirement starts requiring substantial workaround logic, many special cases, cross-component changes or non-obvious transformations:
+Use subagents to reduce main-agent context usage and avoid spending
+high-capability reasoning on mechanical repository work.
 
-1. stop before introducing that complexity;
-2. identify which input, requirement, schema, configuration or assumption caused it;
-3. compare the workaround with the smallest corrective alternative;
-4. report the inconsistency before continuing with a disproportionate workaround.
+### General rule
 
-A file marked `do not modify` or `out of scope` must not be silently changed, but it also must not force arbitrary downstream complexity when it appears defective. Escalate the inconsistency.
+Do not use the main agent for work that can be safely delegated as a
+small, bounded task.
 
-## 6. Task documentation
+Prefer:
 
-Every feature, fix or material refactor must have a task directory:
+- `explorer` for repository discovery
+- `worker` for narrow implementation
+- `reviewer` for independent verification
 
-`docs/active-task/YYYY-MM-DD_task-name/`
+The main agent remains responsible for:
+- understanding the user's actual requirement
+- architecture decisions
+- task decomposition
+- resolving ambiguity
+- deciding service boundaries
+- integrating findings from multiple agents
+- final acceptance of changes
 
-Use:
-- `TASK.md` — problem, goal, scope and acceptance criteria;
-- `IMPLEMENTATION.md` — implementation plan, findings, decisions, tests and final result.
+Subagent output is evidence, not authoritative truth.
 
-During implementation, update `IMPLEMENTATION.md` when:
-- scope materially changes;
-- an assumption proves wrong;
-- unexpected complexity is discovered;
-- the final implementation differs from the approved plan.
+---
 
-Do not use it as a minute-by-minute log.
+## Explorer
 
-After the task is complete:
-1. run relevant tests and quality gates;
-2. review `docs/generated/documentation-impact.md`;
-3. update only curated documentation whose responsibility or documented behavior actually changed;
-4. record the final result and unresolved items in `IMPLEMENTATION.md`;
-5. set the task status to completed;
-6. move the entire directory unchanged to `docs/history/YYYY-MM-DD_task-name/`.
+Delegate to `explorer` for:
 
-Completed tasks must not remain under `docs/active-task/`.
+- locating files
+- finding classes, functions and methods
+- grep/search
+- finding references and call sites
+- identifying tests
+- inspecting repository structure
+- reading repository-map.md / repository-inventory.json
+- answering narrow questions about where functionality lives
 
-## 7. Before implementation
+Before broad repository search, prefer existing generated repository maps.
 
-For a non-trivial task, `IMPLEMENTATION.md` must state:
+The main agent should not perform broad repository exploration itself
+when the explorer can answer the question.
 
-```text
-Owning service:
-Owning boundary:
-Files expected to change:
-Files/services not to change:
-Main invariant:
-Implementation approach:
-Tests:
-Architecture risks:
-```
+Give explorer narrow questions.
 
-## 8. Before completion
+Good:
 
-Do not declare a code-changing task complete until:
-- relevant tests pass;
-- quality gates required by the repository pass;
-- documentation freshness has been reviewed;
-- unexpected findings are resolved or explicitly recorded;
-- required curated documentation is updated;
-- the task directory is moved from `docs/active-task/` to `docs/history/`.
+> Find where CandidateOutcome.changed is produced and consumed.
+> Return file paths, symbols and relevant execution flow.
 
-Prefer the smallest local change that preserves the architecture.
+Bad:
+
+> Understand the whole ADCM application.
+
+---
+
+## Worker
+
+Delegate to `worker` only after the main agent understands the problem
+and has determined the intended implementation boundary.
+
+Use worker for:
+
+- small isolated implementation
+- mechanical code changes
+- narrow refactors
+- adding or modifying tests
+- straightforward bug fixes
+- repetitive changes with clear rules
+
+Provide the worker:
+
+- exact goal
+- relevant files or symbols when known
+- constraints
+- expected behavior
+- tests to run
+- explicit non-goals
+
+Do not delegate unresolved architecture decisions to worker.
+
+If worker discovers that the change requires:
+- new architecture
+- cross-service responsibility changes
+- large unexpected complexity
+- violation of an architecture guardrail
+- significant behavior not covered by the task
+
+the worker must stop and return the problem to the main agent.
+
+---
+
+## Reviewer
+
+For meaningful implementation changes, use an independent reviewer
+after the worker finishes.
+
+The reviewer must inspect actual code and tests rather than trusting
+the worker handoff.
+
+Reviewer should check:
+
+- correctness
+- regressions
+- architecture boundaries
+- unnecessary complexity
+- missing edge cases
+- missing tests
+- unintended changes
+- compliance with AGENTS.md and architecture guardrails
+
+A worker must not review its own work.
+
+For trivial mechanical edits, independent review may be skipped.
+
+For architecture-sensitive changes, prefer a stronger reviewer.
+
+---
+
+## Delegation workflow
+
+For non-trivial changes prefer:
+
+1. Main agent understands the requirement.
+2. Main agent reads relevant architecture/task documentation.
+3. Delegate repository discovery to `explorer`.
+4. Main agent determines the execution path and implementation plan.
+5. Delegate bounded implementation to `worker` when appropriate.
+6. Worker runs focused tests and returns a handoff.
+7. Delegate independent verification to `reviewer`.
+8. Main agent evaluates review findings.
+9. Main agent resolves issues or delegates targeted fixes.
+10. Main agent performs final verification.
+
+Do not create subagents merely to increase parallelism.
+
+Delegate when it:
+- reduces main-agent context
+- isolates a well-defined task
+- saves expensive reasoning
+- provides useful independent verification
+
+---
+
+## Context isolation
+
+Give subagents the minimum context needed for their task.
+
+Do not ask a subagent to read the entire repository when a repository
+map, specific files or symbols are sufficient.
+
+Prefer multiple narrow questions over one broad repository-analysis task.
+
+The main agent should synthesize results from subagents rather than
+passing large raw outputs between agents.
+
+---
+
+## Escalation
+
+If a subagent cannot answer confidently with the provided context,
+return the uncertainty to the main agent.
+
+Do not compensate for missing understanding by inventing abstractions
+or introducing complex workarounds.
+
+When implementation complexity appears disproportionate to the
+requirement, escalate before implementing the workaround.

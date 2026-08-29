@@ -18,5 +18,5 @@ Reference concrete files/classes/functions from the repo.
 After you approve the plan, use:
 
 ```text
-Implement the approved plan. Preserve the ownership rules from AGENTS.md. Add regression tests, run the relevant tests, then update docs/CURRENT_STATE.md. Update docs/DECISIONS.md only if an architectural decision changed.
+Implement the approved plan. Preserve the ownership rules from AGENTS.md. Add regression tests, run the relevant tests, then update docs/CURRENT_STATE.md. Update docs/ARCHITECTURE_BASELINE.md and docs/CORE_INVARIANTS.md only if an architectural decision changed.
 ```

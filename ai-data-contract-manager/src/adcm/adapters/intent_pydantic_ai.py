@@ -1,6 +1,6 @@
 """Optional PydanticAI adapter. Install `requirements-ai.txt` and select it in wiring in a later iteration."""
 
-from pydantic_ai import Agent
+from pydantic_ai import Agent, PromptedOutput
 
 from adcm.domain.forge import ForgeDescription
 from adcm.domain.turn import IntentResolution
@@ -10,7 +10,8 @@ class PydanticAIIntentResolver:
     def __init__(self, model: str) -> None:
         self.agent = Agent(
             model,
-            output_type=IntentResolution,
+            ##output_type=IntentResolution, to nie działa z lokalny api bo uzywa tool output którego nie obsługuje lokalnie, musi byc jak nizej przez PromptedOutput
+            output_type=PromptedOutput(IntentResolution),
             instructions=(
                 "Convert the user message into generic contract mutation candidates. "
                 "Never mutate state, never invent contract paths, and return confidence for each candidate."

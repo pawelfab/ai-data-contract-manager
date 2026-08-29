@@ -11,7 +11,7 @@ from contract_forge.application.describer import ContractDescriber
 from contract_forge.domain.protocol import ForgeAnalysis, ForgeDescription
 
 
-definitions = FileContractDefinitionRepository(os.getenv("FORGE_CONTRACT_PATH", "/app/resources/contract.json"))
+definitions = FileContractDefinitionRepository(os.getenv("FORGE_CONTRACT_PATH", "resources/contract.json"))
 analyzer = ContractAnalyzer(definitions)
 describer = ContractDescriber(definitions)
 

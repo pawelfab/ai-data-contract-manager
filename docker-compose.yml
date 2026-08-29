@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./mcp-servers/mcp-contract-forge/resources/contract.example.json:/app/resources/contract.json:ro
+      - ./mcp-servers/mcp-contract-forge/resources/contract.json:/app/resources/contract.json:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()"]
       interval: 3s

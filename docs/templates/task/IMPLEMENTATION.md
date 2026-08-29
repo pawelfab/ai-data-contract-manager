@@ -38,7 +38,7 @@ Describe only the current behavior relevant to this task. Reference code/tests o
 2. ...
 3. ...
 
-Prefer the smallest local change that satisfies the task while preserving `docs/architecture-guardrails.md`.
+Prefer the smallest local change that satisfies the task while preserving the boundaries recorded in `docs/ARCHITECTURE_BASELINE.md` and `docs/CORE_INVARIANTS.md`.
 
 ## Unexpected findings
 

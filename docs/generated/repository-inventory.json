@@ -1,14 +1,22 @@
 {
   "schema_version": 1,
-  "source_snapshot": "4b0ce259c52574616ce4bbf859667ebeb026c160a959608fa20979b5f0b7690f",
+  "source_snapshot": "280079b7d2dcc13b70dd0ad4322adf54b727a9d9132bbd2e369b5afc6480983f",
   "repository_root": ".",
   "files": [
     {
       "path": "ai-data-contract-manager/pyproject.toml",
       "language": "TOML",
-      "bytes": 559,
-      "lines": 28,
-      "sha256": "18ef43b01ef5cf2a449cb52c1eb6f7977b479a064c9b963e7f82aa78b41548da",
+      "bytes": 615,
+      "lines": 30,
+      "sha256": "9ec41026597c2320ff149e98b1745f11c06835d1c0c14932c153ec9889722906",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/resources/ux_rules.json",
+      "language": "JSON",
+      "bytes": 1491,
+      "lines": 56,
+      "sha256": "c8a679285dacf5a1de7f976f239c851926482f8faa795ff39b7c1867f34cc0e2",
       "symbols": []
     },
     {
@@ -130,9 +138,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py",
       "language": "Python",
-      "bytes": 1072,
-      "lines": 25,
-      "sha256": "110ae2757a1b9bbed28ad88f9eb05ca9f816b8a2910a436c74d9c88032ceed73",
+      "bytes": 1272,
+      "lines": 26,
+      "sha256": "c15aff7319ffa7be98850fefbd8969615b1ae5bfd8b5c90f1a431f45c290b6a1",
       "symbols": [
         {
           "kind": "class",
@@ -146,7 +154,7 @@
             },
             {
               "name": "resolve",
-              "line": 20,
+              "line": 21,
               "async": true
             }
           ]
@@ -944,13 +952,13 @@
     {
       "path": "mcp-servers/mcp-contract-forge/pyproject.toml",
       "language": "TOML",
-      "bytes": 482,
-      "lines": 26,
-      "sha256": "c2322497dbf3676f2795ae0c48cb4f316a8a68622fe002fc66d6c30a3d8ca73e",
+      "bytes": 544,
+      "lines": 28,
+      "sha256": "84c5bc9c9c5c7c8da557558203c898d332e12fe156dea8219a5b2422b9e2d08e",
       "symbols": []
     },
     {
-      "path": "mcp-servers/mcp-contract-forge/resources/contract.example.json",
+      "path": "mcp-servers/mcp-contract-forge/resources/contract.json",
       "language": "JSON",
       "bytes": 1859,
       "lines": 64,
@@ -1282,9 +1290,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/server.py",
       "language": "Python",
-      "bytes": 1417,
+      "bytes": 1412,
       "lines": 41,
-      "sha256": "87b6603683a3f377a764c78b4c0c4932ae4aa7083fca85519bc336da16934b3a",
+      "sha256": "3091ba3c21f1e10409a266b79d6b8c3dc42ec939b876385bc330bf89c1038b6b",
       "symbols": [
         {
           "kind": "function",
