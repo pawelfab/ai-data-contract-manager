@@ -6,4 +6,4 @@ RUN pip install --no-cache-dir -r "${REQUIREMENTS_FILE}"
 COPY src ./src
 COPY resources ./resources
 ENV PYTHONPATH=/app/src
-CMD ["uvicorn", "adcm.adapters.api.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "--factory", "adcm.adapters.api.composition:build_app", "--host", "0.0.0.0", "--port", "8080"]

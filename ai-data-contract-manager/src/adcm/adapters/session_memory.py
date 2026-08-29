@@ -9,6 +9,11 @@ class InMemorySessionRepository:
         self._items: dict[str, SessionState] = {}
         self._lock = asyncio.Lock()
 
+    async def get(self, session_id: str) -> SessionState | None:
+        async with self._lock:
+            item = self._items.get(session_id)
+            return deepcopy(item) if item is not None else None
+
     async def get_or_create(self, session_id: str) -> SessionState:
         async with self._lock:
             if session_id not in self._items:

@@ -1,9 +1,13 @@
 from time import perf_counter
 
 from mcp import Client
+from pydantic import ValidationError
 
 from adcm.application.observability.app_log_recorder import AppLogRecorder
+from adcm.domain.errors import ForgeUnavailableError
 from adcm.domain.forge import ForgeAnalysis, ForgeDescription
+
+_UNAVAILABLE = "Contract Forge is unavailable"
 
 
 class ForgeMcpAdapter:
@@ -21,13 +25,20 @@ class ForgeMcpAdapter:
             async with Client(self.url) as client:
                 result = await client.call_tool("contract_analyze", arguments)
             if result.is_error:
-                raise RuntimeError("Contract Forge contract_analyze returned an MCP tool error")
+                raise ForgeUnavailableError("contract_analyze returned an MCP tool error")
             if result.structured_content is None:
-                raise RuntimeError("Contract Forge returned no structured content")
+                raise ForgeUnavailableError("contract_analyze returned no structured content")
             analysis = ForgeAnalysis.model_validate(result.structured_content)
-        except Exception as exc:
+        except ValidationError as exc:
+            # Niezgodność protokołu jest defektem, nie niedostępnością usługi.
             self._error("forge_call_failed", correlation_id, started, exc, "contract_analyze")
             raise
+        except ForgeUnavailableError as exc:
+            self._error("forge_call_failed", correlation_id, started, exc, "contract_analyze")
+            raise
+        except Exception as exc:
+            self._error("forge_call_failed", correlation_id, started, exc, "contract_analyze")
+            raise ForgeUnavailableError(_UNAVAILABLE) from exc
         self._info(
             "forge_call_completed",
             correlation_id,
@@ -50,13 +61,20 @@ class ForgeMcpAdapter:
             async with Client(self.url) as client:
                 result = await client.call_tool("contract_describe", arguments)
             if result.is_error:
-                raise RuntimeError("Contract Forge contract_describe returned an MCP tool error")
+                raise ForgeUnavailableError("contract_describe returned an MCP tool error")
             if result.structured_content is None:
-                raise RuntimeError("Contract Forge returned no structured content")
+                raise ForgeUnavailableError("contract_describe returned no structured content")
             description = ForgeDescription.model_validate(result.structured_content)
-        except Exception as exc:
+        except ValidationError as exc:
+            # Niezgodność protokołu jest defektem, nie niedostępnością usługi.
             self._error("forge_call_failed", correlation_id, started, exc, "contract_describe")
             raise
+        except ForgeUnavailableError as exc:
+            self._error("forge_call_failed", correlation_id, started, exc, "contract_describe")
+            raise
+        except Exception as exc:
+            self._error("forge_call_failed", correlation_id, started, exc, "contract_describe")
+            raise ForgeUnavailableError(_UNAVAILABLE) from exc
         self._info(
             "forge_call_completed",
             correlation_id,
@@ -74,6 +92,9 @@ class ForgeMcpAdapter:
             self.app_log.error(
                 event,
                 component="forge_mcp",
+                # Pierwotna przyczyna zostaje tutaj: klient dostaje wyłącznie ogólny
+                # komunikat 503, więc bez tego wpisu diagnostyka nie miałaby czego czytać.
+                message=str(exc),
                 correlation_id=correlation_id,
                 duration_ms=(perf_counter() - started) * 1000,
                 data={"tool": tool, "error_type": type(exc).__name__},

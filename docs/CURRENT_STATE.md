@@ -21,7 +21,50 @@
 - heurystyczny resolver intencji do smoke testów,
 - opcjonalny adapter PydanticAI przygotowany za `IntentResolverPort`,
 - podstawowa odpowiedź tekstowa i YAML dla `valid && complete`,
-- testy jednostkowe obu usług i test kompatybilności wire-format.
+- stabilne REST API v1 jako jedyny interfejs wejściowy ADCM,
+- testy jednostkowe obu usług, testy kontraktu API i test kompatybilności wire-format.
+
+## REST API v1
+
+Publiczny kontrakt HTTP (OpenAPI pod `/docs` i `/openapi.json`):
+
+```text
+GET  /health                            -> {"status": "ok", "service": "adcm"}
+POST /v1/sessions                       -> 201 {session_id, turn_no, status}
+GET  /v1/sessions/{session_id}          -> 200 | 404
+POST /v1/sessions/{session_id}/turns    -> 200 | 404 | 422 | 503
+POST /v1/sessions/{session_id}/turn     -> deprecated alias dla /turns
+GET  /v1/debug/sessions/{session_id}    -> tylko przy ADCM_DEBUG_API=true
+```
+
+Identyfikator sesji generuje ADCM (`SessionService`), a nie klient — format identyfikatora
+nie jest częścią kontraktu publicznego.
+
+Odpowiedź tury zawiera wyłącznie to, co potrzebne klientowi: `message`, `document`,
+`contract_status`, `missing`, `diagnostics`, `unresolved`, `changes`, `correlation_id`.
+Pełny `ForgeAnalysis` (`writable`, `foreign`, `proposals`), przebieg stabilizacji,
+`external_checks`, `provenance` i `mutation_log` pozostają modelami wewnętrznymi —
+dostępnymi w Session Audit oraz przez debug endpoint.
+
+`unresolved` przenosi wynik `IntentResolver` do odpowiedzi, dzięki czemu informacja
+o niezrozumianym fragmencie wypowiedzi nie ginie między application a API.
+
+`GET /v1/sessions/{id}` czyta ostatni `TurnSnapshot` i nie wywołuje Contract Forge —
+działa również, gdy Forge jest niedostępny. Sesja bez żadnej tury ma `contract_status: null`.
+
+Błędy mają jeden kształt niezależnie od statusu:
+
+```json
+{"error": {"code": "...", "message": "...", "correlation_id": "..."}}
+```
+
+Kody: `session_not_found` (404), `validation_error` (422),
+`contract_forge_unavailable` (503), `internal_error` (500).
+Odpowiedź nigdy nie zawiera stack trace, adresu Forge ani internals MCP —
+szczegóły techniczne trafiają wyłącznie do application logu.
+
+Aplikację buduje fabryka `adcm.adapters.api.composition:build_app` (uvicorn `--factory`);
+import modułu nie czyta środowiska i nie tworzy zasobów.
 
 ## Intentionally not implemented yet
 
@@ -31,6 +74,9 @@
 - regex/valueFrom/concat/lower/upper oraz bogatszy expression engine,
 - `fieldPolicies` i external check capabilities,
 - Schema Explorer MCP i inne Context MCP,
+- Web UI korzystające z REST API v1,
+- uwierzytelnianie, autoryzacja, CORS i rate limiting w API,
+- streaming odpowiedzi (SSE/WebSocket) i endpointy `history`/`audit`,
 - trwały storage sesji,
 - semantyczne restore typu „wróć do dataFileId, które podałem wcześniej”,
 - semantic advisor,

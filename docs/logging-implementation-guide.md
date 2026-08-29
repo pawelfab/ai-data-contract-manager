@@ -148,7 +148,7 @@ stabilizacji mogą wystąpić wielokrotnie.
 ```text
 HTTP middleware
   -> tworzy correlation_id
-  -> http_request (application log)
+  -> http_request_started (application log)
 
 TurnOrchestrator.run_turn
   -> turn.started
@@ -178,7 +178,7 @@ TurnOrchestrator.run_turn
   -> response.composed
   -> SessionRepository.save
   -> turn.completed
-  -> http_response (application log)
+  -> http_request_completed (application log)
 ```
 
 Jeżeli etap wykonywany wewnątrz głównego bloku `try` rzuci wyjątek,

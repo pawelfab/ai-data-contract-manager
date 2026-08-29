@@ -1,10 +1,10 @@
 # Generated repository map
 
-Source snapshot: `7a48e619d173ace4fd5569044d1b27f3f861f2e0a8ac8cc0f1111cb236a44e2d`
+Source snapshot: `d9c51a46e2d4608205761096bcaccff35cca69f5f426ea9d3a10f1e28cbcce49`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **77**
+Source files indexed: **83**
 
 ## `ai-data-contract-manager/`
 
@@ -37,25 +37,67 @@ Source files indexed: **77**
 - Language: Python
 - Lines: 179
 - Symbols:
-  - `class TurnRequest` — line 32
-  - `function _build_observability` — line 37
-  - `function _build_intent_resolver` — line 75
-  - `async_function lifespan` — line 117
-  - `async_function application_log_middleware` — line 127
-  - `async_function health` — line 160
-  - `async_function turn` — line 165
-  - `async_function get_session` — line 177
+  - `function create_app` — line 43
+  - `function _route_of` — line 171
+  - `function _session_id_of` — line 177
+
+### `ai-data-contract-manager/src/adcm/adapters/api/composition.py`
+- Language: Python
+- Lines: 127
+- Symbols:
+  - `function _build_observability` — line 40
+  - `function _build_intent_resolver` — line 76
+  - `function _flag` — line 92
+  - `function build_app` — line 96
+
+### `ai-data-contract-manager/src/adcm/adapters/api/errors.py`
+- Language: Python
+- Lines: 139
+- Symbols:
+  - `function correlation_id_of` — line 57
+  - `function error_response` — line 61
+  - `function register_exception_handlers` — line 68
+
+### `ai-data-contract-manager/src/adcm/adapters/api/mappers.py`
+- Language: Python
+- Lines: 109
+- Symbols:
+  - `function to_contract_status` — line 32
+  - `function to_missing` — line 36
+  - `function to_diagnostic` — line 40
+  - `function to_unresolved` — line 49
+  - `function to_change` — line 55
+  - `function to_turn_response` — line 64
+  - `function to_create_session_response` — line 79
+  - `function to_session_state_response` — line 87
+
+### `ai-data-contract-manager/src/adcm/adapters/api/models.py`
+- Language: Python
+- Lines: 127
+- Symbols:
+  - `class HealthResponse` — line 21
+  - `class ErrorBody` — line 27
+  - `class ErrorResponse` — line 34
+  - `class ContractStatusView` — line 41
+  - `class MissingItem` — line 48
+  - `class DiagnosticItem` — line 55
+  - `class UnresolvedItem` — line 63
+  - `class ChangeItem` — line 71
+  - `class CreateSessionResponse` — line 84
+  - `class SessionStateResponse` — line 91
+  - `class TurnRequest` — line 107
+  - `class TurnResponse` — line 115
 
 ### `ai-data-contract-manager/src/adcm/adapters/forge_mcp.py`
 - Language: Python
-- Lines: 81
+- Lines: 102
 - Symbols:
-  - `class ForgeMcpAdapter` — line 9
-    - `__init__` — line 10
-    - `async analyze` — line 14
-    - `async describe` — line 45
-    - `_info` — line 68
-    - `_error` — line 72
+  - `class ForgeMcpAdapter` — line 13
+    - `__init__` — line 14
+    - `async analyze` — line 18
+    - `async describe` — line 56
+    - `_info` — line 86
+    - `_error` — line 90
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py`
 - Language: Python
@@ -136,12 +178,13 @@ Source files indexed: **77**
 
 ### `ai-data-contract-manager/src/adcm/adapters/session_memory.py`
 - Language: Python
-- Lines: 21
+- Lines: 26
 - Symbols:
   - `class InMemorySessionRepository` — line 7
     - `__init__` — line 8
-    - `async get_or_create` — line 12
-    - `async save` — line 18
+    - `async get` — line 12
+    - `async get_or_create` — line 17
+    - `async save` — line 23
 
 ### `ai-data-contract-manager/src/adcm/application/__init__.py`
 - Language: Python
@@ -269,6 +312,15 @@ Source files indexed: **77**
     - `_condition_dependencies` — line 94
     - `_read_optional` — line 101
 
+### `ai-data-contract-manager/src/adcm/application/session_service.py`
+- Language: Python
+- Lines: 39
+- Symbols:
+  - `class SessionService` — line 9
+    - `__init__` — line 20
+    - `async create` — line 29
+    - `async get` — line 34
+
 ### `ai-data-contract-manager/src/adcm/application/stabilization_engine.py`
 - Language: Python
 - Lines: 247
@@ -285,13 +337,13 @@ Source files indexed: **77**
 
 ### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 206
+- Lines: 210
 - Symbols:
   - `class TurnOrchestrator` — line 21
     - `__init__` — line 22
     - `async run_turn` — line 49
-    - `_audit` — line 199
-    - `_app_info` — line 203
+    - `_audit` — line 203
+    - `_app_info` — line 207
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python
@@ -309,6 +361,14 @@ Source files indexed: **77**
 - Symbols:
   - `class ContractState` — line 10
     - `snapshot_document` — line 18
+
+### `ai-data-contract-manager/src/adcm/domain/errors.py`
+- Language: Python
+- Lines: 29
+- Symbols:
+  - `class AdcmError` — line 11
+  - `class SessionNotFoundError` — line 15
+  - `class ForgeUnavailableError` — line 23
 
 ### `ai-data-contract-manager/src/adcm/domain/external.py`
 - Language: Python
@@ -369,14 +429,14 @@ Source files indexed: **77**
 
 ### `ai-data-contract-manager/src/adcm/domain/session.py`
 - Language: Python
-- Lines: 20
+- Lines: 30
 - Symbols:
-  - `class TurnSnapshot` — line 6
-  - `class SessionState` — line 13
+  - `class TurnSnapshot` — line 7
+  - `class SessionState` — line 23
 
 ### `ai-data-contract-manager/src/adcm/domain/turn.py`
 - Language: Python
-- Lines: 35
+- Lines: 38
 - Symbols:
   - `class IntentResolution` — line 10
   - `class StabilizationReport` — line 17
@@ -432,11 +492,12 @@ Source files indexed: **77**
 
 ### `ai-data-contract-manager/src/adcm/ports/session_repository.py`
 - Language: Python
-- Lines: 9
+- Lines: 10
 - Symbols:
   - `class SessionRepositoryPort` — line 6
-    - `async get_or_create` — line 7
-    - `async save` — line 8
+    - `async get` — line 7
+    - `async get_or_create` — line 8
+    - `async save` — line 9
 
 ## `mcp-servers/`
 

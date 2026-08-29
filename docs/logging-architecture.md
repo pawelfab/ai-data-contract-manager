@@ -17,6 +17,25 @@ format obserwowalności.
 Application log opisuje działanie procesu: startup, HTTP, resolver/LLM,
 wywołania Forge i błędy. Jest dostępny w obu usługach.
 
+Nazwy zdarzeń application logu są w `snake_case`; notacja z kropkami jest
+zarezerwowana dla `event_type` session auditu.
+
+Adapter HTTP emituje trzy zdarzenia z `component="http"`:
+`http_request_started`, `http_request_completed` i `http_request_failed`.
+Niosą `correlation_id`, `duration_ms`, `session_id` (gdy występuje w ścieżce)
+oraz `data` z `method`, `route` i `status_code`. `route` jest wzorcem ścieżki
+(`/v1/sessions/{session_id}/turns`), a nie konkretnym URL-em — inaczej każda
+sesja tworzyłaby osobną etykietę.
+
+Nagłówki żądania nie są logowane. Treść wiadomości użytkownika nie jest
+powtarzana w application logu — należy do session auditu
+(`user.message.received`).
+
+Adapter HTTP nie zapisuje biznesowych zdarzeń session auditu. Odpowiedzi błędu
+niosą wyłącznie stabilny kod i bezpieczny komunikat; pierwotna przyczyna
+(`str(exc)`, typ wyjątku, adres Forge) trafia do application logu —
+`forge_call_failed`, `contract_forge_unavailable`, `unhandled_exception`.
+
 Session audit istnieje tylko w ADCM i opisuje przebieg tury sesji: resolution,
 decyzje kandydatów, rundy stabilizacji, propozycje, mutacje, kontrole
 zewnętrzne oraz odpowiedź. `MutationEvent` jest emitowany jako

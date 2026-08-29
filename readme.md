@@ -33,13 +33,20 @@ Opcjonalny adapter PydanticAI: `ai-data-contract-manager/requirements-ai.txt`.
 ADCM: `http://localhost:8080`
 Forge MCP: `http://localhost:8000/mcp`
 
-Przykład:
+Przykład — sesję tworzy ADCM, klient nie wybiera identyfikatora:
 
 ```bash
-curl -X POST http://localhost:8080/v1/sessions/demo/turn \
+SESSION=$(curl -sX POST http://localhost:8080/v1/sessions | jq -r .session_id)
+
+curl -X POST http://localhost:8080/v1/sessions/$SESSION/turns \
   -H 'Content-Type: application/json' \
   -d '{"message":"system sap"}'
+
+curl http://localhost:8080/v1/sessions/$SESSION
 ```
+
+Pełny kontrakt REST API v1 oraz format błędów: `ai-data-contract-manager/README.md`
+i OpenAPI pod `http://localhost:8080/docs`.
 
 Wersja bazowa ma heurystyczny resolver intencji, aby działała bez klucza LLM. Port `IntentResolverPort`
 pozwala w następnej iteracji włączyć adapter PydanticAI bez zmiany core.

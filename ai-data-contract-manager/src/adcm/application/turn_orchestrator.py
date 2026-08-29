@@ -136,6 +136,9 @@ class TurnOrchestrator:
                     turn_no=turn_no,
                     revision=session.contract.revision,
                     document=session.contract.snapshot_document(),
+                    contract_status=forge_analysis.status,
+                    missing=forge_analysis.missing,
+                    diagnostics=forge_analysis.diagnostics,
                 )
             )
             new_events = session.contract.mutation_log[log_start:]
@@ -149,6 +152,7 @@ class TurnOrchestrator:
                 external_checks=external_status,
                 new_events=new_events,
                 stabilization=stabilization_report,
+                unresolved=resolution.unresolved,
             )
             stage = "response_composition"
             message = await self.response.compose(provisional)

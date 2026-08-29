@@ -21,6 +21,37 @@ Warstwy:
 - `ports` — interfejsy black-box,
 - `adapters` — MCP, HTTP, plik konfiguracyjny, LLM.
 
+Adapter HTTP (`adapters/api/`) jest jedynym oficjalnym interfejsem wejściowym.
+Web UI nie jest częścią core i nie ma własnego portu — korzysta wyłącznie z REST API.
+
+```text
+Web UI
+   │  HTTP/JSON
+   ▼
+adapters/api          app.py (create_app + route'y)
+                      models.py (publiczne DTO)
+                      mappers.py (core -> DTO)
+                      errors.py (kontrakt błędu)
+                      composition.py (build_app: ENV -> obiekty)
+   │
+   ▼
+application           TurnOrchestrator, SessionService
+   │
+   ▼
+ports                 SessionRepositoryPort, ContractForgePort, IntentResolverPort, ...
+```
+
+Adapter nie zawiera logiki biznesowej. Jego odpowiedzialność to:
+walidacja żądania, mapowanie na wejście application, wywołanie application,
+mapowanie wyniku i odpowiedź HTTP.
+
+Modele domenowe nie są kontraktem publicznym — `adapters/api/models.py` definiuje
+osobne DTO, a `mappers.py` decyduje, co z wyniku tury jest widoczne na zewnątrz.
+
+`composition.py` jest jedynym miejscem, w którym konfiguracja środowiska staje się
+obiektami. `build_app()` jest fabryką, więc import modułów adaptera nie ma efektów
+ubocznych i cały adapter da się przetestować bez ENV, MCP i dysku.
+
 Przepływ tury:
 
 ```text

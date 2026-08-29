@@ -32,3 +32,6 @@ class TurnOutcome(BaseModel):
     external_checks: ExternalChecksStatus
     new_events: list[MutationEvent]
     stabilization: StabilizationReport
+    # Przeniesione z IntentResolution: czego tura nie zrozumiała. Bez tego wynik
+    # resolvera kończy się w Session Audit i nigdy nie wraca do użytkownika.
+    unresolved: list[dict[str, Any]] = Field(default_factory=list)
