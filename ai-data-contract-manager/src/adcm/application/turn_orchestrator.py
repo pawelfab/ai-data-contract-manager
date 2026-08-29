@@ -2,6 +2,7 @@ from time import perf_counter
 from uuid import uuid4
 
 from adcm.application.observability.app_log_recorder import AppLogRecorder
+from adcm.application.observability.audit_views import AUDIT_LEVEL_NORMAL, turn_completed_view
 from adcm.application.observability.session_audit_recorder import SessionAuditRecorder
 from adcm.domain.session import TurnSnapshot
 from adcm.domain.turn import TurnOutcome
@@ -159,16 +160,11 @@ class TurnOrchestrator:
             self._audit(
                 audit,
                 "turn.completed",
-                {
-                    "contract_revision": session.contract.revision,
-                    "final_document": outcome.document,
-                    "forge_status": outcome.forge.status.model_dump(mode="json"),
-                    "missing": [item.model_dump(mode="json") for item in outcome.forge.missing],
-                    "diagnostics": [item.model_dump(mode="json") for item in outcome.forge.diagnostics],
-                    "external_checks": outcome.external_checks.model_dump(mode="json"),
-                    "stabilization": outcome.stabilization.model_dump(mode="json"),
-                    "response": outcome.message,
-                },
+                turn_completed_view(
+                    outcome,
+                    contract_revision=session.contract.revision,
+                    level=audit.level if audit is not None else AUDIT_LEVEL_NORMAL,
+                ),
             )
             self._app_info(
                 "turn_completed",

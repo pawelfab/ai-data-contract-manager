@@ -12,6 +12,7 @@ from adcm.ports.forge import ContractForgePort
 
 from .document_engine import DocumentEngine
 from .json_pointer import exists, get
+from .observability.audit_views import forge_analysis_completed_view
 from .proposal_reconciler import ProposalReconciler
 from .rules_engine import ConventionRulesEngine
 
@@ -162,10 +163,18 @@ class StabilizationEngine:
         else:
             analysis = await self.forge.analyze(state.document, correlation_id=correlation_id)
         duration_ms = (perf_counter() - started) * 1000
-        completed_data = analysis.model_dump(mode="json")
-        completed_data.update(started_data)
-        completed_data["duration_ms"] = duration_ms
-        self._record(audit, "forge.analysis.completed", completed_data)
+        if audit is not None:
+            audit.record(
+                "forge.analysis.completed",
+                forge_analysis_completed_view(
+                    analysis,
+                    round_no=round_no,
+                    contract_revision=state.revision,
+                    duration_ms=duration_ms,
+                    phase=phase,
+                    level=audit.level,
+                ),
+            )
         return analysis
 
     @classmethod

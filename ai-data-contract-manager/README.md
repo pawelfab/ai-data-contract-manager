@@ -26,10 +26,18 @@ ADCM zapisuje application log oraz session audit. Domyślnie backend to JSONL:
 ADCM_LOG_BACKEND=local
 ADCM_LOG_DIR=logs
 ADCM_ENVIRONMENT=local
+ADCM_AUDIT_LEVEL=normal
 ```
 
 Application log trafia do `logs/app/YYYY-MM-DD.jsonl`, a audit sesji do
-`logs/sessions/<bezpieczny-session-id>.jsonl`. Dla BigQuery ustaw `ADCM_LOG_BACKEND=bigquery`,
+`logs/sessions/<bezpieczny-session-id>.jsonl`.
+
+`ADCM_AUDIT_LEVEL` steruje szczegółowością session audit. W trybie `normal`
+`forge.analysis.completed` jest compact summary (liczniki zamiast powtarzanej
+w każdej rundzie listy `writable[]`), a `turn.completed` nie duplikuje historii
+`proposal_decisions[]` — szczegóły pozostają w osobnych eventach
+`forge.proposal.received`, `rule.proposal.generated` i `proposal.decision`.
+Tryb `debug` przywraca pełny `ForgeAnalysis`. Dla BigQuery ustaw `ADCM_LOG_BACKEND=bigquery`,
 `ADCM_BQ_PROJECT`, `ADCM_BQ_DATASET` oraz opcjonalnie
 `ADCM_BQ_APP_LOG_TABLE` (domyślnie `app_logs`) i
 `ADCM_BQ_SESSION_AUDIT_TABLE` (domyślnie `session_audit`). Zależność jest

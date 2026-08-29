@@ -1,6 +1,7 @@
 from typing import Any
 
 from adcm.application.observability.app_log_recorder import AppLogRecorder
+from adcm.application.observability.audit_views import AUDIT_LEVEL_NORMAL, AUDIT_LEVELS
 from adcm.application.observability.models import SessionAuditEvent
 from adcm.ports.session_audit_sink import SessionAuditSinkPort
 
@@ -8,6 +9,11 @@ from adcm.ports.session_audit_sink import SessionAuditSinkPort
 class BoundTurnAuditRecorder:
     def __init__(self, parent: "SessionAuditRecorder", session_id: str, turn_no: int, correlation_id: str | None):
         self.parent, self.session_id, self.turn_no, self.correlation_id = parent, session_id, turn_no, correlation_id
+
+    @property
+    def level(self) -> str:
+        """Audit verbosity, used by callers to pick a compact or a full payload."""
+        return self.parent.level
 
     def emit(self, event_type: str, data: Any = None, **kwargs: Any) -> SessionAuditEvent:
         payload = _dump(data) if data is not None else {}
@@ -26,8 +32,10 @@ class BoundTurnAuditRecorder:
 
 
 class SessionAuditRecorder:
-    def __init__(self, sink: SessionAuditSinkPort, app_log: AppLogRecorder):
-        self.sink, self.app_log = sink, app_log
+    def __init__(self, sink: SessionAuditSinkPort, app_log: AppLogRecorder, *, level: str = AUDIT_LEVEL_NORMAL):
+        if level not in AUDIT_LEVELS:
+            raise ValueError(f"Unsupported audit level: {level}")
+        self.sink, self.app_log, self.level = sink, app_log, level
 
     def bind(self, session_id: str, turn_no: int, correlation_id: str | None = None) -> BoundTurnAuditRecorder:
         return BoundTurnAuditRecorder(self, session_id, turn_no, correlation_id)

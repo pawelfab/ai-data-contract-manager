@@ -202,7 +202,7 @@ oryginalnego błędu biznesowego.
 | `mutation.applied` | orchestrator lub stabilizer | dokładny `MutationEvent` po realnej mutacji |
 | `stabilization.round.started` | `StabilizationEngine` | numer rundy i rewizja wejściowa |
 | `forge.analysis.started` | `StabilizationEngine` | runda, rewizja i opcjonalna faza |
-| `forge.analysis.completed` | `StabilizationEngine` | wynik Forge, kontekst rundy i czas |
+| `forge.analysis.completed` | `StabilizationEngine` | compact summary wyniku Forge, kontekst rundy i czas (patrz 5.2) |
 | `forge.proposal.received` | `StabilizationEngine` | propozycja pochodząca z Forge |
 | `rule.proposal.generated` | `StabilizationEngine` | propozycja pochodząca z reguły ADCM |
 | `proposal.decision` | `StabilizationEngine` | decyzja reconciliatora oraz proponowana i obecna wartość/proweniencja |
@@ -210,13 +210,59 @@ oryginalnego błędu biznesowego.
 | `stabilization.completed` | `StabilizationEngine` | liczba rund, zbieżność i końcowa rewizja |
 | `external_checks.completed` | `TurnOrchestrator` | wynik opcjonalnych kontroli zewnętrznych |
 | `response.composed` | `TurnOrchestrator` | odpowiedź przeznaczona dla użytkownika |
-| `turn.completed` | `TurnOrchestrator` | końcowy snapshot, statusy, diagnostyka i odpowiedź |
+| `turn.completed` | `TurnOrchestrator` | końcowy snapshot, statusy, diagnostyka i odpowiedź (patrz 5.2) |
 | `turn.failed` | `TurnOrchestrator` | etap, typ błędu, komunikat i aktualna rewizja |
 
 `mutation.applied` nie jest tworzone dla samego zamiaru zmiany. Najpierw
 `DocumentEngine` musi zastosować `MutationCommand` i zwrócić domenowy
 `MutationEvent`. Audyt serializuje ten fakt, ale go nie tworzy i nie zmienia
 `ContractState`.
+
+### 5.2 Session audit jako widok, nie kopia modelu
+
+Session audit nie jest serializacją 1:1 modeli domenowych. Mapowanie
+core → session audit view należy do `application/observability/audit_views.py`
+i jest zbudowane z czystych funkcji:
+
+```
+CORE MODEL                    -> AUDIT VIEW                 -> JSONL / BigQuery
+ForgeAnalysis                    forge_analysis_completed_view()
+TurnOutcome + StabilizationReport  turn_completed_view()
+```
+
+Zasada: dane, które mają własny dedykowany event, nie są powtarzane w evencie
+zbiorczym. Dane, które nie zmieniają się między rundami fixed-point, nie są
+zapisywane w każdej rundzie.
+
+`forge.analysis.completed` w trybie `normal` zawiera:
+
+| pole | znaczenie |
+|---|---|
+| `round`, `contract_revision` | kontekst fixed-point |
+| `phase` | tylko dla `final_validation` |
+| `definition_version` | wersja definicji kontraktu |
+| `status` | `valid` / `complete` / `clean` |
+| `writable_count` | licznik zamiast `writable[]` — lista jest w praktyce identyczna w każdej rundzie |
+| `missing` | lista ścieżek; pełne `MissingRequirement` jest w `turn.completed` |
+| `foreign_count`, `proposal_count`, `diagnostic_count` | liczniki |
+| `diagnostics` | tylko gdy niepuste |
+| `duration_ms` | czas wywołania Forge |
+
+Szczegóły propozycji pozostają w `forge.proposal.received` i
+`rule.proposal.generated`, a decyzje w `proposal.decision`. Ścieżkę
+`proposal → decision → mutation` odtwarza się po `proposal_id` i `path`.
+
+`turn.completed` pozostaje pełnym snapshotem końcowym (`final_document`,
+`forge_status`, `missing`, `diagnostics`, `external_checks`, `response`), ale
+`stabilization` jest zredukowane do `{rounds, converged}` — pełna historia
+`proposal_decisions[]` jest już w osobnych eventach `proposal.decision`.
+`StabilizationReport` w domenie pozostaje bez zmian; redukcja dotyczy wyłącznie
+mapowania audytowego.
+
+Tryb `debug` (`ADCM_AUDIT_LEVEL=debug`) przywraca pełny `ForgeAnalysis` i pełne
+`MissingRequirement`. Na nagranych sesjach wielorundowych compact audit zmniejsza
+JSONL o ok. 31–34% (payload `data` o ok. 47–50%); reszta pliku to envelope
+eventu, który jest stały i nie podlega redukcji.
 
 ## 6. Elementy dołożone poza `observability`
 
@@ -312,8 +358,10 @@ Identyfikator nie jest przekazywany do `ContractAnalyzer` ani
 
 ### 6.7 Composition root, konfiguracja i runtime
 
-`adapters/api/app.py` wybiera backend na podstawie konfiguracji, tworzy sinki,
-recordery i wstrzykuje je do adaptera Forge oraz orchestratora. Middleware HTTP
+`adapters/api/app.py` wybiera backend i poziom audytu (`ADCM_AUDIT_LEVEL`) na
+podstawie konfiguracji, tworzy sinki, recordery i wstrzykuje je do adaptera Forge
+oraz orchestratora. Nieznana wartość `ADCM_AUDIT_LEVEL` zatrzymuje start procesu,
+tak samo jak nieznany `ADCM_LOG_BACKEND`. Middleware HTTP
 tworzy `correlation_id`, zapisuje request/response i zwraca go w nagłówku
 `X-Correlation-ID`.
 

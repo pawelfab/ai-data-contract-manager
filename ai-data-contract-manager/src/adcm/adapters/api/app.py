@@ -23,6 +23,7 @@ from adcm.application.rules_engine import ConventionRulesEngine
 from adcm.application.stabilization_engine import StabilizationEngine
 from adcm.application.turn_orchestrator import TurnOrchestrator
 from adcm.application.observability.app_log_recorder import AppLogRecorder
+from adcm.application.observability.audit_views import AUDIT_LEVEL_NORMAL, AUDIT_LEVELS
 from adcm.application.observability.session_audit_recorder import SessionAuditRecorder
 from adcm.domain.session import SessionState
 from adcm.domain.turn import TurnOutcome
@@ -36,6 +37,9 @@ class TurnRequest(BaseModel):
 def _build_observability() -> tuple[AppLogRecorder, SessionAuditRecorder]:
     backend = os.getenv("ADCM_LOG_BACKEND", "local").lower()
     environment = os.getenv("ADCM_ENVIRONMENT", "local")
+    audit_level = os.getenv("ADCM_AUDIT_LEVEL", AUDIT_LEVEL_NORMAL).lower()
+    if audit_level not in AUDIT_LEVELS:
+        raise RuntimeError(f"Unsupported ADCM_AUDIT_LEVEL: {audit_level}")
     if backend == "local":
         log_dir = os.getenv("ADCM_LOG_DIR", "logs")
         app_sink = LocalAppLogSink(log_dir)
@@ -57,11 +61,11 @@ def _build_observability() -> tuple[AppLogRecorder, SessionAuditRecorder]:
         raise RuntimeError(f"Unsupported ADCM_LOG_BACKEND: {backend}")
 
     app_recorder = AppLogRecorder(app_sink, service="adcm", environment=environment)
-    audit_recorder = SessionAuditRecorder(audit_sink, app_recorder)
+    audit_recorder = SessionAuditRecorder(audit_sink, app_recorder, level=audit_level)
     app_recorder.info(
         "configuration_loaded",
         component="bootstrap",
-        data={"environment": environment, "log_backend": backend},
+        data={"environment": environment, "log_backend": backend, "audit_level": audit_level},
     )
     return app_recorder, audit_recorder
 

@@ -22,6 +22,29 @@ decyzje kandydatów, rundy stabilizacji, propozycje, mutacje, kontrole
 zewnętrzne oraz odpowiedź. `MutationEvent` jest emitowany jako
 `mutation.applied` tylko po rzeczywistym zastosowaniu zmiany.
 
+## Audyt jako widok modeli domenowych
+
+Session audit nie jest kopią 1:1 modeli core. Mapowanie
+`ForgeAnalysis`/`TurnOutcome` na payload audytowy należy do
+`application/observability/audit_views.py`; modele domenowe pozostają pełne.
+
+Obowiązują dwie zasady. Dane mające własny dedykowany event nie są powtarzane
+w evencie zbiorczym: propozycje pozostają w `forge.proposal.received` oraz
+`rule.proposal.generated`, a decyzje w `proposal.decision`, dlatego
+`forge.analysis.completed` podaje tylko `proposal_count`, a `turn.completed`
+tylko `{rounds, converged}` zamiast całej historii `proposal_decisions[]`. Dane
+niezmienne między rundami fixed-point nie są zapisywane w każdej rundzie:
+`forge.analysis.completed` podaje `writable_count` zamiast `writable[]` oraz
+listę ścieżek zamiast pełnych obiektów `MissingRequirement`.
+
+`turn.completed` pozostaje pełnym snapshotem końcowym tury: dokument, status
+Forge, brakujące wymagania, diagnostyka, kontrole zewnętrzne i odpowiedź. Numery
+rund i rewizje (`round`, `contract_revision`, `revision_before`,
+`revision_after`) oraz envelope eventu pozostają nienaruszone.
+
+`ADCM_AUDIT_LEVEL=debug` przywraca pełny `ForgeAnalysis` w
+`forge.analysis.completed` i pełne `MissingRequirement` w `turn.completed`.
+
 ## Porty i adaptery
 
 Recordery w warstwie application korzystają z portów sinków. Adaptery
@@ -75,6 +98,7 @@ Obie usługi domyślnie używają backendu `local`.
 ADCM:
 
 - `ADCM_LOG_BACKEND`, `ADCM_LOG_DIR`, `ADCM_ENVIRONMENT`,
+- `ADCM_AUDIT_LEVEL` (`normal` domyślnie, `debug` = pełny `ForgeAnalysis`),
 - `ADCM_BQ_PROJECT`, `ADCM_BQ_DATASET`,
 - `ADCM_BQ_APP_LOG_TABLE`, `ADCM_BQ_SESSION_AUDIT_TABLE`.
 

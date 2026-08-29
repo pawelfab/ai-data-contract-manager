@@ -1,10 +1,10 @@
 # Generated repository map
 
-Source snapshot: `8e77a1aee3cee3de58c3fc59ed9bb401935de5cf7c7784612049a402bd2a1354`
+Source snapshot: `7a48e619d173ace4fd5569044d1b27f3f861f2e0a8ac8cc0f1111cb236a44e2d`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **76**
+Source files indexed: **77**
 
 ## `ai-data-contract-manager/`
 
@@ -35,16 +35,16 @@ Source files indexed: **76**
 
 ### `ai-data-contract-manager/src/adcm/adapters/api/app.py`
 - Language: Python
-- Lines: 175
+- Lines: 179
 - Symbols:
-  - `class TurnRequest` — line 31
-  - `function _build_observability` — line 36
-  - `function _build_intent_resolver` — line 71
-  - `async_function lifespan` — line 113
-  - `async_function application_log_middleware` — line 123
-  - `async_function health` — line 156
-  - `async_function turn` — line 161
-  - `async_function get_session` — line 173
+  - `class TurnRequest` — line 32
+  - `function _build_observability` — line 37
+  - `function _build_intent_resolver` — line 75
+  - `async_function lifespan` — line 117
+  - `async_function application_log_middleware` — line 127
+  - `async_function health` — line 160
+  - `async_function turn` — line 165
+  - `async_function get_session` — line 177
 
 ### `ai-data-contract-manager/src/adcm/adapters/forge_mcp.py`
 - Language: Python
@@ -206,6 +206,14 @@ Source files indexed: **76**
     - `info` — line 30
     - `error` — line 33
 
+### `ai-data-contract-manager/src/adcm/application/observability/audit_views.py`
+- Language: Python
+- Lines: 106
+- Symbols:
+  - `function forge_analysis_completed_view` — line 20
+  - `function turn_completed_view` — line 65
+  - `function _missing_view` — line 94
+
 ### `ai-data-contract-manager/src/adcm/application/observability/models.py`
 - Language: Python
 - Lines: 54
@@ -225,18 +233,19 @@ Source files indexed: **76**
 
 ### `ai-data-contract-manager/src/adcm/application/observability/session_audit_recorder.py`
 - Language: Python
-- Lines: 71
+- Lines: 79
 - Symbols:
-  - `class BoundTurnAuditRecorder` — line 8
-    - `__init__` — line 9
-    - `emit` — line 12
-    - `record` — line 17
-    - `__getattr__` — line 21
-  - `class SessionAuditRecorder` — line 28
-    - `__init__` — line 29
-    - `bind` — line 32
-    - `_emit` — line 35
-  - `function _dump` — line 48
+  - `class BoundTurnAuditRecorder` — line 9
+    - `__init__` — line 10
+    - `level` — line 14
+    - `emit` — line 18
+    - `record` — line 23
+    - `__getattr__` — line 27
+  - `class SessionAuditRecorder` — line 34
+    - `__init__` — line 35
+    - `bind` — line 40
+    - `_emit` — line 43
+  - `function _dump` — line 56
 
 ### `ai-data-contract-manager/src/adcm/application/proposal_reconciler.py`
 - Language: Python
@@ -262,27 +271,27 @@ Source files indexed: **76**
 
 ### `ai-data-contract-manager/src/adcm/application/stabilization_engine.py`
 - Language: Python
-- Lines: 238
+- Lines: 247
 - Symbols:
-  - `class StabilizationEngine` — line 22
-    - `__init__` — line 23
-    - `async stabilize` — line 38
-    - `async _analyze` — line 146
-    - `_record_mutations` — line 172
-    - `_record_proposal_decisions` — line 177
-    - `_record` — line 198
-    - `_forge_proposals` — line 203
-    - `_foreign_cleanup_commands` — line 225
+  - `class StabilizationEngine` — line 23
+    - `__init__` — line 24
+    - `async stabilize` — line 39
+    - `async _analyze` — line 147
+    - `_record_mutations` — line 181
+    - `_record_proposal_decisions` — line 186
+    - `_record` — line 207
+    - `_forge_proposals` — line 212
+    - `_foreign_cleanup_commands` — line 234
 
 ### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 210
+- Lines: 206
 - Symbols:
-  - `class TurnOrchestrator` — line 20
-    - `__init__` — line 21
-    - `async run_turn` — line 48
-    - `_audit` — line 203
-    - `_app_info` — line 207
+  - `class TurnOrchestrator` — line 21
+    - `__init__` — line 22
+    - `async run_turn` — line 49
+    - `_audit` — line 199
+    - `_app_info` — line 203
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python

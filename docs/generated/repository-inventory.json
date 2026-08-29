@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_snapshot": "8e77a1aee3cee3de58c3fc59ed9bb401935de5cf7c7784612049a402bd2a1354",
+  "source_snapshot": "7a48e619d173ace4fd5569044d1b27f3f861f2e0a8ac8cc0f1111cb236a44e2d",
   "repository_root": ".",
   "files": [
     {
@@ -46,50 +46,50 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/api/app.py",
       "language": "Python",
-      "bytes": 6638,
-      "lines": 175,
-      "sha256": "cfc25e24dcc45ea4f2200612afae0f7bd2fd06825ba639d3f9d932abed22ee5a",
+      "bytes": 6964,
+      "lines": 179,
+      "sha256": "5da402072c5f907542bfb488d84a3550f299fd0e24909ea49b89dcbda154b1bd",
       "symbols": [
         {
           "kind": "class",
           "name": "TurnRequest",
-          "line": 31,
+          "line": 32,
           "methods": []
         },
         {
           "kind": "function",
           "name": "_build_observability",
-          "line": 36
+          "line": 37
         },
         {
           "kind": "function",
           "name": "_build_intent_resolver",
-          "line": 71
+          "line": 75
         },
         {
           "kind": "async_function",
           "name": "lifespan",
-          "line": 113
+          "line": 117
         },
         {
           "kind": "async_function",
           "name": "application_log_middleware",
-          "line": 123
+          "line": 127
         },
         {
           "kind": "async_function",
           "name": "health",
-          "line": 156
+          "line": 160
         },
         {
           "kind": "async_function",
           "name": "turn",
-          "line": 161
+          "line": 165
         },
         {
           "kind": "async_function",
           "name": "get_session",
-          "line": 173
+          "line": 177
         }
       ]
     },
@@ -620,6 +620,30 @@
       ]
     },
     {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/audit_views.py",
+      "language": "Python",
+      "bytes": 3912,
+      "lines": 106,
+      "sha256": "d9b493f293b9e9978577cc7fe711a7254786d0b3290ef3cd78a59229ffea18c2",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "forge_analysis_completed_view",
+          "line": 20
+        },
+        {
+          "kind": "function",
+          "name": "turn_completed_view",
+          "line": 65
+        },
+        {
+          "kind": "function",
+          "name": "_missing_view",
+          "line": 94
+        }
+      ]
+    },
+    {
       "path": "ai-data-contract-manager/src/adcm/application/observability/models.py",
       "language": "Python",
       "bytes": 1642,
@@ -679,33 +703,38 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/observability/session_audit_recorder.py",
       "language": "Python",
-      "bytes": 3923,
-      "lines": 71,
-      "sha256": "75b2d69f8df0db753d503fa18ec039358231e8f98a55b3012ec0999017b01533",
+      "bytes": 4330,
+      "lines": 79,
+      "sha256": "97de55424b2ea9cf22d6b5b24936d18b2adce87da44ea2ac30b303675039b341",
       "symbols": [
         {
           "kind": "class",
           "name": "BoundTurnAuditRecorder",
-          "line": 8,
+          "line": 9,
           "methods": [
             {
               "name": "__init__",
-              "line": 9,
+              "line": 10,
+              "async": false
+            },
+            {
+              "name": "level",
+              "line": 14,
               "async": false
             },
             {
               "name": "emit",
-              "line": 12,
+              "line": 18,
               "async": false
             },
             {
               "name": "record",
-              "line": 17,
+              "line": 23,
               "async": false
             },
             {
               "name": "__getattr__",
-              "line": 21,
+              "line": 27,
               "async": false
             }
           ]
@@ -713,21 +742,21 @@
         {
           "kind": "class",
           "name": "SessionAuditRecorder",
-          "line": 28,
+          "line": 34,
           "methods": [
             {
               "name": "__init__",
-              "line": 29,
+              "line": 35,
               "async": false
             },
             {
               "name": "bind",
-              "line": 32,
+              "line": 40,
               "async": false
             },
             {
               "name": "_emit",
-              "line": 35,
+              "line": 43,
               "async": false
             }
           ]
@@ -735,7 +764,7 @@
         {
           "kind": "function",
           "name": "_dump",
-          "line": 48
+          "line": 56
         }
       ]
     },
@@ -825,53 +854,53 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/stabilization_engine.py",
       "language": "Python",
-      "bytes": 9539,
-      "lines": 238,
-      "sha256": "68344a53225129a11e84a68ce92af8e943e63416cda4e20b3fbac946899996f5",
+      "bytes": 9802,
+      "lines": 247,
+      "sha256": "e4ed38b0c085276eca7704ea1e78e3c37752288075ae83074be0903d41cd501d",
       "symbols": [
         {
           "kind": "class",
           "name": "StabilizationEngine",
-          "line": 22,
+          "line": 23,
           "methods": [
             {
               "name": "__init__",
-              "line": 23,
+              "line": 24,
               "async": false
             },
             {
               "name": "stabilize",
-              "line": 38,
+              "line": 39,
               "async": true
             },
             {
               "name": "_analyze",
-              "line": 146,
+              "line": 147,
               "async": true
             },
             {
               "name": "_record_mutations",
-              "line": 172,
+              "line": 181,
               "async": false
             },
             {
               "name": "_record_proposal_decisions",
-              "line": 177,
+              "line": 186,
               "async": false
             },
             {
               "name": "_record",
-              "line": 198,
+              "line": 207,
               "async": false
             },
             {
               "name": "_forge_proposals",
-              "line": 203,
+              "line": 212,
               "async": false
             },
             {
               "name": "_foreign_cleanup_commands",
-              "line": 225,
+              "line": 234,
               "async": false
             }
           ]
@@ -881,33 +910,33 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/turn_orchestrator.py",
       "language": "Python",
-      "bytes": 8561,
-      "lines": 210,
-      "sha256": "af1df2a9d94af4277192c1a8f2a87608669b32590aa50754b645703df9aaaf21",
+      "bytes": 8224,
+      "lines": 206,
+      "sha256": "106cc1cd7addb932ee19a65d905feba59bf01ba01576a6483843f2dbd1510292",
       "symbols": [
         {
           "kind": "class",
           "name": "TurnOrchestrator",
-          "line": 20,
+          "line": 21,
           "methods": [
             {
               "name": "__init__",
-              "line": 21,
+              "line": 22,
               "async": false
             },
             {
               "name": "run_turn",
-              "line": 48,
+              "line": 49,
               "async": true
             },
             {
               "name": "_audit",
-              "line": 203,
+              "line": 199,
               "async": false
             },
             {
               "name": "_app_info",
-              "line": 207,
+              "line": 203,
               "async": false
             }
           ]
