@@ -20,6 +20,7 @@ python scripts/agent/install_git_hooks.py
 
 - Keep quality commands deterministic and non-interactive.
 - Use the same canonical commands as CI.
+- `doc_freshness.py --check` and `--check-staged` answer different questions; `--check` reporting `CURRENT` does not mean a commit will pass. `--check` only compares working-tree source hashes with the `docs/.freshness.json` marker. `githooks/pre-commit` runs `--check-staged`, which reads the Git index and requires both a curated document and a task document (`docs/active-task/YYYY-MM-DD_name/IMPLEMENTATION.md` or the `docs/history/` equivalent) beside documentation-relevant staged code. A staged `TASK.md` satisfies the curated requirement but never the task-document requirement.
 - `documentation_update.py` regenerates the repository inventory and a documentation-impact report, then records the source snapshot. It does not invent or overwrite curated architecture/service prose.
 - `githooks/pre-commit` invokes the generator with `--staged` only for documentation-relevant staged source. It reads the Git index and stages the deterministic output into the same commit; there is no post-commit generator.
 - `githooks/pre-commit` requires at least one configured curated document beside documentation-relevant code. Generated files under `docs/generated/` are review aids and do not satisfy that check.

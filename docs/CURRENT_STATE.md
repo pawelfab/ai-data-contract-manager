@@ -38,7 +38,20 @@
 - bezpieczne wycofanie automatycznie aktywowanego całego subtree, jeżeli ma potomka o wyższym autorytecie,
 - pełne SC-01..SC-22 / EC-01..EC-13 jako E2E.
 
+## Observability implemented
+
+- niezależne application logging w ADCM i Contract Forge,
+- session audit w ADCM,
+- lokalne sinki JSONL oraz opcjonalne sinki BigQuery,
+- techniczny `correlation_id` propagowany przez wywołanie MCP,
+- batchowanie auditów BigQuery per tura przy evencie terminalnym,
+- redakcja sekretów przed zapisem,
+- best-effort policy: awaria logowania nie zatrzymuje business flow, a awaria
+  session audit emituje dodatkowo application error.
+
 ## Known baseline limitations
 
 `resources/contract.json` w Forge jest wyłącznie lokalnym fixture. Nie jest zamiennikiem ani kopią właścicielskiego `contract.json`.
 `ContractDefinitionNormalizer` jest celowym adapterem/seamem, który trzeba dopasować do rzeczywistego formatu bez przenoszenia tej wiedzy do ADCM.
+
+Natural-language aliases may map to the semantically closest writable field. In particular, phrases such as “system źródłowy” may be resolved to /source/systemZrodlowy instead of /metadata/sourceSystemGcpId. This is currently accepted as a known limitation of the LLM resolver and should not trigger core architecture changes.

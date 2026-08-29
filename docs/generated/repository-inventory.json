@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "source_snapshot": "280079b7d2dcc13b70dd0ad4322adf54b727a9d9132bbd2e369b5afc6480983f",
+  "source_snapshot": "8e77a1aee3cee3de58c3fc59ed9bb401935de5cf7c7784612049a402bd2a1354",
   "repository_root": ".",
   "files": [
     {
       "path": "ai-data-contract-manager/pyproject.toml",
       "language": "TOML",
-      "bytes": 615,
-      "lines": 30,
-      "sha256": "9ec41026597c2320ff149e98b1745f11c06835d1c0c14932c153ec9889722906",
+      "bytes": 662,
+      "lines": 32,
+      "sha256": "d24c9f1053f01d80e3fda818c854b03db34016afdec8a9e3e25c1533f8caac3f",
       "symbols": []
     },
     {
@@ -46,64 +46,89 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/api/app.py",
       "language": "Python",
-      "bytes": 3231,
-      "lines": 85,
-      "sha256": "0d1e3ac09d5156a649b704fdab6c6b57b7cd2d64106e89eb785996b1e1ce86a7",
+      "bytes": 6638,
+      "lines": 175,
+      "sha256": "cfc25e24dcc45ea4f2200612afae0f7bd2fd06825ba639d3f9d932abed22ee5a",
       "symbols": [
         {
           "kind": "class",
           "name": "TurnRequest",
-          "line": 22,
+          "line": 31,
           "methods": []
         },
         {
           "kind": "function",
+          "name": "_build_observability",
+          "line": 36
+        },
+        {
+          "kind": "function",
           "name": "_build_intent_resolver",
-          "line": 29
+          "line": 71
+        },
+        {
+          "kind": "async_function",
+          "name": "lifespan",
+          "line": 113
+        },
+        {
+          "kind": "async_function",
+          "name": "application_log_middleware",
+          "line": 123
         },
         {
           "kind": "async_function",
           "name": "health",
-          "line": 70
+          "line": 156
         },
         {
           "kind": "async_function",
           "name": "turn",
-          "line": 75
+          "line": 161
         },
         {
           "kind": "async_function",
           "name": "get_session",
-          "line": 83
+          "line": 173
         }
       ]
     },
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/forge_mcp.py",
       "language": "Python",
-      "bytes": 1181,
-      "lines": 27,
-      "sha256": "fd74658319dc64387da6181550a2f7ca152f0ebaea5c37d0598c9b73e632de74",
+      "bytes": 3712,
+      "lines": 81,
+      "sha256": "534be6ed8927758ae6668ba1783aeed8ddabdba1d3ec1bcb9732db861cee0ef4",
       "symbols": [
         {
           "kind": "class",
           "name": "ForgeMcpAdapter",
-          "line": 6,
+          "line": 9,
           "methods": [
             {
               "name": "__init__",
-              "line": 7,
+              "line": 10,
               "async": false
             },
             {
               "name": "analyze",
-              "line": 10,
+              "line": 14,
               "async": true
             },
             {
               "name": "describe",
-              "line": 19,
+              "line": 45,
               "async": true
+            },
+            {
+              "name": "_info",
+              "line": 68,
+              "async": false
+            },
+            {
+              "name": "_error",
+              "line": 72,
+              "async": false
             }
           ]
         }
@@ -160,6 +185,148 @@
           ]
         }
       ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/__init__.py",
+      "language": "Python",
+      "bytes": 47,
+      "lines": 3,
+      "sha256": "40517efe8c8ee7ae60a5f67f4679e1934b8ebd62693c80e1f0452a0bbe2fd97b",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/bigquery_app_log_sink.py",
+      "language": "Python",
+      "bytes": 829,
+      "lines": 24,
+      "sha256": "1b2db90905156bdf766245641ec65a229bcb921ac6ad9d9405bda8c1dd11cf7e",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "BigQueryAppLogSink",
+          "line": 7,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 8,
+              "async": false
+            },
+            {
+              "name": "_client",
+              "line": 13,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 19,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/bigquery_session_audit_sink.py",
+      "language": "Python",
+      "bytes": 1623,
+      "lines": 41,
+      "sha256": "976b10854ca96a628b2b9e6b7e93573d8f6596c6cadcedc5e4bb9a693839f720",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "BatchInsertError",
+          "line": 9,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 10,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "BigQuerySessionAuditSink",
+          "line": 15,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 16,
+              "async": false
+            },
+            {
+              "name": "_client",
+              "line": 23,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 29,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/local_app_log_sink.py",
+      "language": "Python",
+      "bytes": 755,
+      "lines": 24,
+      "sha256": "7a6718728cc5643a3265bf0557879ffd35b306a5c79ad0628dccb549a9e02495",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "LocalAppLogSink",
+          "line": 12,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 13,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 16,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/local_session_audit_sink.py",
+      "language": "Python",
+      "bytes": 968,
+      "lines": 28,
+      "sha256": "1f830ebd4baced1d521be7ff0814db4cdf73a4aae56572c667f6c3440376a947",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "LocalSessionAuditSink",
+          "line": 13,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 14,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 17,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/adapters/logging/sanitizer.py",
+      "language": "Python",
+      "bytes": 108,
+      "lines": 4,
+      "sha256": "96a6d5a7c4b1d9549d4c0a1105e00bc147152dfc3ca0d0b875721e80a14f021a",
+      "symbols": []
     },
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/response_basic.py",
@@ -250,23 +417,46 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/candidate_policy.py",
       "language": "Python",
-      "bytes": 1732,
-      "lines": 41,
-      "sha256": "6837860e4b2ab492cb6d8643a6ca9a3e2d2ce907483c5a53f36f939dd2e0c57b",
+      "bytes": 3965,
+      "lines": 101,
+      "sha256": "698d54bf0c6b45b4a40c003594943eef0e0ee97420b6416406bf3acbbe26f626",
       "symbols": [
         {
           "kind": "class",
+          "name": "CandidateDisposition",
+          "line": 12,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CandidateDecision",
+          "line": 18,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "CandidatePolicyResult",
+          "line": 27,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "CandidatePolicy",
-          "line": 8,
+          "line": 34,
           "methods": [
             {
               "name": "__init__",
-              "line": 9,
+              "line": 35,
               "async": false
             },
             {
               "name": "decide",
-              "line": 12,
+              "line": 38,
+              "async": false
+            },
+            {
+              "name": "evaluate",
+              "line": 42,
               "async": false
             }
           ]
@@ -386,11 +576,175 @@
       ]
     },
     {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/__init__.py",
+      "language": "Python",
+      "bytes": 45,
+      "lines": 3,
+      "sha256": "563b025eab3f653942702341458edf6eb6448da489975b9d0de70d1b317fc687",
+      "symbols": []
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/app_log_recorder.py",
+      "language": "Python",
+      "bytes": 1676,
+      "lines": 35,
+      "sha256": "5d5cd81fbcdff3346cfbfd3f2d8ae4f53abde2349457fcd8f989cb6d6472818b",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AppLogRecorder",
+          "line": 12,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 13,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 16,
+              "async": false
+            },
+            {
+              "name": "info",
+              "line": 30,
+              "async": false
+            },
+            {
+              "name": "error",
+              "line": 33,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/models.py",
+      "language": "Python",
+      "bytes": 1642,
+      "lines": 54,
+      "sha256": "9b35f6f4685cdd48e1f6d85f7fa810c5b578f98b762e7288404175e2e75ae855",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "utc_now",
+          "line": 8
+        },
+        {
+          "kind": "class",
+          "name": "AppLogEvent",
+          "line": 12,
+          "methods": [
+            {
+              "name": "timestamp_is_utc",
+              "line": 31,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "SessionAuditEvent",
+          "line": 37,
+          "methods": [
+            {
+              "name": "timestamp_is_utc",
+              "line": 50,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/sanitizer.py",
+      "language": "Python",
+      "bytes": 1483,
+      "lines": 50,
+      "sha256": "55f4e7b79e6ca7510a0145b227ca7a6af7eb63a70d588941959f1806d2cdc525",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_is_secret_key",
+          "line": 29
+        },
+        {
+          "kind": "function",
+          "name": "sanitize",
+          "line": 39
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/observability/session_audit_recorder.py",
+      "language": "Python",
+      "bytes": 3923,
+      "lines": 71,
+      "sha256": "75b2d69f8df0db753d503fa18ec039358231e8f98a55b3012ec0999017b01533",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "BoundTurnAuditRecorder",
+          "line": 8,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 9,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 12,
+              "async": false
+            },
+            {
+              "name": "record",
+              "line": 17,
+              "async": false
+            },
+            {
+              "name": "__getattr__",
+              "line": 21,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "SessionAuditRecorder",
+          "line": 28,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 29,
+              "async": false
+            },
+            {
+              "name": "bind",
+              "line": 32,
+              "async": false
+            },
+            {
+              "name": "_emit",
+              "line": 35,
+              "async": false
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "_dump",
+          "line": 48
+        }
+      ]
+    },
+    {
       "path": "ai-data-contract-manager/src/adcm/application/proposal_reconciler.py",
       "language": "Python",
-      "bytes": 4853,
-      "lines": 103,
-      "sha256": "49fc90780dcc4043062c95854dba4e4d70453a99647f5c028f03578624feeafc",
+      "bytes": 5927,
+      "lines": 129,
+      "sha256": "8e5736d570dba6540f94fd6226152e553f6afeffca45e5dec5e0dba801dd00a0",
       "symbols": [
         {
           "kind": "class",
@@ -409,8 +763,13 @@
               "async": false
             },
             {
+              "name": "_losing_decisions",
+              "line": 102,
+              "async": false
+            },
+            {
               "name": "_winner",
-              "line": 87,
+              "line": 113,
               "async": false
             }
           ]
@@ -466,33 +825,53 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/stabilization_engine.py",
       "language": "Python",
-      "bytes": 3956,
-      "lines": 101,
-      "sha256": "5ffbe229e990c2b2fcd955ec70ef0cbce469a947ca014a99dd333a2564916db6",
+      "bytes": 9539,
+      "lines": 238,
+      "sha256": "68344a53225129a11e84a68ce92af8e943e63416cda4e20b3fbac946899996f5",
       "symbols": [
         {
           "kind": "class",
           "name": "StabilizationEngine",
-          "line": 15,
+          "line": 22,
           "methods": [
             {
               "name": "__init__",
-              "line": 16,
+              "line": 23,
               "async": false
             },
             {
               "name": "stabilize",
-              "line": 31,
+              "line": 38,
               "async": true
             },
             {
+              "name": "_analyze",
+              "line": 146,
+              "async": true
+            },
+            {
+              "name": "_record_mutations",
+              "line": 172,
+              "async": false
+            },
+            {
+              "name": "_record_proposal_decisions",
+              "line": 177,
+              "async": false
+            },
+            {
+              "name": "_record",
+              "line": 198,
+              "async": false
+            },
+            {
               "name": "_forge_proposals",
-              "line": 66,
+              "line": 203,
               "async": false
             },
             {
               "name": "_foreign_cleanup_commands",
-              "line": 88,
+              "line": 225,
               "async": false
             }
           ]
@@ -502,24 +881,34 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/turn_orchestrator.py",
       "language": "Python",
-      "bytes": 3103,
-      "lines": 80,
-      "sha256": "08b83bf087389f539874802304822dfef117fe5a6ed21bc75a803da50ba42056",
+      "bytes": 8561,
+      "lines": 210,
+      "sha256": "af1df2a9d94af4277192c1a8f2a87608669b32590aa50754b645703df9aaaf21",
       "symbols": [
         {
           "kind": "class",
           "name": "TurnOrchestrator",
-          "line": 15,
+          "line": 20,
           "methods": [
             {
               "name": "__init__",
-              "line": 16,
+              "line": 21,
               "async": false
             },
             {
               "name": "run_turn",
-              "line": 39,
+              "line": 48,
               "async": true
+            },
+            {
+              "name": "_audit",
+              "line": 203,
+              "async": false
+            },
+            {
+              "name": "_app_info",
+              "line": 207,
+              "async": false
             }
           ]
         }
@@ -802,26 +1191,26 @@
     {
       "path": "ai-data-contract-manager/src/adcm/domain/turn.py",
       "language": "Python",
-      "bytes": 916,
-      "lines": 32,
-      "sha256": "5b2b2cf51eee1b69074be453be123763d04da25e71a6c70fc2737a29f326f633",
+      "bytes": 1007,
+      "lines": 35,
+      "sha256": "c3c81a71d60112d220db1bb2165a73c81ece1225df9da8a7131d0e65d3aa3ce4",
       "symbols": [
         {
           "kind": "class",
           "name": "IntentResolution",
-          "line": 8,
+          "line": 10,
           "methods": []
         },
         {
           "kind": "class",
           "name": "StabilizationReport",
-          "line": 14,
+          "line": 17,
           "methods": []
         },
         {
           "kind": "class",
           "name": "TurnOutcome",
-          "line": 22,
+          "line": 25,
           "methods": []
         }
       ]
@@ -835,11 +1224,32 @@
       "symbols": []
     },
     {
+      "path": "ai-data-contract-manager/src/adcm/ports/app_log_sink.py",
+      "language": "Python",
+      "bytes": 178,
+      "lines": 9,
+      "sha256": "906d4e4481b87bdbfd5d5b125a30bf2dea4728ccc433d6218d1ead0fc3632058",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AppLogSinkPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "emit",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "path": "ai-data-contract-manager/src/adcm/ports/forge.py",
       "language": "Python",
-      "bytes": 248,
+      "bytes": 324,
       "lines": 9,
-      "sha256": "57bce8db046fabe11448d27e01bbc076cf61d63ac301f11ac28ed0940dcb43df",
+      "sha256": "e26bc4d05fc87f382e4b21b2487d74b3486f112cec6e9aff3d4a6fdb01a5c52b",
       "symbols": [
         {
           "kind": "class",
@@ -924,6 +1334,27 @@
       ]
     },
     {
+      "path": "ai-data-contract-manager/src/adcm/ports/session_audit_sink.py",
+      "language": "Python",
+      "bytes": 196,
+      "lines": 9,
+      "sha256": "b0b96d8e41a10361bca01b815ee55024ed6b42b7540f52576afc3bb76fd50262",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "SessionAuditSinkPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "emit",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "path": "ai-data-contract-manager/src/adcm/ports/session_repository.py",
       "language": "Python",
       "bytes": 248,
@@ -952,9 +1383,9 @@
     {
       "path": "mcp-servers/mcp-contract-forge/pyproject.toml",
       "language": "TOML",
-      "bytes": 544,
-      "lines": 28,
-      "sha256": "84c5bc9c9c5c7c8da557558203c898d332e12fe156dea8219a5b2422b9e2d08e",
+      "bytes": 591,
+      "lines": 30,
+      "sha256": "6832229a9a3895c0e0e072728f8eb5ec6bbfa2c140898e9d46f92baf6d308af7",
       "symbols": []
     },
     {
@@ -1006,6 +1437,84 @@
           ]
         }
       ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/__init__.py",
+      "language": "Python",
+      "bytes": 36,
+      "lines": 2,
+      "sha256": "ec55634db91487894357924959cb220a9bc9b0c11c2389bb934ed618030ad4be",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/bigquery_app_log_sink.py",
+      "language": "Python",
+      "bytes": 999,
+      "lines": 28,
+      "sha256": "9f4eae91dbe9d29ca71bf9fb773814aeca6ea27276158ffd4f2e602558d0aaf6",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "BigQueryAppLogSink",
+          "line": 8,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 11,
+              "async": false
+            },
+            {
+              "name": "_client",
+              "line": 14,
+              "async": false
+            },
+            {
+              "name": "to_row",
+              "line": 21,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 24,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/local_app_log_sink.py",
+      "language": "Python",
+      "bytes": 918,
+      "lines": 27,
+      "sha256": "ea9e0f4825b95d5515365971a41baf8f69c2a8db29fce4e0d43ab220faeb490f",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "LocalAppLogSink",
+          "line": 14,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 15,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 18,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/sanitizer.py",
+      "language": "Python",
+      "bytes": 167,
+      "lines": 6,
+      "sha256": "1db6e22a733d5bf1150d82957d1814023fee20ac847e922ddba6e44ff8bc11ce",
+      "symbols": []
     },
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/__init__.py",
@@ -1139,6 +1648,95 @@
       ]
     },
     {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/__init__.py",
+      "language": "Python",
+      "bytes": 191,
+      "lines": 7,
+      "sha256": "ccd346ff95bbf691467a5d357521eeef51be05d1efe2fe84df876b9f726aabc7",
+      "symbols": []
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/app_log_recorder.py",
+      "language": "Python",
+      "bytes": 1793,
+      "lines": 45,
+      "sha256": "1e7a544724e21d04cdedbdcafb601b6f846dfb7e3c996266e2d2993effa58db7",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AppLogRecorder",
+          "line": 13,
+          "methods": [
+            {
+              "name": "__init__",
+              "line": 16,
+              "async": false
+            },
+            {
+              "name": "emit",
+              "line": 20,
+              "async": false
+            },
+            {
+              "name": "info",
+              "line": 40,
+              "async": false
+            },
+            {
+              "name": "error",
+              "line": 43,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/models.py",
+      "language": "Python",
+      "bytes": 1206,
+      "lines": 36,
+      "sha256": "81f3cfe15696867ee378e30aae44dc9a26052084f8aa666be032a861390f5c16",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AppLogEvent",
+          "line": 8,
+          "methods": [
+            {
+              "name": "timestamp_is_utc",
+              "line": 27,
+              "async": false
+            },
+            {
+              "name": "event_type",
+              "line": 33,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/sanitizer.py",
+      "language": "Python",
+      "bytes": 1483,
+      "lines": 50,
+      "sha256": "55f4e7b79e6ca7510a0145b227ca7a6af7eb63a70d588941959f1806d2cdc525",
+      "symbols": [
+        {
+          "kind": "function",
+          "name": "_is_secret_key",
+          "line": 29
+        },
+        {
+          "kind": "function",
+          "name": "sanitize",
+          "line": 39
+        }
+      ]
+    },
+    {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/application/schema_utils.py",
       "language": "Python",
       "bytes": 1282,
@@ -1267,6 +1865,27 @@
       "symbols": []
     },
     {
+      "path": "mcp-servers/mcp-contract-forge/src/contract_forge/ports/app_log_sink.py",
+      "language": "Python",
+      "bytes": 187,
+      "lines": 8,
+      "sha256": "d8c49e4395fc55200c7a104d4625d48aaed6e69230c087d4157807d6c7aee50d",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "AppLogSinkPort",
+          "line": 6,
+          "methods": [
+            {
+              "name": "emit",
+              "line": 7,
+              "async": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/ports/definition_repository.py",
       "language": "Python",
       "bytes": 181,
@@ -1290,24 +1909,29 @@
     {
       "path": "mcp-servers/mcp-contract-forge/src/contract_forge/server.py",
       "language": "Python",
-      "bytes": 1412,
-      "lines": 41,
-      "sha256": "3091ba3c21f1e10409a266b79d6b8c3dc42ec939b876385bc330bf89c1038b6b",
+      "bytes": 4049,
+      "lines": 89,
+      "sha256": "f0abe74b9e13c65be8037e423e3c13de188d9d8e93cc837a19ca6bd1f64b0b31",
       "symbols": [
         {
           "kind": "function",
+          "name": "_build_app_log_recorder",
+          "line": 18
+        },
+        {
+          "kind": "function",
           "name": "contract_analyze",
-          "line": 22
+          "line": 44
         },
         {
           "kind": "function",
           "name": "contract_describe",
-          "line": 28
+          "line": 64
         },
         {
           "kind": "async_function",
           "name": "health",
-          "line": 34
+          "line": 82
         }
       ]
     }

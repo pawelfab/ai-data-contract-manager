@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from .external import ExternalChecksStatus
@@ -9,6 +11,7 @@ class IntentResolution(BaseModel):
     model_config = ConfigDict(extra="forbid")
     candidates: list[MutationCandidate] = Field(default_factory=list)
     knowledge_query: str | None = None
+    unresolved: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class StabilizationReport(BaseModel):

@@ -1,16 +1,16 @@
 # Generated repository map
 
-Source snapshot: `280079b7d2dcc13b70dd0ad4322adf54b727a9d9132bbd2e369b5afc6480983f`
+Source snapshot: `8e77a1aee3cee3de58c3fc59ed9bb401935de5cf7c7784612049a402bd2a1354`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **54**
+Source files indexed: **76**
 
 ## `ai-data-contract-manager/`
 
 ### `ai-data-contract-manager/pyproject.toml`
 - Language: TOML
-- Lines: 30
+- Lines: 32
 - Symbols: none extracted
 
 ### `ai-data-contract-manager/resources/ux_rules.json`
@@ -35,22 +35,27 @@ Source files indexed: **54**
 
 ### `ai-data-contract-manager/src/adcm/adapters/api/app.py`
 - Language: Python
-- Lines: 85
+- Lines: 175
 - Symbols:
-  - `class TurnRequest` — line 22
-  - `function _build_intent_resolver` — line 29
-  - `async_function health` — line 70
-  - `async_function turn` — line 75
-  - `async_function get_session` — line 83
+  - `class TurnRequest` — line 31
+  - `function _build_observability` — line 36
+  - `function _build_intent_resolver` — line 71
+  - `async_function lifespan` — line 113
+  - `async_function application_log_middleware` — line 123
+  - `async_function health` — line 156
+  - `async_function turn` — line 161
+  - `async_function get_session` — line 173
 
 ### `ai-data-contract-manager/src/adcm/adapters/forge_mcp.py`
 - Language: Python
-- Lines: 27
+- Lines: 81
 - Symbols:
-  - `class ForgeMcpAdapter` — line 6
-    - `__init__` — line 7
-    - `async analyze` — line 10
-    - `async describe` — line 19
+  - `class ForgeMcpAdapter` — line 9
+    - `__init__` — line 10
+    - `async analyze` — line 14
+    - `async describe` — line 45
+    - `_info` — line 68
+    - `_error` — line 72
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py`
 - Language: Python
@@ -67,6 +72,52 @@ Source files indexed: **54**
   - `class PydanticAIIntentResolver` — line 9
     - `__init__` — line 10
     - `async resolve` — line 21
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/__init__.py`
+- Language: Python
+- Lines: 3
+- Symbols: none extracted
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/bigquery_app_log_sink.py`
+- Language: Python
+- Lines: 24
+- Symbols:
+  - `class BigQueryAppLogSink` — line 7
+    - `__init__` — line 8
+    - `_client` — line 13
+    - `emit` — line 19
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/bigquery_session_audit_sink.py`
+- Language: Python
+- Lines: 41
+- Symbols:
+  - `class BatchInsertError` — line 9
+    - `__init__` — line 10
+  - `class BigQuerySessionAuditSink` — line 15
+    - `__init__` — line 16
+    - `_client` — line 23
+    - `emit` — line 29
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/local_app_log_sink.py`
+- Language: Python
+- Lines: 24
+- Symbols:
+  - `class LocalAppLogSink` — line 12
+    - `__init__` — line 13
+    - `emit` — line 16
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/local_session_audit_sink.py`
+- Language: Python
+- Lines: 28
+- Symbols:
+  - `class LocalSessionAuditSink` — line 13
+    - `__init__` — line 14
+    - `emit` — line 17
+
+### `ai-data-contract-manager/src/adcm/adapters/logging/sanitizer.py`
+- Language: Python
+- Lines: 4
+- Symbols: none extracted
 
 ### `ai-data-contract-manager/src/adcm/adapters/response_basic.py`
 - Language: Python
@@ -99,11 +150,15 @@ Source files indexed: **54**
 
 ### `ai-data-contract-manager/src/adcm/application/candidate_policy.py`
 - Language: Python
-- Lines: 41
+- Lines: 101
 - Symbols:
-  - `class CandidatePolicy` — line 8
-    - `__init__` — line 9
-    - `decide` — line 12
+  - `class CandidateDisposition` — line 12
+  - `class CandidateDecision` — line 18
+  - `class CandidatePolicyResult` — line 27
+  - `class CandidatePolicy` — line 34
+    - `__init__` — line 35
+    - `decide` — line 38
+    - `evaluate` — line 42
 
 ### `ai-data-contract-manager/src/adcm/application/document_engine.py`
 - Language: Python
@@ -136,14 +191,62 @@ Source files indexed: **54**
   - `function exists` — line 47
   - `function parent_and_token` — line 55
 
+### `ai-data-contract-manager/src/adcm/application/observability/__init__.py`
+- Language: Python
+- Lines: 3
+- Symbols: none extracted
+
+### `ai-data-contract-manager/src/adcm/application/observability/app_log_recorder.py`
+- Language: Python
+- Lines: 35
+- Symbols:
+  - `class AppLogRecorder` — line 12
+    - `__init__` — line 13
+    - `emit` — line 16
+    - `info` — line 30
+    - `error` — line 33
+
+### `ai-data-contract-manager/src/adcm/application/observability/models.py`
+- Language: Python
+- Lines: 54
+- Symbols:
+  - `function utc_now` — line 8
+  - `class AppLogEvent` — line 12
+    - `timestamp_is_utc` — line 31
+  - `class SessionAuditEvent` — line 37
+    - `timestamp_is_utc` — line 50
+
+### `ai-data-contract-manager/src/adcm/application/observability/sanitizer.py`
+- Language: Python
+- Lines: 50
+- Symbols:
+  - `function _is_secret_key` — line 29
+  - `function sanitize` — line 39
+
+### `ai-data-contract-manager/src/adcm/application/observability/session_audit_recorder.py`
+- Language: Python
+- Lines: 71
+- Symbols:
+  - `class BoundTurnAuditRecorder` — line 8
+    - `__init__` — line 9
+    - `emit` — line 12
+    - `record` — line 17
+    - `__getattr__` — line 21
+  - `class SessionAuditRecorder` — line 28
+    - `__init__` — line 29
+    - `bind` — line 32
+    - `_emit` — line 35
+  - `function _dump` — line 48
+
 ### `ai-data-contract-manager/src/adcm/application/proposal_reconciler.py`
 - Language: Python
-- Lines: 103
+- Lines: 129
 - Symbols:
   - `class ProposalConflict` — line 11
   - `class ProposalReconciler` — line 15
     - `reconcile` — line 23
-    - `_winner` — line 87
+    - `_losing_decisions` — line 102
+    - `_winner` — line 113
 
 ### `ai-data-contract-manager/src/adcm/application/rules_engine.py`
 - Language: Python
@@ -159,21 +262,27 @@ Source files indexed: **54**
 
 ### `ai-data-contract-manager/src/adcm/application/stabilization_engine.py`
 - Language: Python
-- Lines: 101
+- Lines: 238
 - Symbols:
-  - `class StabilizationEngine` — line 15
-    - `__init__` — line 16
-    - `async stabilize` — line 31
-    - `_forge_proposals` — line 66
-    - `_foreign_cleanup_commands` — line 88
+  - `class StabilizationEngine` — line 22
+    - `__init__` — line 23
+    - `async stabilize` — line 38
+    - `async _analyze` — line 146
+    - `_record_mutations` — line 172
+    - `_record_proposal_decisions` — line 177
+    - `_record` — line 198
+    - `_forge_proposals` — line 203
+    - `_foreign_cleanup_commands` — line 225
 
 ### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 80
+- Lines: 210
 - Symbols:
-  - `class TurnOrchestrator` — line 15
-    - `__init__` — line 16
-    - `async run_turn` — line 39
+  - `class TurnOrchestrator` — line 20
+    - `__init__` — line 21
+    - `async run_turn` — line 48
+    - `_audit` — line 203
+    - `_app_info` — line 207
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python
@@ -258,16 +367,23 @@ Source files indexed: **54**
 
 ### `ai-data-contract-manager/src/adcm/domain/turn.py`
 - Language: Python
-- Lines: 32
+- Lines: 35
 - Symbols:
-  - `class IntentResolution` — line 8
-  - `class StabilizationReport` — line 14
-  - `class TurnOutcome` — line 22
+  - `class IntentResolution` — line 10
+  - `class StabilizationReport` — line 17
+  - `class TurnOutcome` — line 25
 
 ### `ai-data-contract-manager/src/adcm/ports/__init__.py`
 - Language: Python
 - Lines: 0
 - Symbols: none extracted
+
+### `ai-data-contract-manager/src/adcm/ports/app_log_sink.py`
+- Language: Python
+- Lines: 9
+- Symbols:
+  - `class AppLogSinkPort` — line 6
+    - `emit` — line 7
 
 ### `ai-data-contract-manager/src/adcm/ports/forge.py`
 - Language: Python
@@ -298,6 +414,13 @@ Source files indexed: **54**
   - `class RulesRepositoryPort` — line 6
     - `async load` — line 7
 
+### `ai-data-contract-manager/src/adcm/ports/session_audit_sink.py`
+- Language: Python
+- Lines: 9
+- Symbols:
+  - `class SessionAuditSinkPort` — line 6
+    - `emit` — line 7
+
 ### `ai-data-contract-manager/src/adcm/ports/session_repository.py`
 - Language: Python
 - Lines: 9
@@ -310,7 +433,7 @@ Source files indexed: **54**
 
 ### `mcp-servers/mcp-contract-forge/pyproject.toml`
 - Language: TOML
-- Lines: 28
+- Lines: 30
 - Symbols: none extracted
 
 ### `mcp-servers/mcp-contract-forge/resources/contract.json`
@@ -335,6 +458,34 @@ Source files indexed: **54**
   - `class FileContractDefinitionRepository` — line 8
     - `__init__` — line 11
     - `load` — line 15
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/__init__.py`
+- Language: Python
+- Lines: 2
+- Symbols: none extracted
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/bigquery_app_log_sink.py`
+- Language: Python
+- Lines: 28
+- Symbols:
+  - `class BigQueryAppLogSink` — line 8
+    - `__init__` — line 11
+    - `_client` — line 14
+    - `to_row` — line 21
+    - `emit` — line 24
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/local_app_log_sink.py`
+- Language: Python
+- Lines: 27
+- Symbols:
+  - `class LocalAppLogSink` — line 14
+    - `__init__` — line 15
+    - `emit` — line 18
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/adapters/logging/sanitizer.py`
+- Language: Python
+- Lines: 6
+- Symbols: none extracted
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/__init__.py`
 - Language: Python
@@ -373,6 +524,36 @@ Source files indexed: **54**
     - `__init__` — line 8
     - `describe` — line 11
     - `_fields` — line 16
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/__init__.py`
+- Language: Python
+- Lines: 7
+- Symbols: none extracted
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/app_log_recorder.py`
+- Language: Python
+- Lines: 45
+- Symbols:
+  - `class AppLogRecorder` — line 13
+    - `__init__` — line 16
+    - `emit` — line 20
+    - `info` — line 40
+    - `error` — line 43
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/models.py`
+- Language: Python
+- Lines: 36
+- Symbols:
+  - `class AppLogEvent` — line 8
+    - `timestamp_is_utc` — line 27
+    - `event_type` — line 33
+
+### `mcp-servers/mcp-contract-forge/src/contract_forge/application/observability/sanitizer.py`
+- Language: Python
+- Lines: 50
+- Symbols:
+  - `function _is_secret_key` — line 29
+  - `function sanitize` — line 39
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/application/schema_utils.py`
 - Language: Python
@@ -414,6 +595,13 @@ Source files indexed: **54**
 - Lines: 0
 - Symbols: none extracted
 
+### `mcp-servers/mcp-contract-forge/src/contract_forge/ports/app_log_sink.py`
+- Language: Python
+- Lines: 8
+- Symbols:
+  - `class AppLogSinkPort` — line 6
+    - `emit` — line 7
+
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/ports/definition_repository.py`
 - Language: Python
 - Lines: 8
@@ -423,8 +611,9 @@ Source files indexed: **54**
 
 ### `mcp-servers/mcp-contract-forge/src/contract_forge/server.py`
 - Language: Python
-- Lines: 41
+- Lines: 89
 - Symbols:
-  - `function contract_analyze` — line 22
-  - `function contract_describe` — line 28
-  - `async_function health` — line 34
+  - `function _build_app_log_recorder` — line 18
+  - `function contract_analyze` — line 44
+  - `function contract_describe` — line 64
+  - `async_function health` — line 82

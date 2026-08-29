@@ -35,7 +35,15 @@ class ProposalReconciler:
             candidates = grouped.get(path, [])
             current_provenance = state.provenance.get(path)
             if current_provenance and current_provenance.source == ValueSource.USER_EXPLICIT:
-                decisions.append(ProposalDecision(path=path, action=ProposalAction.KEEP_CURRENT, reason="explicit user value wins"))
+                decisions.extend(
+                    ProposalDecision(
+                        path=path,
+                        action=ProposalAction.KEEP_CURRENT,
+                        proposal_id=proposal.id,
+                        reason="explicit user value wins",
+                    )
+                    for proposal in candidates
+                )
                 continue
 
             winner = self._winner(candidates)
@@ -55,18 +63,23 @@ class ProposalReconciler:
                     decisions.append(ProposalDecision(path=path, action=ProposalAction.REMOVE_STALE, reason="producer inactive"))
                 continue
 
+            losing = [proposal for proposal in candidates if proposal.id != winner.id]
+
             if current_exists and current_provenance:
                 producer_still_active = any(p.producer_id == current_provenance.producer_id for p in candidates)
                 if producer_still_active and AUTHORITY[current_provenance.source] > AUTHORITY[winner.source]:
                     decisions.append(ProposalDecision(path=path, action=ProposalAction.KEEP_CURRENT, proposal_id=winner.id, reason="current value has higher authority"))
+                    decisions.extend(self._losing_decisions(path, losing, winner.id))
                     continue
 
             current_value = get(state.document, path) if current_exists else None
             if winner.mode == ProposalMode.ENSURE_PRESENT and current_exists:
                 decisions.append(ProposalDecision(path=path, action=ProposalAction.KEEP_CURRENT, proposal_id=winner.id, reason="activation target already exists"))
+                decisions.extend(self._losing_decisions(path, losing, winner.id))
                 continue
             if current_exists and current_value == winner.value and current_provenance and current_provenance.producer_id == winner.producer_id:
                 decisions.append(ProposalDecision(path=path, action=ProposalAction.KEEP_CURRENT, proposal_id=winner.id, reason="already applied"))
+                decisions.extend(self._losing_decisions(path, losing, winner.id))
                 continue
 
             commands.append(
@@ -81,8 +94,21 @@ class ProposalReconciler:
                 )
             )
             decisions.append(ProposalDecision(path=path, action=ProposalAction.APPLY, proposal_id=winner.id, reason="winning proposal"))
+            decisions.extend(self._losing_decisions(path, losing, winner.id))
 
         return commands, decisions
+
+    @staticmethod
+    def _losing_decisions(path: str, proposals: list[Proposal], winner_id: str) -> list[ProposalDecision]:
+        return [
+            ProposalDecision(
+                path=path,
+                action=ProposalAction.KEEP_CURRENT,
+                proposal_id=proposal.id,
+                reason=f"lower-ranked than winning proposal {winner_id}",
+            )
+            for proposal in proposals
+        ]
 
     def _winner(self, proposals: list[Proposal]) -> Proposal | None:
         if not proposals:

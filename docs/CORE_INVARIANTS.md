@@ -14,3 +14,4 @@
 12. `ExternalCheckCoordinator` jest rozszerzeniem ADCM. Opcjonalne Context MCP mogą być wyłączone bez zatrzymania podstawowego workflow.
 13. Wynik Forge i wynik external checks są osobnymi rodzajami prawdy.
 14. Core nie może zawierać warunków na konkretne ścieżki typu `/silver/...`, nazwy systemów ani typy źródeł.
+15. `correlation_id` jest wyłącznie technicznym metadanym transportu i obserwowalności. Nie jest wejściem biznesowym Forge i nigdy nie wpływa na `ForgeAnalysis` ani `ForgeDescription` dla tego samego dokumentu.

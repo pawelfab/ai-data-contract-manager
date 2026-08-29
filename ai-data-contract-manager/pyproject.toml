@@ -17,6 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 ai = ["pydantic-ai-slim[openai]==2.35.1"]
 dev = ["pytest==8.4.1", "pytest-asyncio==0.25.3"]
+bigquery = ["google-cloud-bigquery>=3.25,<4"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

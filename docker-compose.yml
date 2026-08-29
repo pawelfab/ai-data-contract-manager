@@ -4,10 +4,14 @@ services:
       context: ./mcp-servers/mcp-contract-forge
     environment:
       FORGE_CONTRACT_PATH: /app/resources/contract.json
+      FORGE_LOG_BACKEND: local
+      FORGE_LOG_DIR: /app/logs
+      FORGE_ENVIRONMENT: local
     ports:
       - "8000:8000"
     volumes:
       - ./mcp-servers/mcp-contract-forge/resources/contract.json:/app/resources/contract.json:ro
+      - ./mcp-servers/mcp-contract-forge/logs:/app/logs
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()"]
       interval: 3s
@@ -22,6 +26,9 @@ services:
       ADCM_RULES_PATH: /app/resources/ux_rules.json
       ADCM_MAX_STABILIZATION_ROUNDS: "8"
       ADCM_INTENT_MODE: heuristic
+      ADCM_LOG_BACKEND: local
+      ADCM_LOG_DIR: /app/logs
+      ADCM_ENVIRONMENT: local
     depends_on:
       mcp-contract-forge:
         condition: service_healthy
@@ -29,6 +36,7 @@ services:
       - "8080:8080"
     volumes:
       - ./ai-data-contract-manager/resources/ux_rules.json:/app/resources/ux_rules.json:ro
+      - ./ai-data-contract-manager/logs:/app/logs
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2).read()"]
       interval: 3s
