@@ -49,9 +49,15 @@ w którym sesja się zatrzymała. Dzięki temu odczyt stanu sesji nie wymaga Con
 
 `IntentResolution` jest niezmienianym wynikiem resolvera zapisywanym w Session Audit.
 `IntentResolutionPolicy` tworzy osobny `EffectiveIntentResolution`: dla `KNOWLEDGE`
-usuwa candidates, dla `MUTATION` usuwa `knowledge_query`, dla `MIXED` zachowuje oba,
-a dla `UNRESOLVED` nie dopuszcza żadnego kanału. `CandidatePolicy` otrzymuje wyłącznie
-effective candidates i nie zna `IntentKind`.
+usuwa candidates i wymaga `knowledge_query`, dla `MUTATION` usuwa `knowledge_query`,
+dla `MIXED` zachowuje candidates i wymaga `knowledge_query`, a dla `UNRESOLVED` nie
+dopuszcza żadnego kanału i zapewnia powód. Niespójne `KNOWLEDGE` lub `MIXED` degraduje
+się bezpiecznie do effective `UNRESOLVED`. `CandidatePolicy` otrzymuje wyłącznie
+effective candidates, nie zna `IntentKind` i nie jest wywoływane dla `UNRESOLVED`.
+
+`TurnOutcome.intent_kind` jest wewnętrznym wynikiem effective policy dla
+`ResponseComposerPort`. Nie jest częścią publicznego REST DTO. `BasicResponseComposer`
+dla `UNRESOLVED` zwraca prośbę o doprecyzowanie zamiast statusu kontraktu lub YAML.
 
 ## Contract Forge
 

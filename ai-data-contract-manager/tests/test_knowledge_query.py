@@ -4,7 +4,7 @@ import pytest
 
 from adcm.adapters.response_basic import BasicResponseComposer
 from adcm.adapters.session_memory import InMemorySessionRepository
-from adcm.application.candidate_policy import CandidatePolicy
+from adcm.application.candidate_policy import CandidatePolicy, CandidatePolicyResult
 from adcm.application.document_engine import DocumentEngine
 from adcm.application.external_check_coordinator import ExternalCheckCoordinator
 from adcm.application.observability.app_log_recorder import AppLogRecorder
@@ -55,7 +55,10 @@ class RulesRepository:
         return RulesDocument(version="test", rules=[])
 
 
-def build_orchestrator(resolutions: dict[str, IntentResolution]):
+def build_orchestrator(
+    resolutions: dict[str, IntentResolution],
+    candidate_policy: CandidatePolicy | None = None,
+):
     audit_sink = CaptureSink()
     app_sink = CaptureSink()
     app_log = AppLogRecorder(app_sink, environment="test")
@@ -75,7 +78,7 @@ def build_orchestrator(resolutions: dict[str, IntentResolution]):
         intent=FakeIntent(resolutions),
         rules=RulesRepository(),
         response=BasicResponseComposer(),
-        candidate_policy=CandidatePolicy(),
+        candidate_policy=candidate_policy or CandidatePolicy(),
         document_engine=document_engine,
         stabilization=stabilization,
         external_checks=ExternalCheckCoordinator(),
@@ -240,3 +243,107 @@ async def test_knowledge_query_does_not_accept_same_value_candidate() -> None:
     intent_event = next(event for event in audit_sink.events if event.event_type == "intent.resolved")
     assert intent_event.data["intent_kind"] == "knowledge"
     assert intent_event.data["candidates"][0]["path"] == "/converter/outputFilename"
+
+
+class SpyCandidatePolicy(CandidatePolicy):
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls = 0
+
+    def evaluate(
+        self,
+        state: ContractState,
+        candidates: list[MutationCandidate],
+    ) -> CandidatePolicyResult:
+        self.calls += 1
+        return super().evaluate(state, candidates)
+
+
+@pytest.mark.asyncio
+async def test_unresolved_skips_candidate_policy_and_composes_clarification() -> None:
+    message = "niejasna wypowiedź"
+    spy = SpyCandidatePolicy()
+    candidate = MutationCandidate(
+        action=CandidateAction.SET,
+        path="/converter/outputFilename",
+        value="should-not-apply.csv",
+        confidence=0.99,
+        evidence=message,
+    )
+    orchestrator, sessions, audit_sink = build_orchestrator(
+        {
+            message: IntentResolution(
+                intent_kind=IntentKind.UNRESOLVED,
+                candidates=[candidate],
+                unresolved=[{"value": message, "reason": "ambiguous"}],
+            )
+        },
+        candidate_policy=spy,
+    )
+    await seed_session(sessions, sample_document())
+
+    outcome = await orchestrator.run_turn("session-1", message)
+
+    assert spy.calls == 0
+    assert outcome.intent_kind is IntentKind.UNRESOLVED
+    assert outcome.message.startswith("Nie udało mi się jednoznacznie zrozumieć")
+    assert "YAML:" not in outcome.message
+    assert "valid=" not in outcome.message
+    assert not outcome.new_events
+    assert not any(event.event_type == "candidate.accepted" for event in audit_sink.events)
+
+    composed = await BasicResponseComposer().compose(outcome)
+    assert composed.startswith("Nie udało mi się jednoznacznie zrozumieć")
+    assert "YAML:" not in composed
+    assert "valid=" not in composed
+
+
+@pytest.mark.asyncio
+async def test_malformed_knowledge_degrades_to_unresolved_end_to_end() -> None:
+    message = "jakie opcje?"
+    spy = SpyCandidatePolicy()
+    candidate = MutationCandidate(
+        action=CandidateAction.SET,
+        path="/converter/outputFilename",
+        value="should-not-apply.csv",
+        confidence=0.99,
+        evidence=message,
+    )
+    orchestrator, sessions, audit_sink = build_orchestrator(
+        {
+            message: IntentResolution(
+                intent_kind=IntentKind.KNOWLEDGE,
+                candidates=[candidate],
+                knowledge_query="  ",
+            )
+        },
+        candidate_policy=spy,
+    )
+    await seed_session(sessions, sample_document())
+
+    outcome = await orchestrator.run_turn("session-1", message)
+
+    assert spy.calls == 0
+    assert outcome.intent_kind is IntentKind.UNRESOLVED
+    assert outcome.message.startswith("Nie udało mi się jednoznacznie zrozumieć")
+    assert outcome.unresolved == [
+        {"reason": "knowledge_query is required for this intent kind"}
+    ]
+    assert not outcome.new_events
+    assert not any(event.event_type == "candidate.accepted" for event in audit_sink.events)
+
+    intent_event = next(
+        event for event in audit_sink.events if event.event_type == "intent.resolved"
+    )
+    assert intent_event.data["intent_kind"] == "knowledge"
+    assert intent_event.data["knowledge_query"] == "  "
+    assert intent_event.data["candidates"][0]["path"] == "/converter/outputFilename"
+
+    deferred = [
+        event.data
+        for event in audit_sink.events
+        if event.event_type == "candidate.deferred"
+    ]
+    assert deferred == [
+        {"reason": "knowledge_query is required for this intent kind"}
+    ]

@@ -93,6 +93,14 @@ class FakeIntent:
         )
 
 
+class UnresolvedIntent:
+    async def resolve(self, message: str, *, document: dict, definition=None) -> IntentResolution:
+        return IntentResolution(
+            intent_kind=IntentKind.UNRESOLVED,
+            unresolved=[{"intent": message, "reason": "ambiguous request"}],
+        )
+
+
 class RulesRepository:
     async def load(self, session_id: str) -> RulesDocument:
         return RulesDocument(version="test", rules=[])
@@ -237,6 +245,29 @@ def test_unresolved_accepts_resolver_value_key() -> None:
     session_id = create_session(client)
     body = client.post(TURNS_PATH.format(session_id=session_id), json={"message": "separator=;"}).json()
     assert body["unresolved"] == [{"intent": "separator=;", "reason": "source type is not known"}]
+
+
+def test_unresolved_intent_returns_clarification_and_details() -> None:
+    client = build_client(intent=UnresolvedIntent())
+    session_id = create_session(client)
+    response = client.post(TURNS_PATH.format(session_id=session_id), json={"message": "niejasne"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["message"].startswith("Nie udało mi się jednoznacznie zrozumieć")
+    assert body["unresolved"] == [{"intent": "niejasne", "reason": "ambiguous request"}]
+    assert set(body) == {
+        "session_id",
+        "turn_no",
+        "message",
+        "document",
+        "contract_status",
+        "missing",
+        "diagnostics",
+        "unresolved",
+        "changes",
+        "correlation_id",
+    }
 
 
 def test_missing_and_diagnostics_are_mapped_to_public_shape() -> None:

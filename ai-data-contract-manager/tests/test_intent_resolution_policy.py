@@ -41,7 +41,13 @@ def test_policy_applies_intent_matrix(
     assert effective.intent_kind is kind
     assert len(effective.candidates) == expected_candidates
     assert effective.knowledge_query == expected_query
-    assert effective.unresolved == raw.unresolved
+    if kind is IntentKind.UNRESOLVED:
+        assert effective.unresolved == [
+            {"value": "x"},
+            {"reason": "intent could not be resolved"},
+        ]
+    else:
+        assert effective.unresolved == raw.unresolved
     assert raw.candidates  # policy never mutates the raw result
 
 
@@ -56,3 +62,34 @@ async def test_heuristic_distinguishes_knowledge_and_unresolved_fallback() -> No
     assert unknown.intent_kind is IntentKind.UNRESOLVED
     assert unknown.knowledge_query is None
     assert unknown.unresolved
+
+
+@pytest.mark.parametrize("kind", [IntentKind.KNOWLEDGE, IntentKind.MIXED])
+def test_policy_degrades_missing_knowledge_query_to_unresolved(kind: IntentKind) -> None:
+    raw = IntentResolution(intent_kind=kind, candidates=[candidate()], knowledge_query="  ")
+    effective = IntentResolutionPolicy().apply(raw)
+
+    assert effective.intent_kind is IntentKind.UNRESOLVED
+    assert effective.candidates == []
+    assert effective.knowledge_query is None
+    assert effective.unresolved == [{"reason": "knowledge_query is required for this intent kind"}]
+    assert raw.knowledge_query == "  "
+    assert raw.candidates
+
+
+@pytest.mark.parametrize("invalid_reason", [None, "  ", {}, [], False, 0])
+def test_policy_preserves_raw_unresolved_with_invalid_reason_and_adds_reason(
+    invalid_reason: object,
+) -> None:
+    raw = IntentResolution(
+        intent_kind=IntentKind.UNRESOLVED,
+        unresolved=[{"reason": invalid_reason}],
+    )
+    effective = IntentResolutionPolicy().apply(raw)
+
+    assert effective.intent_kind is IntentKind.UNRESOLVED
+    assert effective.unresolved == [
+        {"reason": invalid_reason},
+        {"reason": "intent could not be resolved"},
+    ]
+    assert raw.unresolved == [{"reason": invalid_reason}]

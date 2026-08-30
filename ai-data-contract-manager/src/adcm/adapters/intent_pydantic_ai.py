@@ -16,10 +16,14 @@ class PydanticAIIntentResolver:
             output_type=PromptedOutput(IntentResolution),
             instructions=(
                 "Resolve the user message into IntentResolution. "
-                "Use mutation only for an explicit request to change the contract, "
-                "knowledge only for a request for information, mixed only when both "
-                "are explicit, and unresolved when the message cannot be classified. "
-                "A knowledge or unresolved result must have no mutation candidates. "
+                "The intent_kind contract has exactly four rows: MUTATION means an "
+                "explicit contract change (candidates allowed, knowledge_query null); "
+                "KNOWLEDGE means an information request (candidates ignored and a "
+                "non-blank knowledge_query required); MIXED means both explicit "
+                "change and information request (candidates allowed and a non-blank "
+                "query required); UNRESOLVED means the message cannot be classified "
+                "(no candidates, no knowledge_query, and unresolved must contain a "
+                "non-blank reason). "
                 "Do not infer a mutation candidate from a question or from the current "
                 "document value. Never mutate state or invent contract paths, and "
                 "return confidence for each candidate."

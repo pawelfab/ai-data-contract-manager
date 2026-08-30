@@ -60,8 +60,8 @@ User message
   -> IntentResolution (raw, audytowalny wynik resolvera)
   -> IntentResolutionPolicy
   -> EffectiveIntentResolution
-  -> CandidatePolicy
-  -> DocumentEngine
+  -> CandidatePolicy (pomijany dla UNRESOLVED)
+  -> DocumentEngine (brak user commands dla UNRESOLVED)
   -> StabilizationEngine
        -> ContractForgePort.analyze
        -> ConventionRulesEngine
@@ -69,7 +69,7 @@ User message
        -> DocumentEngine
        -> repeat until fixed point
   -> ExternalCheckCoordinator (na razie pusty)
-  -> ResponseComposerPort
+  -> ResponseComposerPort (prośba o doprecyzowanie dla UNRESOLVED)
 ```
 
 ## Forge

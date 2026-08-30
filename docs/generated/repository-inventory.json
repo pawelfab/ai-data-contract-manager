@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_snapshot": "4ac97acf861df0319ebd2e15a51e54429d06d4483774a733c76d0e86d74bef81",
+  "source_snapshot": "ccd48c721ee1db58304613f15405c029cd33533e8111530f52c075443a2a4ec0",
   "repository_root": ".",
   "files": [
     {
@@ -320,9 +320,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py",
       "language": "Python",
-      "bytes": 1751,
-      "lines": 34,
-      "sha256": "60b9ed7fcf655b9333e7bfa9e2726e2bd3c171f953d9feb3dc355c52f34fa56f",
+      "bytes": 2041,
+      "lines": 38,
+      "sha256": "89d0806146b9d0375322271aab45b96376b0f10ce8555b83f9aca9e953296839",
       "symbols": [
         {
           "kind": "class",
@@ -336,7 +336,7 @@
             },
             {
               "name": "resolve",
-              "line": 29,
+              "line": 33,
               "async": true
             }
           ]
@@ -488,9 +488,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/response_basic.py",
       "language": "Python",
-      "bytes": 993,
-      "lines": 21,
-      "sha256": "fce5a060675c112c41030bdf175aee9bfb9030573c8fb7f84c796dadef375b2c",
+      "bytes": 1241,
+      "lines": 26,
+      "sha256": "185d6c86f4a0fa5be07dda656cdc5c716185298828aa3b6f9e68b5df965f70f1",
       "symbols": [
         {
           "kind": "class",
@@ -700,9 +700,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/intent_resolution_policy.py",
       "language": "Python",
-      "bytes": 1000,
-      "lines": 22,
-      "sha256": "ffb2bf42ca63efcca98d9775ebc8fc5624110d6ef30495a7d2fd6a5b07992aeb",
+      "bytes": 1905,
+      "lines": 44,
+      "sha256": "8e903397beef22053db238869a325d6e0ee08348ffb3ecd34ca99cc9a7e5e2fb",
       "symbols": [
         {
           "kind": "class",
@@ -711,7 +711,17 @@
           "methods": [
             {
               "name": "apply",
-              "line": 7,
+              "line": 10,
+              "async": false
+            },
+            {
+              "name": "_unresolved",
+              "line": 31,
+              "async": false
+            },
+            {
+              "name": "_has_reason",
+              "line": 41,
               "async": false
             }
           ]
@@ -1124,9 +1134,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/turn_orchestrator.py",
       "language": "Python",
-      "bytes": 8664,
-      "lines": 213,
-      "sha256": "2b31ce63ca5cd427aa01d728199bde463ec66f1398032ae14ac23bc90a840d08",
+      "bytes": 8933,
+      "lines": 217,
+      "sha256": "1d493d47ebb8d5d2284d482503688b517b5181c0de3f0cd8a85dda40a4ca4f70",
       "symbols": [
         {
           "kind": "class",
@@ -1145,12 +1155,12 @@
             },
             {
               "name": "_audit",
-              "line": 206,
+              "line": 210,
               "async": false
             },
             {
               "name": "_app_info",
-              "line": 210,
+              "line": 214,
               "async": false
             }
           ]
@@ -1461,9 +1471,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/domain/turn.py",
       "language": "Python",
-      "bytes": 1718,
-      "lines": 55,
-      "sha256": "99da4d0d8fc0eb0728bd8e7c6c245f847c4f1720c08279d7bd614fe966dd3b93",
+      "bytes": 1746,
+      "lines": 56,
+      "sha256": "35e3f073a0ac778e3f75293c5b942362ba6afd5543b61feaaba5449ca193b3e9",
       "symbols": [
         {
           "kind": "class",

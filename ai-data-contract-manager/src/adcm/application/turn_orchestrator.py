@@ -5,14 +5,14 @@ from adcm.application.observability.app_log_recorder import AppLogRecorder
 from adcm.application.observability.audit_views import AUDIT_LEVEL_NORMAL, turn_completed_view
 from adcm.application.observability.session_audit_recorder import SessionAuditRecorder
 from adcm.domain.session import TurnSnapshot
-from adcm.domain.turn import TurnOutcome
+from adcm.domain.turn import IntentKind, TurnOutcome
 from adcm.ports.forge import ContractForgePort
 from adcm.ports.intent import IntentResolverPort
 from adcm.ports.response import ResponseComposerPort
 from adcm.ports.rules_repository import RulesRepositoryPort
 from adcm.ports.session_repository import SessionRepositoryPort
 
-from .candidate_policy import CandidatePolicy
+from .candidate_policy import CandidatePolicy, CandidatePolicyResult
 from .document_engine import DocumentEngine
 from .external_check_coordinator import ExternalCheckCoordinator
 from .intent_resolution_policy import IntentResolutionPolicy
@@ -108,12 +108,15 @@ class TurnOrchestrator:
             effective_resolution = self.intent_resolution_policy.apply(resolution)
 
             stage = "candidate_policy"
-            policy_result = self.candidate_policy.evaluate(session.contract, effective_resolution.candidates)
+            if effective_resolution.intent_kind is IntentKind.UNRESOLVED:
+                policy_result = CandidatePolicyResult()
+            else:
+                policy_result = self.candidate_policy.evaluate(session.contract, effective_resolution.candidates)
             for decision in policy_result.decisions:
                 payload = decision.candidate.model_dump(mode="json")
                 payload.update({"reason": decision.reason, "command_id": decision.command_id})
                 self._audit(audit, f"candidate.{decision.disposition.value}", payload)
-            for unresolved in resolution.unresolved:
+            for unresolved in effective_resolution.unresolved:
                 self._audit(audit, "candidate.deferred", unresolved)
 
             stage = "user_mutations"
@@ -155,7 +158,8 @@ class TurnOrchestrator:
                 external_checks=external_status,
                 new_events=new_events,
                 stabilization=stabilization_report,
-                unresolved=resolution.unresolved,
+                intent_kind=effective_resolution.intent_kind,
+                unresolved=effective_resolution.unresolved,
             )
             stage = "response_composition"
             message = await self.response.compose(provisional)

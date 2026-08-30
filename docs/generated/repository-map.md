@@ -1,6 +1,6 @@
 # Generated repository map
 
-Source snapshot: `4ac97acf861df0319ebd2e15a51e54429d06d4483774a733c76d0e86d74bef81`
+Source snapshot: `ccd48c721ee1db58304613f15405c029cd33533e8111530f52c075443a2a4ec0`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -109,11 +109,11 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py`
 - Language: Python
-- Lines: 34
+- Lines: 38
 - Symbols:
   - `class PydanticAIIntentResolver` — line 9
     - `__init__` — line 10
-    - `async resolve` — line 29
+    - `async resolve` — line 33
 
 ### `ai-data-contract-manager/src/adcm/adapters/logging/__init__.py`
 - Language: Python
@@ -163,7 +163,7 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/src/adcm/adapters/response_basic.py`
 - Language: Python
-- Lines: 21
+- Lines: 26
 - Symbols:
   - `class BasicResponseComposer` — line 6
     - `async compose` — line 7
@@ -225,10 +225,12 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/src/adcm/application/intent_resolution_policy.py`
 - Language: Python
-- Lines: 22
+- Lines: 44
 - Symbols:
   - `class IntentResolutionPolicy` — line 4
-    - `apply` — line 7
+    - `apply` — line 10
+    - `_unresolved` — line 31
+    - `_has_reason` — line 41
 
 ### `ai-data-contract-manager/src/adcm/application/json_pointer.py`
 - Language: Python
@@ -344,13 +346,13 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 213
+- Lines: 217
 - Symbols:
   - `class TurnOrchestrator` — line 22
     - `__init__` — line 23
     - `async run_turn` — line 51
-    - `_audit` — line 206
-    - `_app_info` — line 210
+    - `_audit` — line 210
+    - `_app_info` — line 214
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python
@@ -443,7 +445,7 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/src/adcm/domain/turn.py`
 - Language: Python
-- Lines: 55
+- Lines: 56
 - Symbols:
   - `class IntentKind` — line 11
   - `class IntentResolution` — line 18

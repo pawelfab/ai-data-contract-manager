@@ -120,6 +120,10 @@ interpretacja pytania zawiera sugestie wartosci. Taka sugestia nie moze zostac
 zaakceptowana jako mutacja. W jednej wypowiedzi uzytkownik moze jednak polaczyc
 jawne polecenie zmiany z pytaniem o wiedze; wtedy wykonywana jest tylko jawna zmiana,
 a pytanie pozostaje czescia tej samej tury.
+Jezeli system nie potrafi jednoznacznie rozpoznac intencji, nie uznaje zadnej
+wartosci z tej wypowiedzi za decyzje uzytkownika i nie wprowadza na jej podstawie
+zmiany. Odpowiedz prosi uzytkownika o doprecyzowanie, a szczegoly tego, czego i
+dlaczego nie rozpoznano, pozostaja dostepne w wyniku tury.
 ### 4.4 Enrichment nie jest pamiecia
 Forge jest bezstanowy i przy tym samym wejsciu proponuje to samo.
 To ADCM pamieta, co zostalo zaakceptowane.
@@ -331,6 +335,13 @@ Skutek gdyby zachowanie pominac: Puste szkielety zaciemniaja stan i maskuja real
 Sytuacja: Uzytkownik podaje szczegoly zrodla, zanim ustalono typ.
 Wymagane zachowanie: Najpierw ustalany jest typ, a wlasciwe pola trafiaja na miejsce w tej samej turze.
 Skutek gdyby zachowanie pominac: Poprawne dane sa odrzucane tylko przez kolejnosc wypowiedzi.
+### EC-14
+Sytuacja: Intencji wypowiedzi nie da sie jednoznacznie rozpoznac.
+Wymagane zachowanie: System nie uznaje wartosci z tej wypowiedzi za decyzje
+uzytkownika, nie wprowadza na jej podstawie zmiany i prosi o doprecyzowanie,
+zachowujac powod nierozpoznania.
+Skutek gdyby zachowanie pominac: Niejednoznaczna wypowiedz moze zostac potraktowana
+jak decyzja uzytkownika albo zakonczyc sie odpowiedzia niezwiazana z jego celem.
 
 ## 8. Funkcje pozornie nadmiarowe i ich uzasadnienie
 ### J-01

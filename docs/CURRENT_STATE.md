@@ -22,6 +22,8 @@
 - opcjonalny adapter PydanticAI przygotowany za `IntentResolverPort`,
 - deterministyczna `IntentResolutionPolicy` oddzielająca raw wynik resolvera od
   candidates dopuszczonych do `CandidatePolicy`,
+- jawny `UNRESOLVED` z wymaganym powodem, pominięciem `CandidatePolicy` i odpowiedzią
+  proszącą użytkownika o doprecyzowanie,
 - podstawowa odpowiedź tekstowa i YAML dla `valid && complete`,
 - stabilne REST API v1 jako jedyny interfejs wejściowy ADCM,
 - testy jednostkowe obu usług, testy kontraktu API i test kompatybilności wire-format.
@@ -84,7 +86,7 @@ import modułu nie czyta środowiska i nie tworzy zasobów.
 - semantic advisor,
 - pełny PydanticAI intent resolver jako domyślny tryb,
 - bezpieczne wycofanie automatycznie aktywowanego całego subtree, jeżeli ma potomka o wyższym autorytecie,
-- pełne SC-01..SC-22 / EC-01..EC-13 jako E2E.
+- pełne SC-01..SC-22 / EC-01..EC-14 jako E2E.
 
 ## Observability implemented
 
