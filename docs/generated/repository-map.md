@@ -1,6 +1,6 @@
 # Generated repository map
 
-Source snapshot: `ccd48c721ee1db58304613f15405c029cd33533e8111530f52c075443a2a4ec0`
+Source snapshot: `732b63c79e5ce2ea2742f984b2160a5df78a101c392d5702ba3bf46bd064f08d`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
@@ -10,7 +10,7 @@ Source files indexed: **84**
 
 ### `ai-data-contract-manager/pyproject.toml`
 - Language: TOML
-- Lines: 32
+- Lines: 40
 - Symbols: none extracted
 
 ### `ai-data-contract-manager/resources/ux_rules.json`

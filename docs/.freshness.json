@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "reason": "pre-commit staged documentation generation",
-  "source_snapshot": "ccd48c721ee1db58304613f15405c029cd33533e8111530f52c075443a2a4ec0",
+  "source_snapshot": "732b63c79e5ce2ea2742f984b2160a5df78a101c392d5702ba3bf46bd064f08d",
   "source_hashes": {
-    "ai-data-contract-manager/pyproject.toml": "d24c9f1053f01d80e3fda818c854b03db34016afdec8a9e3e25c1533f8caac3f",
+    "ai-data-contract-manager/pyproject.toml": "95b54956d9176762d5ed0a9e798a744383efaa393cac2cbf806a30711480b9a1",
     "ai-data-contract-manager/resources/ux_rules.json": "c8a679285dacf5a1de7f976f239c851926482f8faa795ff39b7c1867f34cc0e2",
     "ai-data-contract-manager/src/adcm/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "ai-data-contract-manager/src/adcm/adapters/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

@@ -26,7 +26,10 @@
   proszącą użytkownika o doprecyzowanie,
 - podstawowa odpowiedź tekstowa i YAML dla `valid && complete`,
 - stabilne REST API v1 jako jedyny interfejs wejściowy ADCM,
-- testy jednostkowe obu usług, testy kontraktu API i test kompatybilności wire-format.
+- testy jednostkowe obu usług, testy kontraktu API i test kompatybilności wire-format,
+- suita live end-to-end (`ai-data-contract-manager/tests/live/`) uruchamiająca realne
+  procesy Forge i ADCM i asercjonująca wyłącznie na publicznym kontrakcie REST v1;
+  scenariusze zależne od prawdziwego LLM są oznaczone osobno i non-blocking.
 
 ## REST API v1
 
@@ -87,6 +90,24 @@ import modułu nie czyta środowiska i nie tworzy zasobów.
 - pełny PydanticAI intent resolver jako domyślny tryb,
 - bezpieczne wycofanie automatycznie aktywowanego całego subtree, jeżeli ma potomka o wyższym autorytecie,
 - pełne SC-01..SC-22 / EC-01..EC-14 jako E2E.
+
+## Pokrycie live E2E
+
+Suita live pokrywa dziś: SC-02, SC-04, SC-06, SC-12, SC-13 (tylko brak mutacji),
+SC-15, SC-18, SC-19, EC-06, EC-07, EC-14, D-02, D-06, J-02, J-04 oraz MIXED z 4.3
+(wyłącznie w trybie LLM).
+
+Poza zasięgiem na obecnym `resources/contract.json`, który jest lokalnym fixture bez
+sekcji `gold`/`preparator`/`rawData`/`bronzeTable`, bez oneOf/discriminatora i bez pól
+wariantowych per `sourceType`: SC-03, SC-05, SC-07, SC-08, SC-09, SC-10, SC-11.
+
+Dwa ograniczenia produktowe ujawnione przez tę suitę:
+- `EffectiveIntentResolution.knowledge_query` jest wyliczane, ale nigdy nie konsumowane —
+  nie ma go na `TurnOutcome`, a composer zwraca dla tury KNOWLEDGE ten sam tekst
+  status/missing co dla mutacyjnej. Kryterium biznesowe SC-13 („odpowiedź pochodzi z listy
+  dopuszczalnych wartości") jest przez to nieimplementowalne; testowalny jest wyłącznie
+  brak mutacji.
+- `MIXED` jest nieosiągalny bez LLM — `HeuristicIntentResolver` nie ma takiej gałęzi.
 
 ## Observability implemented
 

@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "source_snapshot": "ccd48c721ee1db58304613f15405c029cd33533e8111530f52c075443a2a4ec0",
+  "source_snapshot": "732b63c79e5ce2ea2742f984b2160a5df78a101c392d5702ba3bf46bd064f08d",
   "repository_root": ".",
   "files": [
     {
       "path": "ai-data-contract-manager/pyproject.toml",
       "language": "TOML",
-      "bytes": 662,
-      "lines": 32,
-      "sha256": "d24c9f1053f01d80e3fda818c854b03db34016afdec8a9e3e25c1533f8caac3f",
+      "bytes": 1071,
+      "lines": 40,
+      "sha256": "95b54956d9176762d5ed0a9e798a744383efaa393cac2cbf806a30711480b9a1",
       "symbols": []
     },
     {

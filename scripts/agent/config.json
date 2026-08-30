@@ -144,7 +144,10 @@
     "typecheck": [],
     "test": [
       "ai-data-contract-manager\\.venv\\Scripts\\python.exe -m pytest ai-data-contract-manager\\tests -q",
-      "mcp-servers\\mcp-contract-forge\\.venv\\Scripts\\python.exe -m pytest mcp-servers\\mcp-contract-forge\\tests -q"
+      "set \"FORGE_CONTRACT_PATH=mcp-servers\\mcp-contract-forge\\resources\\contract.json\" && mcp-servers\\mcp-contract-forge\\.venv\\Scripts\\python.exe -m pytest mcp-servers\\mcp-contract-forge\\tests -q"
+    ],
+    "system_test": [
+      "ai-data-contract-manager\\.venv\\Scripts\\python.exe -m pytest ai-data-contract-manager\\tests\\live -q -m live"
     ],
     "build": []
   },

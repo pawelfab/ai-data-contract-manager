@@ -26,6 +26,14 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# Testy live startują realne procesy Forge + ADCM, więc nie mogą wchodzić do
+# domyślnego przebiegu. Wybiera się je jawnie: `-m live` albo `-m llm`
+# (podane w linii poleceń `-m` nadpisuje ten z addopts).
+markers = [
+  "live: wymaga realnie uruchomionego ADCM REST API + realnego Contract Forge",
+  "llm: dodatkowo wymaga realnego resolvera LLM (non-blocking)",
+]
+addopts = '-m "not live and not llm"'
 
 [project.scripts]
 adcm = "adcm.main:main"
