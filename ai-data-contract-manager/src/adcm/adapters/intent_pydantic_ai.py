@@ -10,11 +10,19 @@ class PydanticAIIntentResolver:
     def __init__(self, model: str) -> None:
         self.agent = Agent(
             model,
-            ##output_type=IntentResolution, to nie działa z lokalny api bo uzywa tool output którego nie obsługuje lokalnie, musi byc jak nizej przez PromptedOutput
+            name="adcm_intent_resolver",
+            # PromptedOutput is required by the configured local API, which does
+            # not support the tool-output mode used by a bare output_type model.
             output_type=PromptedOutput(IntentResolution),
             instructions=(
-                "Convert the user message into generic contract mutation candidates. "
-                "Never mutate state, never invent contract paths, and return confidence for each candidate."
+                "Resolve the user message into IntentResolution. "
+                "Use mutation only for an explicit request to change the contract, "
+                "knowledge only for a request for information, mixed only when both "
+                "are explicit, and unresolved when the message cannot be classified. "
+                "A knowledge or unresolved result must have no mutation candidates. "
+                "Do not infer a mutation candidate from a question or from the current "
+                "document value. Never mutate state or invent contract paths, and "
+                "return confidence for each candidate."
             ),
         )
 

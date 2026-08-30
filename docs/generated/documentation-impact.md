@@ -1,38 +1,29 @@
 # Generated documentation impact
 
-Source snapshot: `d9c51a46e2d4608205761096bcaccff35cca69f5f426ea9d3a10f1e28cbcce49`
+Source snapshot: `4ac97acf861df0319ebd2e15a51e54429d06d4483774a733c76d0e86d74bef81`
 Input: `staged Git index`
 
 > This deterministic review aid does not replace curated architecture or service documentation.
 
 ## Changed source paths
 
-- `ai-data-contract-manager/Dockerfile`
-- `ai-data-contract-manager/README.md`
-- `ai-data-contract-manager/src/adcm/adapters/api/app.py`
-- `ai-data-contract-manager/src/adcm/adapters/api/composition.py`
-- `ai-data-contract-manager/src/adcm/adapters/api/errors.py`
-- `ai-data-contract-manager/src/adcm/adapters/api/mappers.py`
-- `ai-data-contract-manager/src/adcm/adapters/api/models.py`
-- `ai-data-contract-manager/src/adcm/adapters/forge_mcp.py`
-- `ai-data-contract-manager/src/adcm/adapters/session_memory.py`
-- `ai-data-contract-manager/src/adcm/application/session_service.py`
+- `ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py`
+- `ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py`
+- `ai-data-contract-manager/src/adcm/application/intent_resolution_policy.py`
 - `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
-- `ai-data-contract-manager/src/adcm/domain/errors.py`
-- `ai-data-contract-manager/src/adcm/domain/session.py`
 - `ai-data-contract-manager/src/adcm/domain/turn.py`
-- `ai-data-contract-manager/src/adcm/ports/session_repository.py`
 - `ai-data-contract-manager/tests/test_api.py`
-- `ai-data-contract-manager/tests/test_api_architecture.py`
+- `ai-data-contract-manager/tests/test_audit_compact.py`
+- `ai-data-contract-manager/tests/test_intent_resolution_policy.py`
+- `ai-data-contract-manager/tests/test_knowledge_query.py`
+- `ai-data-contract-manager/tests/test_turn_audit.py`
 - `docs/ARCHITECTURE_BASELINE.md`
+- `docs/BUSINESS_BEHAVIOR.md`
 - `docs/CORE_INVARIANTS.md`
 - `docs/CURRENT_STATE.md`
 - `docs/MODULE_CONTRACTS.md`
-- `docs/history/2026-08-29_rest-api-v1/IMPLEMENTATION.md`
-- `docs/history/2026-08-29_rest-api-v1/TASK.md`
-- `docs/logging-architecture.md`
-- `docs/logging-implementation-guide.md`
-- `readme.md`
+- `docs/history/2026-08-30_intent-resolution-policy/IMPLEMENTATION.md`
+- `docs/history/2026-08-30_intent-resolution-policy/TASK.md`
 
 ## Curated documentation to review
 

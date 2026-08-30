@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -7,8 +8,24 @@ from .forge import ForgeAnalysis
 from .mutations import MutationCandidate, MutationEvent
 
 
+class IntentKind(StrEnum):
+    MUTATION = "mutation"
+    KNOWLEDGE = "knowledge"
+    MIXED = "mixed"
+    UNRESOLVED = "unresolved"
+
+
 class IntentResolution(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    intent_kind: IntentKind
+    candidates: list[MutationCandidate] = Field(default_factory=list)
+    knowledge_query: str | None = None
+    unresolved: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class EffectiveIntentResolution(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    intent_kind: IntentKind
     candidates: list[MutationCandidate] = Field(default_factory=list)
     knowledge_query: str | None = None
     unresolved: list[dict[str, Any]] = Field(default_factory=list)

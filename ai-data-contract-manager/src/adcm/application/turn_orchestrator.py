@@ -15,6 +15,7 @@ from adcm.ports.session_repository import SessionRepositoryPort
 from .candidate_policy import CandidatePolicy
 from .document_engine import DocumentEngine
 from .external_check_coordinator import ExternalCheckCoordinator
+from .intent_resolution_policy import IntentResolutionPolicy
 from .stabilization_engine import StabilizationEngine
 
 
@@ -45,6 +46,7 @@ class TurnOrchestrator:
         self.external_checks = external_checks
         self.audit = audit
         self.app_log = app_log
+        self.intent_resolution_policy = IntentResolutionPolicy()
 
     async def run_turn(
         self,
@@ -103,9 +105,10 @@ class TurnOrchestrator:
                 data={"candidate_count": len(resolution.candidates), "unresolved_count": len(resolution.unresolved)},
             )
             self._audit(audit, "intent.resolved", resolution.model_dump(mode="json"))
+            effective_resolution = self.intent_resolution_policy.apply(resolution)
 
             stage = "candidate_policy"
-            policy_result = self.candidate_policy.evaluate(session.contract, resolution.candidates)
+            policy_result = self.candidate_policy.evaluate(session.contract, effective_resolution.candidates)
             for decision in policy_result.decisions:
                 payload = decision.candidate.model_dump(mode="json")
                 payload.update({"reason": decision.reason, "command_id": decision.command_id})

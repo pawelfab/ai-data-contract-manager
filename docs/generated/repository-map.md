@@ -1,10 +1,10 @@
 # Generated repository map
 
-Source snapshot: `d9c51a46e2d4608205761096bcaccff35cca69f5f426ea9d3a10f1e28cbcce49`
+Source snapshot: `4ac97acf861df0319ebd2e15a51e54429d06d4483774a733c76d0e86d74bef81`
 
 > Navigation aid generated mechanically. Symbol extraction outside Python is heuristic.
 
-Source files indexed: **83**
+Source files indexed: **84**
 
 ## `ai-data-contract-manager/`
 
@@ -101,19 +101,19 @@ Source files indexed: **83**
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py`
 - Language: Python
-- Lines: 58
+- Lines: 81
 - Symbols:
-  - `class HeuristicIntentResolver` — line 14
-    - `async resolve` — line 17
-    - `_parse_value` — line 52
+  - `class HeuristicIntentResolver` — line 21
+    - `async resolve` — line 24
+    - `_parse_value` — line 75
 
 ### `ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py`
 - Language: Python
-- Lines: 26
+- Lines: 34
 - Symbols:
   - `class PydanticAIIntentResolver` — line 9
     - `__init__` — line 10
-    - `async resolve` — line 21
+    - `async resolve` — line 29
 
 ### `ai-data-contract-manager/src/adcm/adapters/logging/__init__.py`
 - Language: Python
@@ -222,6 +222,13 @@ Source files indexed: **83**
 - Symbols:
   - `class ExternalCheckCoordinator` — line 4
     - `async run` — line 7
+
+### `ai-data-contract-manager/src/adcm/application/intent_resolution_policy.py`
+- Language: Python
+- Lines: 22
+- Symbols:
+  - `class IntentResolutionPolicy` — line 4
+    - `apply` — line 7
 
 ### `ai-data-contract-manager/src/adcm/application/json_pointer.py`
 - Language: Python
@@ -337,13 +344,13 @@ Source files indexed: **83**
 
 ### `ai-data-contract-manager/src/adcm/application/turn_orchestrator.py`
 - Language: Python
-- Lines: 210
+- Lines: 213
 - Symbols:
-  - `class TurnOrchestrator` — line 21
-    - `__init__` — line 22
-    - `async run_turn` — line 49
-    - `_audit` — line 203
-    - `_app_info` — line 207
+  - `class TurnOrchestrator` — line 22
+    - `__init__` — line 23
+    - `async run_turn` — line 51
+    - `_audit` — line 206
+    - `_app_info` — line 210
 
 ### `ai-data-contract-manager/src/adcm/domain/__init__.py`
 - Language: Python
@@ -436,11 +443,13 @@ Source files indexed: **83**
 
 ### `ai-data-contract-manager/src/adcm/domain/turn.py`
 - Language: Python
-- Lines: 38
+- Lines: 55
 - Symbols:
-  - `class IntentResolution` — line 10
-  - `class StabilizationReport` — line 17
-  - `class TurnOutcome` — line 25
+  - `class IntentKind` — line 11
+  - `class IntentResolution` — line 18
+  - `class EffectiveIntentResolution` — line 26
+  - `class StabilizationReport` — line 34
+  - `class TurnOutcome` — line 42
 
 ### `ai-data-contract-manager/src/adcm/ports/__init__.py`
 - Language: Python

@@ -4,7 +4,8 @@
 
 | Black box | Input | Output | Nie może robić |
 |---|---|---|---|
-| `IntentResolverPort` | user message + current document + neutral Forge description | `IntentResolution` | mutować dokumentu |
+| `IntentResolverPort` | user message + current document + neutral Forge description | raw `IntentResolution` | mutować dokumentu, decydować o dopuszczeniu candidates do mutacji |
+| `IntentResolutionPolicy` | raw `IntentResolution` | `EffectiveIntentResolution` | mutować dokumentu, oceniać confidence lub znać schema path |
 | `CandidatePolicy` | `ContractState` + candidates | `MutationCommand[]` | znać konkretnego schema path |
 | `DocumentEngine` | `ContractState` + commands | `MutationEvent[]` + nowy stan | walidować contract.json |
 | `ConventionRulesEngine` | effective rules + state + `ForgeAnalysis` | `Proposal[]` | mutować dokumentu |
@@ -45,6 +46,12 @@ w którym sesja się zatrzymała. Dzięki temu odczyt stanu sesji nie wymaga Con
 
 `TurnOutcome.unresolved` przenosi wynik `IntentResolver` przez warstwę application,
 żeby informacja o niezrozumianym fragmencie wypowiedzi nie kończyła się w Session Audit.
+
+`IntentResolution` jest niezmienianym wynikiem resolvera zapisywanym w Session Audit.
+`IntentResolutionPolicy` tworzy osobny `EffectiveIntentResolution`: dla `KNOWLEDGE`
+usuwa candidates, dla `MUTATION` usuwa `knowledge_query`, dla `MIXED` zachowuje oba,
+a dla `UNRESOLVED` nie dopuszcza żadnego kanału. `CandidatePolicy` otrzymuje wyłącznie
+effective candidates i nie zna `IntentKind`.
 
 ## Contract Forge
 

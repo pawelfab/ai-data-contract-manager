@@ -19,7 +19,7 @@ from adcm.domain.mutations import CandidateAction, MutationCandidate, MutationEv
 from adcm.domain.provenance import ValueProvenance, ValueSource
 from adcm.domain.rules import RulesDocument
 from adcm.domain.session import SessionState
-from adcm.domain.turn import IntentResolution
+from adcm.domain.turn import IntentKind, IntentResolution
 
 
 class CaptureSink:
@@ -135,7 +135,7 @@ async def seed_session(sessions: InMemorySessionRepository, document: dict) -> N
 async def test_knowledge_query_does_not_mutate_contract() -> None:
     message = "jakie opcje converter dostępne?"
     orchestrator, sessions, audit_sink = build_orchestrator(
-        {message: IntentResolution(knowledge_query="jakie pola i opcje są dostępne w /converter?")}
+        {message: IntentResolution(intent_kind=IntentKind.KNOWLEDGE, knowledge_query="jakie pola i opcje są dostępne w /converter?")}
     )
     await seed_session(sessions, sample_document())
     before = await sessions.get("session-1")
@@ -176,6 +176,7 @@ async def test_knowledge_query_can_coexist_with_explicit_mutation() -> None:
     orchestrator, sessions, audit_sink = build_orchestrator(
         {
             message: IntentResolution(
+                intent_kind=IntentKind.MIXED,
                 candidates=[candidate],
                 knowledge_query="jakie pola i opcje są dostępne w /converter?",
             )
@@ -213,6 +214,7 @@ async def test_knowledge_query_does_not_accept_same_value_candidate() -> None:
     orchestrator, sessions, audit_sink = build_orchestrator(
         {
             message: IntentResolution(
+                intent_kind=IntentKind.KNOWLEDGE,
                 candidates=[candidate],
                 knowledge_query="jakie pola i opcje są dostępne w /converter?",
             )
@@ -235,3 +237,6 @@ async def test_knowledge_query_does_not_accept_same_value_candidate() -> None:
     assert after.contract.revision == revision_before
     assert after.contract.mutation_log == mutation_log_before
     assert not [event for event in audit_sink.events if event.event_type == "candidate.accepted"]
+    intent_event = next(event for event in audit_sink.events if event.event_type == "intent.resolved")
+    assert intent_event.data["intent_kind"] == "knowledge"
+    assert intent_event.data["candidates"][0]["path"] == "/converter/outputFilename"

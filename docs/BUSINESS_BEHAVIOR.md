@@ -115,6 +115,11 @@ Wartosc uzytkownika jest autorytatywna.
 Enrichment nie moze jej cicho nadpisac w kolejnych turach.
 Uzytkownik moze zmieniac te sama wartosc wielokrotnie.
 Obowiazuje ostatnia decyzja uzytkownika.
+Pytanie o wiedze nie jest decyzja uzytkownika o zmianie wartosci, nawet jezeli
+interpretacja pytania zawiera sugestie wartosci. Taka sugestia nie moze zostac
+zaakceptowana jako mutacja. W jednej wypowiedzi uzytkownik moze jednak polaczyc
+jawne polecenie zmiany z pytaniem o wiedze; wtedy wykonywana jest tylko jawna zmiana,
+a pytanie pozostaje czescia tej samej tury.
 ### 4.4 Enrichment nie jest pamiecia
 Forge jest bezstanowy i przy tym samym wejsciu proponuje to samo.
 To ADCM pamieta, co zostalo zaakceptowane.

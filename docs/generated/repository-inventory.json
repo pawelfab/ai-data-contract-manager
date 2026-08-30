@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_snapshot": "d9c51a46e2d4608205761096bcaccff35cca69f5f426ea9d3a10f1e28cbcce49",
+  "source_snapshot": "4ac97acf861df0319ebd2e15a51e54429d06d4483774a733c76d0e86d74bef81",
   "repository_root": ".",
   "files": [
     {
@@ -294,23 +294,23 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/intent_heuristic.py",
       "language": "Python",
-      "bytes": 2077,
-      "lines": 58,
-      "sha256": "4a7b9e1608936144b4b74931fb303496fdde9b404268c14b23c9da01b42880bc",
+      "bytes": 2801,
+      "lines": 81,
+      "sha256": "cd66ec1987dcb257e708b5135066a5a830df89e96d0b16d1c702c1ebfba1d9ff",
       "symbols": [
         {
           "kind": "class",
           "name": "HeuristicIntentResolver",
-          "line": 14,
+          "line": 21,
           "methods": [
             {
               "name": "resolve",
-              "line": 17,
+              "line": 24,
               "async": true
             },
             {
               "name": "_parse_value",
-              "line": 52,
+              "line": 75,
               "async": false
             }
           ]
@@ -320,9 +320,9 @@
     {
       "path": "ai-data-contract-manager/src/adcm/adapters/intent_pydantic_ai.py",
       "language": "Python",
-      "bytes": 1272,
-      "lines": 26,
-      "sha256": "c15aff7319ffa7be98850fefbd8969615b1ae5bfd8b5c90f1a431f45c290b6a1",
+      "bytes": 1751,
+      "lines": 34,
+      "sha256": "60b9ed7fcf655b9333e7bfa9e2726e2bd3c171f953d9feb3dc355c52f34fa56f",
       "symbols": [
         {
           "kind": "class",
@@ -336,7 +336,7 @@
             },
             {
               "name": "resolve",
-              "line": 21,
+              "line": 29,
               "async": true
             }
           ]
@@ -692,6 +692,27 @@
               "name": "run",
               "line": 7,
               "async": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "ai-data-contract-manager/src/adcm/application/intent_resolution_policy.py",
+      "language": "Python",
+      "bytes": 1000,
+      "lines": 22,
+      "sha256": "ffb2bf42ca63efcca98d9775ebc8fc5624110d6ef30495a7d2fd6a5b07992aeb",
+      "symbols": [
+        {
+          "kind": "class",
+          "name": "IntentResolutionPolicy",
+          "line": 4,
+          "methods": [
+            {
+              "name": "apply",
+              "line": 7,
+              "async": false
             }
           ]
         }
@@ -1103,33 +1124,33 @@
     {
       "path": "ai-data-contract-manager/src/adcm/application/turn_orchestrator.py",
       "language": "Python",
-      "bytes": 8445,
-      "lines": 210,
-      "sha256": "bf0fb0ed08c1004a960d5a3c544f9236bfe01241180cad461915fa16a206b902",
+      "bytes": 8664,
+      "lines": 213,
+      "sha256": "2b31ce63ca5cd427aa01d728199bde463ec66f1398032ae14ac23bc90a840d08",
       "symbols": [
         {
           "kind": "class",
           "name": "TurnOrchestrator",
-          "line": 21,
+          "line": 22,
           "methods": [
             {
               "name": "__init__",
-              "line": 22,
+              "line": 23,
               "async": false
             },
             {
               "name": "run_turn",
-              "line": 49,
+              "line": 51,
               "async": true
             },
             {
               "name": "_audit",
-              "line": 203,
+              "line": 206,
               "async": false
             },
             {
               "name": "_app_info",
-              "line": 207,
+              "line": 210,
               "async": false
             }
           ]
@@ -1440,26 +1461,38 @@
     {
       "path": "ai-data-contract-manager/src/adcm/domain/turn.py",
       "language": "Python",
-      "bytes": 1236,
-      "lines": 38,
-      "sha256": "01bd992e6b9c561ecb47963dcb2f54e640f7096f4f609bb29986cc8bedf37371",
+      "bytes": 1718,
+      "lines": 55,
+      "sha256": "99da4d0d8fc0eb0728bd8e7c6c245f847c4f1720c08279d7bd614fe966dd3b93",
       "symbols": [
         {
           "kind": "class",
+          "name": "IntentKind",
+          "line": 11,
+          "methods": []
+        },
+        {
+          "kind": "class",
           "name": "IntentResolution",
-          "line": 10,
+          "line": 18,
+          "methods": []
+        },
+        {
+          "kind": "class",
+          "name": "EffectiveIntentResolution",
+          "line": 26,
           "methods": []
         },
         {
           "kind": "class",
           "name": "StabilizationReport",
-          "line": 17,
+          "line": 34,
           "methods": []
         },
         {
           "kind": "class",
           "name": "TurnOutcome",
-          "line": 25,
+          "line": 42,
           "methods": []
         }
       ]

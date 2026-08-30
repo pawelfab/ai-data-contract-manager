@@ -24,7 +24,7 @@ from adcm.domain.forge import (
 )
 from adcm.domain.mutations import CandidateAction, MutationCandidate
 from adcm.domain.rules import ConventionRule, RuleCondition, RulesDocument
-from adcm.domain.turn import IntentResolution
+from adcm.domain.turn import IntentKind, IntentResolution
 
 # A writable list large enough to dominate the payload when it is repeated per round,
 # which is exactly what the compact audit must avoid.
@@ -111,6 +111,7 @@ class MultiRoundForge:
 class FakeIntent:
     async def resolve(self, message: str, *, document: dict, definition=None) -> IntentResolution:
         return IntentResolution(
+            intent_kind=IntentKind.MUTATION,
             candidates=[
                 MutationCandidate(
                     action=CandidateAction.SET,
@@ -199,7 +200,8 @@ async def test_intent_resolved_keeps_full_candidates() -> None:
     await run_multi_round_turn(sink)
 
     data = events_of(sink, "intent.resolved")[0].data
-    assert set(data) == {"candidates", "knowledge_query", "unresolved"}
+    assert set(data) == {"intent_kind", "candidates", "knowledge_query", "unresolved"}
+    assert data["intent_kind"] == "mutation"
     candidate = data["candidates"][0]
     assert candidate["path"] == "/metadata/sourceSystemGcpId"
     assert candidate["value"] == "sap"

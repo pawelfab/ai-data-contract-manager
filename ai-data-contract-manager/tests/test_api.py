@@ -22,7 +22,7 @@ from adcm.domain.errors import ForgeUnavailableError
 from adcm.domain.forge import ContractStatus, Diagnostic, ForgeAnalysis, ForgeDescription, MissingRequirement
 from adcm.domain.mutations import CandidateAction, MutationCandidate
 from adcm.domain.rules import RulesDocument
-from adcm.domain.turn import IntentResolution
+from adcm.domain.turn import IntentKind, IntentResolution
 
 TURNS_PATH = "/v1/sessions/{session_id}/turns"
 LEGACY_TURN_PATH = "/v1/sessions/{session_id}/turn"
@@ -79,6 +79,7 @@ class FakeIntent:
     async def resolve(self, message: str, *, document: dict, definition=None) -> IntentResolution:
         self.calls += 1
         return IntentResolution(
+            intent_kind=IntentKind.MUTATION,
             candidates=[
                 MutationCandidate(
                     action=CandidateAction.SET,

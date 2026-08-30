@@ -57,7 +57,10 @@ Przepływ tury:
 ```text
 User message
   -> IntentResolverPort
-  -> MutationCandidate
+  -> IntentResolution (raw, audytowalny wynik resolvera)
+  -> IntentResolutionPolicy
+  -> EffectiveIntentResolution
+  -> CandidatePolicy
   -> DocumentEngine
   -> StabilizationEngine
        -> ContractForgePort.analyze

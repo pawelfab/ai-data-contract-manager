@@ -20,6 +20,8 @@
 - in-memory session repository,
 - heurystyczny resolver intencji do smoke testów,
 - opcjonalny adapter PydanticAI przygotowany za `IntentResolverPort`,
+- deterministyczna `IntentResolutionPolicy` oddzielająca raw wynik resolvera od
+  candidates dopuszczonych do `CandidatePolicy`,
 - podstawowa odpowiedź tekstowa i YAML dla `valid && complete`,
 - stabilne REST API v1 jako jedyny interfejs wejściowy ADCM,
 - testy jednostkowe obu usług, testy kontraktu API i test kompatybilności wire-format.

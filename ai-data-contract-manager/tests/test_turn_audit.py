@@ -14,7 +14,7 @@ from adcm.application.turn_orchestrator import TurnOrchestrator
 from adcm.domain.forge import ContractStatus, ForgeAnalysis, ForgeDescription
 from adcm.domain.mutations import CandidateAction, MutationCandidate
 from adcm.domain.rules import ConventionRule, RulesDocument
-from adcm.domain.turn import IntentResolution
+from adcm.domain.turn import IntentKind, IntentResolution
 
 
 class CaptureSink:
@@ -45,6 +45,7 @@ class FakeForge:
 class FakeIntent:
     async def resolve(self, message: str, *, document: dict, definition=None) -> IntentResolution:
         return IntentResolution(
+            intent_kind=IntentKind.MUTATION,
             candidates=[
                 MutationCandidate(
                     action=CandidateAction.SET,

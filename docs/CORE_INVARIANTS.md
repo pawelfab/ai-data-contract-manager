@@ -6,7 +6,9 @@
 4. ADCM nie ma klas odpowiadających konkretnej strukturze `contract.json`; dokument jest generycznym JSON-em.
 5. `contract.json` jest własnością zewnętrzną. ADCM go nie parsuje i go nie modyfikuje.
 6. Forge jest bezstanowy, nie zna rozmowy i nie wywołuje LLM.
-7. LLM nigdy nie mutuje `ContractState` bezpośrednio. Generuje tylko kandydatów.
+7. LLM nigdy nie mutuje `ContractState` bezpośrednio. Zwraca raw interpretację, a
+   deterministyczna polityka application decyduje, które jej candidates mogą trafić
+   do `CandidatePolicy`.
 8. Jedynym modułem zmieniającym dokument jest `DocumentEngine` przez generyczne mutacje JSON Pointer.
 9. Automatyczne źródła (`APP_RULE`, Forge enrichment/default) tworzą propozycje; `ProposalReconciler` rozstrzyga autorytet.
 10. Jawna wartość użytkownika ma wyższy autorytet niż automatyczne propozycje.
